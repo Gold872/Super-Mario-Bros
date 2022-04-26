@@ -45,6 +45,10 @@ class TextureManager {
    }
 
   private:
+   TextureManager() {}
+
+   TextureManager(const TextureManager&) = delete;
+
    static TextureManager instance;
 
    SDL_Window* window;
