@@ -1,37 +1,6 @@
 #pragma once
-/*
- * Used for getting the min/max of integers and doubles
- * */
-class Math {
-  public:
-   static int max(int a, int b) {
-      return (a > b) ? a : b;
-   }
 
-   static double max(double a, double b) {
-      return (a > b) ? a : b;
-   }
-
-   static int min(int a, int b) {
-      return (a < b) ? a : b;
-   }
-
-   static double min(double a, double b) {
-      return (a < b) ? a : b;
-   }
-
-   static int abs(int a) {
-      return (a > 0) ? a : -a;
-   }
-
-   static float abs(float a) {
-      return (a > 0) ? a : -a;
-   }
-
-   static double abs(double a) {
-      return (a > 0) ? a : -a;
-   }
-};
+#include <algorithm>
 
 /*
  * The Vector2 stores an x and a y value. This is used for the position of all Entities
@@ -96,7 +65,7 @@ typedef Vector2<float> Vector2f;
 
 class PIDController {
   public:
-	PIDController() = default;
+   PIDController() = default;
    PIDController(double kP, double kI, double kD) : m_kP{kP}, m_kI{kI}, m_kD{kD} {}
    PIDController(double kP, double kI, double kD, double period)
        : m_kP{kP}, m_kI{kI}, m_kD{kD}, m_period{period} {}
@@ -145,6 +114,6 @@ class PIDController {
    double m_positionError = 0;
 
    double clamp(double value, double low, double high) {
-      return Math::max(low, Math::min(value, high));
+      return std::max(low, std::min(value, high));
    }
 };

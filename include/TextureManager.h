@@ -14,6 +14,7 @@ enum class BackgroundColor
    BLACK,
    BLUE
 };
+
 class TextureManager {
   public:
    static TextureManager& Get() {
