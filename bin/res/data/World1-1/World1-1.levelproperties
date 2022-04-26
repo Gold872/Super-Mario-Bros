@@ -1,0 +1,41 @@
+PLAYER_START = (2, 12)
+
+NEXT_LEVEL = (1, 2)
+
+LEVEL_TYPE = OVERWORLD
+
+BACKGROUND_COLOR = BLUE
+
+CAMERA_MAX = 223
+
+TEST_LOCATIONS=\
+	(2, 3),\
+	(4, 2),\
+	(3, 6),\
+	(5, 12),\
+	(16, 14),\
+	(19, 27)
+
+# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Underwater) (New Level (0, 0) if none)
+WARP_PIPE=\
+	(57, 9) (2, 20) (0, 18) DOWN NONE TRUE BLACK FALSE (0, 0),\
+	(13, 30) (163, 11) (159, 0) RIGHT UP FALSE BLUE FALSE (0, 0)
+
+MYSTERY_BOX=\
+	(22, 5) COINS,\
+	(94, 5) COINS,\
+	(109, 5) MUSHROOM,\
+	(129, 5) COINS,\
+	(130, 5) COINS,\
+	(16, 9) COINS,\
+	(21, 9) MUSHROOM,\
+	(23, 9) COINS,\
+	(78, 9) MUSHROOM,\
+	(106, 9) COINS,\
+	(109, 9) COINS,\
+	(112, 9) COINS,\
+	(170, 9) COINS
+
+MYSTERY_BRICK=\
+	(94, 9) COINS,\
+	(101, 9) SUPER_STAR
