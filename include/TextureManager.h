@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef TEXTURE_MANAGER_H
-#define TEXTURE_MANAGER_H
-
 #include "ECS/ECS.h"
 #include "Math.h"
 
@@ -53,4 +50,3 @@ class TextureManager {
    SDL_Renderer* renderer;
    BackgroundColor currentColor;
 };
-#endif  // TEXTURE_MANAGER_H
