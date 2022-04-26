@@ -13,11 +13,11 @@
 #include <iostream>
 
 void RenderSystem::onAddedToWorld(World* world) {
-   normalFont = TextureManager::LoadSharedFont("res/fonts/press-start-2p.ttf", 25);
+   normalFont = TextureManager::Get().LoadSharedFont("res/fonts/press-start-2p.ttf", 25);
 }
 
 void RenderSystem::tick(World* world) {
-   TextureManager::Clear();
+   TextureManager::Get().Clear();
    // This is to render the entities in the correct order
    world->find<PositionComponent, TextureComponent, BackgroundComponent>([&](Entity* entity) {
       if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
@@ -58,7 +58,7 @@ void RenderSystem::tick(World* world) {
       renderText(entity);
    });
 
-   TextureManager::Display();
+   TextureManager::Get().Display();
 }
 
 void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
@@ -76,8 +76,9 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
                                position->scale.y};
 
    if (texture->isVisible()) {
-      TextureManager::Draw(texture->getTexture(), texture->getSourceRect(), destinationRect,
-                           texture->isHorizontalFlipped(), texture->isVerticalFlipped());
+      TextureManager::Get().Draw(texture->getTexture(), texture->getSourceRect(),
+                                         destinationRect, texture->isHorizontalFlipped(),
+                                         texture->isVerticalFlipped());
    }
 }
 
@@ -91,7 +92,7 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
           TTF_RenderText_Blended(normalFont.get(), textComponent->text.c_str(), color);
 
       SDL_Texture* texture =
-          SDL_CreateTextureFromSurface(TextureManager::GetRenderer(), textSurface);
+          SDL_CreateTextureFromSurface(TextureManager::Get().getRenderer(), textSurface);
 
       textComponent->texture = texture;
       SDL_FreeSurface(textSurface);
@@ -102,8 +103,8 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
    int messageHeight = (int)std::round(textComponent->fontSize * (23.0 / 21.0));
 
    if (textComponent->isVisible()) {
-      TextureManager::Draw(textComponent->texture,
-                           (SDL_Rect){(int)position->position.x, (int)position->position.y,
-                                      messageWidth, messageHeight});
+      TextureManager::Get().Draw(
+          textComponent->texture, (SDL_Rect){(int)position->position.x, (int)position->position.y,
+                                             messageWidth, messageHeight});
    }
 }

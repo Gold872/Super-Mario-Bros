@@ -347,7 +347,7 @@ void PlayerSystem::onAddedToWorld(World* world) {
 
    // Creates the player's entity
    std::shared_ptr<SDL_Texture> playerTexture =
-       TextureManager::LoadSharedTexture("res/sprites/characters/PlayerSpriteSheet.png");
+       TextureManager::Get().LoadSharedTexture("res/sprites/characters/PlayerSpriteSheet.png");
 
    mario = world->create();
    Vector2i startCoordinates = scene->getLevelData().playerStart;

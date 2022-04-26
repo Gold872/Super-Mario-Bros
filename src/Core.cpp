@@ -19,7 +19,7 @@ void Core::limitFPS(int startTick) {
 }
 
 int Core::init() {
-   if (TextureManager::Init() != 0) {
+   if (TextureManager::Get().Init() != 0) {
       std::cerr << "Error Initializing Texture Manager" << std::endl;
       return -1;
    }
@@ -31,7 +31,7 @@ void Core::run() {
    while (running) {
       mainLoop();
    }
-   TextureManager::Quit();
+   TextureManager::Get().Quit();
 }
 
 void Core::mainLoop() {

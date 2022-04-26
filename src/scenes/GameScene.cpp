@@ -26,8 +26,8 @@ GameScene::GameScene(int level, int subLevel) {
    Map::loadEnemyIDS();
    Map::loadPlayerIDS();
 
-   blockTexture = TextureManager::LoadSharedTexture("res/sprites/blocks/BlockTileSheet.png");
-   enemyTexture = TextureManager::LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
+   blockTexture = TextureManager::Get().LoadSharedTexture("res/sprites/blocks/BlockTileSheet.png");
+   enemyTexture = TextureManager::Get().LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
 
    foregroundMap = gameLevel->createMap();
    backgroundMap = gameLevel->createMap();
@@ -37,7 +37,7 @@ GameScene::GameScene(int level, int subLevel) {
 
    loadLevel(level, subLevel);
 
-   TextureManager::SetBackgroundColor(getLevelData().levelBackgroundColor);
+   TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
    mapSystem = world->registerSystem<MapSystem>(this);
    world->registerSystem<PhysicsSystem>();
@@ -87,7 +87,7 @@ void GameScene::switchLevel(int level, int subLevel) {
 
       loadLevel(level, subLevel);
 
-      TextureManager::SetBackgroundColor(BackgroundColor::BLACK);
+      TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
       scoreSystem->showTransitionEntities();
 
       scoreSystem->reset();
@@ -95,7 +95,7 @@ void GameScene::switchLevel(int level, int subLevel) {
       Entity* callbackEntity(world->create());
       callbackEntity->addComponent<CallbackComponent>(
           [=](Entity* entity) {
-             TextureManager::SetBackgroundColor(getLevelData().levelBackgroundColor);
+             TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
              scoreSystem->hideTransitionEntities();
 
@@ -123,7 +123,7 @@ void GameScene::restartLevel() {
 
       loadLevel(level, subLevel);
 
-      TextureManager::SetBackgroundColor(BackgroundColor::BLACK);
+      TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
       scoreSystem->showTransitionEntities();
 
       scoreSystem->reset();
@@ -132,7 +132,7 @@ void GameScene::restartLevel() {
       Entity* callbackEntity(world->create());
       callbackEntity->addComponent<CallbackComponent>(
           [=](Entity* entity) {
-             TextureManager::SetBackgroundColor(getLevelData().levelBackgroundColor);
+             TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
              scoreSystem->hideTransitionEntities();
 

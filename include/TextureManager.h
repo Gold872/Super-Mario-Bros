@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef TEXTURE_MANAGER_H
+#define TEXTURE_MANAGER_H
+
 #include "ECS/ECS.h"
 #include "Math.h"
 
@@ -8,38 +11,46 @@
 
 #include <memory>
 
-enum class BackgroundColor {
-	NONE,
-	BLACK,
-	BLUE
+enum class BackgroundColor
+{
+   NONE,
+   BLACK,
+   BLUE
 };
-
 class TextureManager {
   public:
-   static int Init();
-   static int Quit();
+   static TextureManager& Get() {
+      return instance;
+   }
 
-   static SDL_Texture* LoadTexture(const char* path);
-   static std::shared_ptr<SDL_Texture> LoadSharedTexture(const char* path);
-   static std::shared_ptr<TTF_Font> LoadSharedFont(const char* path, int fontSize);
-   static void Draw(SDL_Texture* texture, SDL_Rect destRect);
-   static void Draw(SDL_Texture* texture, SDL_Rect sourceRect, SDL_Rect destRect);
-   static void Draw(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect, bool horizontal, bool vertical);
-   static void Draw(std::shared_ptr<TTF_Font> font, const char* text, SDL_Rect position);
-   static void DrawHorizontalFlipped(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect);
-   static void DrawVerticalFlipped(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect);
-   static void SetBackgroundColor(BackgroundColor color);
-   static void Clear();
-   static void Display();
+   int Init();
+   int Quit();
 
-   static void ResizeWindow();
+   SDL_Texture* LoadTexture(const char* path);
+   std::shared_ptr<SDL_Texture> LoadSharedTexture(const char* path);
+   std::shared_ptr<TTF_Font> LoadSharedFont(const char* path, int fontSize);
+   void Draw(SDL_Texture* texture, SDL_Rect destRect);
+   void Draw(SDL_Texture* texture, SDL_Rect sourceRect, SDL_Rect destRect);
+   void Draw(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect, bool horizontal,
+             bool vertical);
+   void Draw(std::shared_ptr<TTF_Font> font, const char* text, SDL_Rect position);
+   void DrawHorizontalFlipped(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect);
+   void DrawVerticalFlipped(std::shared_ptr<SDL_Texture>, SDL_Rect sourceRect, SDL_Rect destRect);
+   void SetBackgroundColor(BackgroundColor color);
+   void Clear();
+   void Display();
 
-   static SDL_Renderer* GetRenderer() {
-   	return renderer;
+   void ResizeWindow();
+
+   SDL_Renderer* getRenderer() {
+      return renderer;
    }
 
   private:
-   static SDL_Window* window;
-   static SDL_Renderer* renderer;
-   static BackgroundColor currentColor;
+   static TextureManager instance;
+
+   SDL_Window* window;
+   SDL_Renderer* renderer;
+   BackgroundColor currentColor;
 };
+#endif  // TEXTURE_MANAGER_H

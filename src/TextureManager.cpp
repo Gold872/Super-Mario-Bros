@@ -8,9 +8,7 @@
 
 #include <iostream>
 
-SDL_Window* TextureManager::window = nullptr;
-SDL_Renderer* TextureManager::renderer = nullptr;
-BackgroundColor TextureManager::currentColor = BackgroundColor::BLUE;
+TextureManager TextureManager::instance;
 
 int TextureManager::Init() {
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0) {

@@ -100,7 +100,7 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
              player->remove<CollisionExemptComponent, FrictionExemptComponent>();
              player->addComponent<GravityComponent>();
 
-             TextureManager::SetBackgroundColor(warpPipe->backgroundColor);
+             TextureManager::Get().SetBackgroundColor(warpPipe->backgroundColor);
 
              WarpSystem::setWarping(false);
 
@@ -117,7 +117,7 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
 
           Camera::setCameraFrozen(warpPipe->cameraFreeze);
 
-          TextureManager::SetBackgroundColor(warpPipe->backgroundColor);
+          TextureManager::Get().SetBackgroundColor(warpPipe->backgroundColor);
 
           switch (warpPipe->outDirection) {
              case Direction::UP:

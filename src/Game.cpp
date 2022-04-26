@@ -25,7 +25,7 @@ void Game::handleInput() {
          case SDL_WINDOWEVENT:
             switch (event.window.event) {
                case SDL_WINDOWEVENT_RESIZED:
-                  TextureManager::ResizeWindow();
+               	TextureManager::Get().ResizeWindow();
                   break;
                default:
                   break;
