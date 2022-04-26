@@ -1,5 +1,3 @@
-#include "systems/PlayerSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -9,6 +7,7 @@
 #include "Math.h"
 #include "TextureManager.h"
 #include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>
@@ -643,6 +642,11 @@ void PlayerSystem::tick(World* world) {
                score->addComponent<AddScoreComponent>(100);
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
+               onGameOver();
+            }
+            break;
+         case EnemyType::FIRE_BAR:
+            if (!mario->hasComponent<SuperMarioComponent>()) {
                onGameOver();
             }
             break;

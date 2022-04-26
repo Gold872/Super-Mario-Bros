@@ -243,9 +243,9 @@ void ScoreSystem::stopTimer() {
 }
 
 void ScoreSystem::decreaseLives() {
-	lives--;
-	livesText->getComponent<TextComponent>()->destroyTexture();
-	livesText->getComponent<TextComponent>()->text = " x  " + std::to_string(lives);
+   lives--;
+   livesText->getComponent<TextComponent>()->destroyTexture();
+   livesText->getComponent<TextComponent>()->text = " x  " + std::to_string(lives);
 }
 
 void ScoreSystem::showTransitionEntities() {

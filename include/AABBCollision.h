@@ -3,8 +3,8 @@
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 
-//Direction checkCollisionY(Entity* solid, PositionComponent* position, MovingComponent* move);
-//Direction checkCollisionX(Entity* solid, PositionComponent* position, MovingComponent* move);
+// Direction checkCollisionY(Entity* solid, PositionComponent* position, MovingComponent* move);
+// Direction checkCollisionX(Entity* solid, PositionComponent* position, MovingComponent* move);
 
 bool AABBCollision(PositionComponent* a, PositionComponent* b);
 bool AABBCollision(float x, float y, float w, float h, PositionComponent* b);

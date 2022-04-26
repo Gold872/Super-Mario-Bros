@@ -1,5 +1,3 @@
-#include "scenes/GameScene.h"
-
 #include "AABBCollision.h"
 #include "Constants.h"
 #include "ECS/Components.h"
@@ -7,6 +5,7 @@
 #include "Map.h"
 #include "Math.h"
 #include "TextureManager.h"
+#include "scenes/GameScene.h"
 #include "systems/Systems.h"
 
 #include <algorithm>
@@ -27,7 +26,8 @@ GameScene::GameScene(int level, int subLevel) {
    Map::loadPlayerIDS();
 
    blockTexture = TextureManager::Get().LoadSharedTexture("res/sprites/blocks/BlockTileSheet.png");
-   enemyTexture = TextureManager::Get().LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
+   enemyTexture =
+       TextureManager::Get().LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
 
    foregroundMap = gameLevel->createMap();
    backgroundMap = gameLevel->createMap();

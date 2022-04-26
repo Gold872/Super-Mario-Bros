@@ -30,7 +30,7 @@ void Camera::setCameraMin(float x) {
 }
 
 void Camera::setCameraMax(float x) {
-	setCameraX(x - SCREEN_WIDTH);
+   setCameraX(x - SCREEN_WIDTH);
 }
 
 void Camera::setCameraFrozen(bool val) {
@@ -54,7 +54,7 @@ float Camera::getCameraMinX() {
 }
 
 float Camera::getCameraMaxX() {
-	return getCameraX() + SCREEN_WIDTH;
+   return getCameraX() + SCREEN_WIDTH;
 }
 
 bool Camera::isFrozen() {

@@ -1,7 +1,6 @@
-#include "Game.h"
-
 #include "Camera.h"
 #include "Core.h"
+#include "Game.h"
 #include "TextureManager.h"
 
 #include <SDL2/SDL.h>
@@ -25,7 +24,7 @@ void Game::handleInput() {
          case SDL_WINDOWEVENT:
             switch (event.window.event) {
                case SDL_WINDOWEVENT_RESIZED:
-               	TextureManager::Get().ResizeWindow();
+                  TextureManager::Get().ResizeWindow();
                   break;
                default:
                   break;

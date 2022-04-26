@@ -12,7 +12,7 @@ class Scene {
 
   public:
    virtual ~Scene() {
-   	delete world;
+      delete world;
    }
 
    virtual void update() {

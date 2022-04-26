@@ -51,7 +51,7 @@ class PlayerSystem : public System {
    }
 
    static bool isGameStart() {
-   	return inGameStart;
+      return inGameStart;
    }
 
    static void enableInput(bool val) {
@@ -59,7 +59,7 @@ class PlayerSystem : public System {
    }
 
    static void setGameStart(bool val) {
-   	inGameStart = val;
+      inGameStart = val;
    }
 
   private:

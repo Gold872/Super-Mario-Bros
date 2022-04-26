@@ -76,9 +76,8 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
                                position->scale.y};
 
    if (texture->isVisible()) {
-      TextureManager::Get().Draw(texture->getTexture(), texture->getSourceRect(),
-                                         destinationRect, texture->isHorizontalFlipped(),
-                                         texture->isVerticalFlipped());
+      TextureManager::Get().Draw(texture->getTexture(), texture->getSourceRect(), destinationRect,
+                                 texture->isHorizontalFlipped(), texture->isVerticalFlipped());
    }
 }
 
@@ -103,8 +102,8 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
    int messageHeight = (int)std::round(textComponent->fontSize * (23.0 / 21.0));
 
    if (textComponent->isVisible()) {
-      TextureManager::Get().Draw(
-          textComponent->texture, (SDL_Rect){(int)position->position.x, (int)position->position.y,
-                                             messageWidth, messageHeight});
+      TextureManager::Get().Draw(textComponent->texture,
+                                 (SDL_Rect){(int)position->position.x, (int)position->position.y,
+                                            messageWidth, messageHeight});
    }
 }

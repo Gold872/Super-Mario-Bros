@@ -8,6 +8,4 @@ MenuScene::MenuScene() {
    world->registerSystem<RenderSystem>();
 }
 
-void MenuScene::createMenuEntities() {
-
-}
+void MenuScene::createMenuEntities() {}

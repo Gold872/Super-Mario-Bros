@@ -1,10 +1,9 @@
-#include "systems/MapSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
+#include "systems/MapSystem.h"
 
 #include <iostream>
 #include <tuple>
@@ -792,6 +791,8 @@ void MapSystem::createFireBarEntities(World* world) {
                barElement->addComponent<FireBarComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
                                                           bar * ORIGINAL_CUBE_SIZE, startAngle,
                                                           rotationDirection);
+
+               barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);
 
                barElement->addComponent<ForegroundComponent>();
             }

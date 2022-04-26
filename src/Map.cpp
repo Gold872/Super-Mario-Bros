@@ -9,7 +9,7 @@
 std::unordered_map<int, Vector2i> Map::BlockIDCoordinates;
 std::unordered_map<int, Vector2i> Map::PlayerIDCoordinates;
 std::unordered_map<int, Vector2i> Map::EnemyIDCoordinates;
-//std::unordered_map<int, int> Map::DeadEnemyIDCoordinates{{70, 2}, {175, 2}, {280, 2}, {385, 2},
+// std::unordered_map<int, int> Map::DeadEnemyIDCoordinates{{70, 2}, {175, 2}, {280, 2}, {385, 2},
 //                                                         {38, 6}, {143, 6}, {248, 6}, {353, 6}};
 
 Map::Map() {}
@@ -36,7 +36,7 @@ void Map::loadMap(const char* dataPath) {
 }
 
 void Map::reset() {
-	levelData.clear();
+   levelData.clear();
 }
 
 void Map::loadBlockIDS() {

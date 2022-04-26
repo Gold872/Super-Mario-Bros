@@ -537,7 +537,8 @@ enum class EnemyType
    KOOPA,
    FLYING_KOOPA,
    KOOPA_SHELL,
-   PIRANHA_PLANT
+   PIRANHA_PLANT,
+   FIRE_BAR,
 };
 
 struct EnemyComponent : public Component {
