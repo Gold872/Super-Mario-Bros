@@ -524,7 +524,19 @@ void PlayerSystem::tick(World* world) {
       setState(currentState);
       updateCamera();
       return;
-   } else if (WarpSystem::isWarping() || !PlayerSystem::isInputEnabled()) {
+   }
+   if (WarpSystem::isWarping()) {
+      if (move->velocityX != 0) {
+         currentState = WALKING;
+      }
+      if (move->velocityX == 0 || move->velocityY != 0) {
+         currentState = STANDING;
+      }
+      setState(currentState);
+      updateCamera();
+      return;
+   }
+   if (!PlayerSystem::isInputEnabled()) {
       if (scene->getLevelData().levelType == LevelType::START_UNDERGROUND &&
           PlayerSystem::isGameStart()) {
          move->velocityX = 2.0;
