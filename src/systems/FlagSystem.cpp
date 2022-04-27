@@ -115,6 +115,8 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
    player->addComponent<FrictionExemptComponent>();
    player->addComponent<FrozenComponent>();
 
+   world->destroy(world->findFirst<BridgeChainComponent>());
+
    Entity* bridge = world->findFirst<BridgeComponent>();
 
    bridge->addComponent<TimerComponent>(

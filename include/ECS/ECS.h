@@ -215,6 +215,15 @@ class World {
       delete entity;
    }
 
+   template <typename... Components>
+   void destroyAll() {
+      for (Entity* entity : entities) {
+         if (entity->hasComponent<Components...>()) {
+            destroy(entity);
+         }
+      }
+   }
+
    template <typename S, typename... Args>
    S* registerSystem(Args&&... arguments) {
       auto* system = new S(std::forward<Args>(arguments)...);

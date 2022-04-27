@@ -441,6 +441,8 @@ struct BridgeComponent : public Component {
    std::vector<Entity*> connectedBridgeParts;
 };
 
+struct BridgeChainComponent : public Component {};
+
 struct FlagComponent : public Component {};
 
 struct FlagPoleComponent : public Component {};

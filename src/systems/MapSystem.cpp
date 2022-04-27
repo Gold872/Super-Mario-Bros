@@ -1,9 +1,10 @@
+#include "systems/MapSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
-#include "systems/MapSystem.h"
 
 #include <iostream>
 #include <tuple>
@@ -414,6 +415,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          break;
       }
+      /* ****************************************************************** */
       case 101:
       case 149: {  // FLAG POLE
          Entity* entity(world->create());
@@ -432,6 +434,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<FlagPoleComponent>();
          break;
       }
+      /* ****************************************************************** */
       case 152: {  // FLAG
          Entity* entity(world->create());
 
@@ -513,6 +516,15 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             entity->addComponent<MysteryBoxComponent>(std::get<1>(enumCoordinate));
 
             addItemDispenser(world, entity, entityID, referenceID);
+         }
+      } break;
+      case 339: {  // BRIDGE CHAIN (this is here so it gets destroyed with the bridge
+         if (scene->getLevelData().levelType == LevelType::CASTLE) {
+            Entity* bridgeChain(createBlockEntity(world, coordinateX, coordinateY, entityID));
+
+            bridgeChain->addComponent<BridgeChainComponent>();
+         } else {
+            createBlockEntity(world, coordinateX, coordinateY, entityID);
          }
       } break;
       /* ****************************************************************** */
