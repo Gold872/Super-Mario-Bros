@@ -16,6 +16,8 @@ Once you have the zip files extracted, run this command
 g++ -O1 -I"src/*" -I"res/*" -I"include/*" -L"<SDL2 Location>" -L"<SDL2_image Location>" -L"<SDL2_TTF Location>" -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 ```
 
+The [bin/](bin/) directory contains a precompiled executable if you do not want to go through the installation and compiling process
+
 ## How it Works
 
 ### The Entities
@@ -33,8 +35,10 @@ g++ -O1 -I"src/*" -I"res/*" -I"include/*" -L"<SDL2 Location>" -L"<SDL2_image Loc
 ## Roadmap
 
 - Finish creating the methods for loading all of the enemies
+    - Piranha Plant
     - Bowser
     - Koopa Paratroopa
+    - Lakitu
 
 - Add in the sounds
 
