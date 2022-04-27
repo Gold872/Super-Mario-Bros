@@ -100,13 +100,14 @@ CollisionDirection checkCollisionX(Entity* solid, PositionComponent* position,
 }
 
 void PhysicsSystem::tick(World* world) {
+   // Update the spinning of the fire bars
    world->find<FireBarComponent, PositionComponent>([&](Entity* entity) {
       auto* fireBar = entity->getComponent<FireBarComponent>();
       auto* position = entity->getComponent<PositionComponent>();
 
       switch (fireBar->direction) {
          case RotationDirection::CLOCKWISE:
-            fireBar->barAngle += 2.5;
+            fireBar->barAngle += 2.0;
             if (fireBar->barAngle > 360) {
                fireBar->barAngle -= 360;
             }
@@ -117,7 +118,7 @@ void PhysicsSystem::tick(World* world) {
                 fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
             break;
          case RotationDirection::COUNTER_CLOCKWISE:
-            fireBar->barAngle -= 2.5;
+            fireBar->barAngle -= 2.0;
             if (fireBar->barAngle < 0) {
                fireBar->barAngle += 360;
             }
@@ -131,6 +132,8 @@ void PhysicsSystem::tick(World* world) {
             break;
       }
    });
+   // Update the velocities for the moving platforms (it doesn't matter if these are in camera
+   // range)
    world->find<MovingPlatformComponent, MovingComponent, PositionComponent>([&](Entity* entity) {
       auto* platform = entity->getComponent<MovingPlatformComponent>();
       auto* platformMove = entity->getComponent<MovingComponent>();
@@ -334,6 +337,7 @@ void PhysicsSystem::tick(World* world) {
             break;
       }
    });
+   // Update gravity for entities that have a gravity component
    world->find<GravityComponent, MovingComponent>([&](Entity* entity) {
       if (!Camera::inCameraRange(entity->getComponent<PositionComponent>()) &&
           !entity->hasAny<MoveOutsideCameraComponent, PlayerComponent>()) {
