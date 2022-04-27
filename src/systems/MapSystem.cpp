@@ -492,6 +492,8 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<PausedAnimationComponent>(0, 25);
 
          entity->addComponent<ForegroundComponent>();
+
+         entity->addComponent<AxeComponent>();
       } break;
       /* ****************************************************************** */
       case 289:
@@ -511,6 +513,32 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             entity->addComponent<MysteryBoxComponent>(std::get<1>(enumCoordinate));
 
             addItemDispenser(world, entity, entityID, referenceID);
+         }
+      } break;
+      /* ****************************************************************** */
+      case 392: {  // BRIDGE
+         if (scene->getLevelData().levelType == LevelType::CASTLE) {
+            if (getReferenceBlockID(
+                    scene->foregroundMap->getLevelData()[coordinateY][coordinateX - 1]) != 392) {
+               Entity* bridge(createBlockEntity(world, coordinateX, coordinateY, entityID));
+
+               auto* bridgeComponent = bridge->addComponent<BridgeComponent>();
+
+               bridgeComponent->connectedBridgeParts.push_back(bridge);
+
+               int futureCoordinateCheck = coordinateX;
+
+               while (getReferenceBlockID(
+                          scene->foregroundMap
+                              ->getLevelData()[coordinateY][++futureCoordinateCheck]) == 392) {
+                  Entity* connectedBridge(
+                      createBlockEntity(world, futureCoordinateCheck, coordinateY, entityID));
+
+                  bridgeComponent->connectedBridgeParts.push_back(connectedBridge);
+               }
+            }
+         } else {
+            createBlockEntity(world, coordinateX, coordinateY, entityID);
          }
       } break;
       case 609: {  // MOVING PLATFORM

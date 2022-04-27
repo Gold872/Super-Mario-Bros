@@ -15,7 +15,7 @@ class FlagSystem : public System {
       climbing = val;
    }
 
-   static bool IsClimbing() {
+   static bool isClimbing() {
       return climbing;
    }
 
@@ -23,6 +23,8 @@ class FlagSystem : public System {
    GameScene* scene;
 
    void climbFlag(Entity* player, Entity* flag);
+
+   void hitAxe(World* world, Entity* player, Entity* axe);
 
    static bool climbing;
 };

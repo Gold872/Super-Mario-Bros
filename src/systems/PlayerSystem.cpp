@@ -1,3 +1,5 @@
+#include "systems/FlagSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -6,7 +8,6 @@
 #include "Map.h"
 #include "Math.h"
 #include "TextureManager.h"
-#include "systems/FlagSystem.h"
 #include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
@@ -518,7 +519,7 @@ void PlayerSystem::tick(World* world) {
    auto* position = mario->getComponent<PositionComponent>();
    auto* move = mario->getComponent<MovingComponent>();
 
-   if (FlagSystem::IsClimbing()) {
+   if (FlagSystem::isClimbing()) {
       currentState = SLIDING;
       setState(currentState);
       updateCamera();

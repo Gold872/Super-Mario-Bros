@@ -10,7 +10,7 @@
 Game::Game() {}
 
 void Game::init() {
-   scene = std::make_unique<GameScene>(1, 1);
+   scene = std::make_unique<GameScene>(1, 4);
 }
 
 void Game::handleInput() {

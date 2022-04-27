@@ -97,6 +97,77 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
        });
 }
 
+void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
+   if (player->hasComponent<WaitUntilComponent>()) {
+      return;
+   }
+
+   auto* playerMove = player->getComponent<MovingComponent>();
+
+   PlayerSystem::enableInput(false);
+
+   playerMove->velocityX = playerMove->accelerationX = playerMove->velocityY =
+       playerMove->accelerationY = 0;
+
+   scene->stopTimer();
+
+   player->remove<GravityComponent>();
+   player->addComponent<FrictionExemptComponent>();
+
+   Entity* bridge = world->findFirst<BridgeComponent>();
+
+   bridge->addComponent<TimerComponent>(
+       [=](Entity* entity) {
+          auto* bridgeComponent = entity->getComponent<BridgeComponent>();
+
+          world->destroy(bridgeComponent->connectedBridgeParts.back());
+
+          bridgeComponent->connectedBridgeParts.pop_back();
+
+          bridgeComponent->connectedBridgeParts.shrink_to_fit();
+
+          if (bridgeComponent->connectedBridgeParts.empty()) {
+             entity->remove<TimerComponent>();
+          }
+       },
+       5);
+
+   player->addComponent<WaitUntilComponent>(
+       [=](Entity* entity) {
+          // Bridge is done collapsing
+          return !bridge->hasComponent<TimerComponent>();
+       },
+       [=](Entity* entity) {
+          auto* wait = entity->getComponent<WaitUntilComponent>();
+
+          world->destroy(axe);
+
+          playerMove->velocityX = 3.0;
+
+          player->addComponent<GravityComponent>();
+
+          wait->condition = [=](Entity* entity) {
+             return entity->hasComponent<RightCollisionComponent>();
+          };
+
+          wait->doAfter = [=](Entity* entity) {
+             playerMove->velocityX = 0;
+
+             entity->addComponent<CallbackComponent>(
+                 [=](Entity* entity) {
+                    Vector2i nextLevel = scene->getLevelData().nextLevel;
+
+                    player->getComponent<TextureComponent>()->setVisible(false);
+
+                    scene->switchLevel(nextLevel.x, nextLevel.y);
+                 },
+                 240);
+
+             entity->remove<WaitUntilComponent>();
+          };
+       });
+}
+
 void FlagSystem::tick(World* world) {
    world->find<FlagPoleComponent>([&](Entity* entity) {
       Entity* player = world->findFirst<PlayerComponent>();
@@ -109,5 +180,15 @@ void FlagSystem::tick(World* world) {
       Entity* flag = world->findFirst<FlagComponent>();
 
       climbFlag(player, flag);
+   });
+   world->find<AxeComponent>([&](Entity* entity) {
+      Entity* player = world->findFirst<PlayerComponent>();
+
+      if (!AABBTotalCollision(entity->getComponent<PositionComponent>(),
+                              player->getComponent<PositionComponent>())) {
+         return;
+      }
+
+      hitAxe(world, player, entity);
    });
 }

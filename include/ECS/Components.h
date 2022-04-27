@@ -435,9 +435,17 @@ struct FireBarComponent : public Component {
    };
 };
 
+struct BridgeComponent : public Component {
+   BridgeComponent() = default;
+
+   std::vector<Entity*> connectedBridgeParts;
+};
+
 struct FlagComponent : public Component {};
 
 struct FlagPoleComponent : public Component {};
+
+struct AxeComponent : public Component {};
 
 struct ParticleComponent : public Component {};
 
