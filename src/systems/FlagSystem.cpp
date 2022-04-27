@@ -113,6 +113,7 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
 
    player->remove<GravityComponent>();
    player->addComponent<FrictionExemptComponent>();
+   player->addComponent<FrozenComponent>();
 
    Entity* bridge = world->findFirst<BridgeComponent>();
 
@@ -145,6 +146,8 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
           playerMove->velocityX = 3.0;
 
           player->addComponent<GravityComponent>();
+
+          player->remove<FrozenComponent>();
 
           wait->condition = [=](Entity* entity) {
              return entity->hasComponent<RightCollisionComponent>();

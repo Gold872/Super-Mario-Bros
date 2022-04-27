@@ -1,4 +1,4 @@
-#include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 
 #include "AABBCollision.h"
 #include "Camera.h"
@@ -8,7 +8,7 @@
 #include "Map.h"
 #include "Math.h"
 #include "TextureManager.h"
-#include "systems/PlayerSystem.h"
+#include "systems/FlagSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>
@@ -529,9 +529,12 @@ void PlayerSystem::tick(World* world) {
           PlayerSystem::isGameStart()) {
          move->velocityX = 2.0;
       }
-      if (move->velocityX != 0) {
+
+      if (move->velocityX != 0 && move->velocityY == 0) {
          currentState = WALKING;
-      } else if (move->velocityY != 0) {
+      } else if (move->velocityY != 0) {  // If moving in the air
+         currentState = JUMPING;
+      } else {
          currentState = STANDING;
       }
       setState(currentState);
