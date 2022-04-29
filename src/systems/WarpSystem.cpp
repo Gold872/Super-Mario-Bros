@@ -28,7 +28,7 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
    Vector2f pipeLocation = pipe->getComponent<PositionComponent>()->position;
    Vector2i teleportLocation = warpPipe->playerLocation;
 
-   Camera::setCameraMin(warpPipe->cameraLocation.x);
+   Camera::Get().setCameraMin(warpPipe->cameraLocation.x);
 
    WarpSystem::setWarping(true);
    PlayerSystem::enableInput(false);
@@ -90,9 +90,9 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
           auto* playerPosition = player->getComponent<PositionComponent>();
 
           if (warpPipe->newLevel != Vector2i(0, 0)) {
-             Camera::setCameraFrozen(false);
-             Camera::setCameraX(0);
-             Camera::setCameraY(0);
+         	 Camera::Get().setCameraFrozen(false);
+         	 Camera::Get().setCameraX(0);
+         	 Camera::Get().setCameraY(0);
 
              wait->condition = 0;
              wait->doAfter = 0;
@@ -112,10 +112,10 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
 
           scene->setUnderwater(warpPipe->underwater);
 
-          Camera::setCameraX(warpPipe->cameraLocation.x * SCALED_CUBE_SIZE);
-          Camera::setCameraY(warpPipe->cameraLocation.y * SCALED_CUBE_SIZE);
+          Camera::Get().setCameraX(warpPipe->cameraLocation.x * SCALED_CUBE_SIZE);
+          Camera::Get().setCameraY(warpPipe->cameraLocation.y * SCALED_CUBE_SIZE);
 
-          Camera::setCameraFrozen(warpPipe->cameraFreeze);
+          Camera::Get().setCameraFrozen(warpPipe->cameraFreeze);
 
           TextureManager::Get().SetBackgroundColor(warpPipe->backgroundColor);
 

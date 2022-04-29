@@ -386,15 +386,15 @@ void PlayerSystem::reset() {
       mario->remove<FrictionExemptComponent>();
       mario->remove<CollisionExemptComponent>();
 
-      Camera::setCameraFrozen(false);
-      Camera::setCameraX(0);
-      Camera::setCameraY(0);
+      Camera::Get().setCameraFrozen(false);
+      Camera::Get().setCameraX(0);
+      Camera::Get().setCameraY(0);
 
       PlayerSystem::enableInput(true);
    } else {
-      Camera::setCameraFrozen(true);
-      Camera::setCameraX(0);
-      Camera::setCameraY(0);
+   	Camera::Get().setCameraFrozen(true);
+   	Camera::Get().setCameraX(0);
+   	Camera::Get().setCameraY(0);
 
       PlayerSystem::setGameStart(true);
       PlayerSystem::enableInput(false);
@@ -500,17 +500,17 @@ void PlayerSystem::updateCamera() {
    auto* position = mario->getComponent<PositionComponent>();
    auto* move = mario->getComponent<MovingComponent>();
 
-   if (!Camera::isFrozen()) {
-      Camera::updateCameraMin();
-      if (position->position.x + 16 > Camera::getCameraCenter() && move->velocityX > 0.0) {
-         Camera::increaseCameraX(move->velocityX);
+   if (!Camera::Get().isFrozen()) {
+   	Camera::Get().updateCameraMin();
+      if (position->position.x + 16 > Camera::Get().getCameraCenter() && move->velocityX > 0.0) {
+      	Camera::Get().increaseCameraX(move->velocityX);
       }
-      if (position->position.x <= Camera::getCameraMinX()) {
-         position->position.x = Camera::getCameraMinX();
+      if (position->position.x <= Camera::Get().getCameraMinX()) {
+         position->position.x = Camera::Get().getCameraMinX();
       }
-      if (Camera::getCameraMaxX() >= scene->getLevelData().cameraMax * SCALED_CUBE_SIZE) {
-         Camera::setCameraMax(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
-         Camera::setCameraMin(Camera::getCameraX());
+      if (Camera::Get().getCameraMaxX() >= scene->getLevelData().cameraMax * SCALED_CUBE_SIZE) {
+      	Camera::Get().setCameraMax(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
+      	Camera::Get().setCameraMin(Camera::Get().getCameraX());
       }
    }
 }
@@ -568,7 +568,7 @@ void PlayerSystem::tick(World* world) {
       return;
    }
 
-   if (position->position.y >= Camera::getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
+   if (position->position.y >= Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
       onGameOver(true);
       return;
    }

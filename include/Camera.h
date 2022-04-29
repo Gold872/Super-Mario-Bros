@@ -4,27 +4,37 @@
 
 class Camera {
   public:
-   static void setCameraX(float x);
-   static void setCameraY(float y);
-   static void increaseCameraX(float value);
-   static void updateCameraMin();
-   static void setCameraMin(float x);
-   static void setCameraMax(float x);
-   static void setCameraFrozen(bool val);
+   static Camera& Get() {
+      return instance;
+   }
 
-   static float getCameraX();
-   static float getCameraY();
-   static float getCameraCenter();
-   static float getCameraMinX();
-   static float getCameraMaxX();
+   void setCameraX(float x);
+   void setCameraY(float y);
+   void increaseCameraX(float value);
+   void updateCameraMin();
+   void setCameraMin(float x);
+   void setCameraMax(float x);
+   void setCameraFrozen(bool val);
 
-   static bool inCameraRange(PositionComponent* position);
-   static bool inCameraXRange(PositionComponent* position);
-   static bool inCameraYRange(PositionComponent* position);
-   static bool isFrozen();
+   float getCameraX();
+   float getCameraY();
+   float getCameraCenter();
+   float getCameraMinX();
+   float getCameraMaxX();
+
+   bool inCameraRange(PositionComponent* position);
+   bool inCameraXRange(PositionComponent* position);
+   bool inCameraYRange(PositionComponent* position);
+   bool isFrozen();
 
   private:
-   static float cameraX, cameraY;
-   static float cameraMinX, cameraMaxX;
-   static bool frozen;
+   Camera() {}
+
+   Camera(const Camera&) = delete;
+
+   static Camera instance;
+
+   float cameraX, cameraY;
+   float cameraMinX, cameraMaxX;
+   bool frozen;
 };

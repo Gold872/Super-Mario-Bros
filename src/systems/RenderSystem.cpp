@@ -20,12 +20,12 @@ void RenderSystem::tick(World* world) {
    TextureManager::Get().Clear();
    // This is to render the entities in the correct order
    world->find<PositionComponent, TextureComponent, BackgroundComponent>([&](Entity* entity) {
-      if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
+      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);
       }
    });
    world->find<PositionComponent, TextureComponent, ForegroundComponent>([&](Entity* entity) {
-      if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
+      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);
       }
    });
@@ -33,12 +33,12 @@ void RenderSystem::tick(World* world) {
       renderEntity(entity);
    });
    world->find<PositionComponent, TextureComponent, CollectibleComponent>([&](Entity* entity) {
-      if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
+      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);
       }
    });
    world->find<PositionComponent, TextureComponent, EnemyComponent>([&](Entity* entity) {
-      if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
+      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);
       }
    });
@@ -46,7 +46,7 @@ void RenderSystem::tick(World* world) {
       renderEntity(entity);
    });
    world->find<PositionComponent, TextureComponent, AboveForegroundComponent>([&](Entity* entity) {
-      if (Camera::inCameraRange(entity->getComponent<PositionComponent>())) {
+      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);
       }
    });
@@ -67,9 +67,9 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
 
    int screenPositionX, screenPositionY;
 
-   screenPositionX = (cameraBound) ? (int)(position->position.x - Camera::getCameraX())
+   screenPositionX = (cameraBound) ? (int)(position->position.x - Camera::Get().getCameraX())
                                    : (int)position->position.x;
-   screenPositionY = (cameraBound) ? (int)(position->position.y - Camera::getCameraY())
+   screenPositionY = (cameraBound) ? (int)(position->position.y - Camera::Get().getCameraY())
                                    : (int)position->position.y;
 
    SDL_Rect destinationRect = {screenPositionX, screenPositionY, position->scale.x,

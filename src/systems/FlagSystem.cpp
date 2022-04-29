@@ -50,7 +50,7 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
           // Set the player to be on the other side of the flag
           auto* wait = entity->getComponent<WaitUntilComponent>();
 
-          Camera::setCameraFrozen(true);
+          Camera::Get().setCameraFrozen(true);
 
           playerMove->velocityY = flagMove->velocityY = 0;
           entity->getComponent<TextureComponent>()->setHorizontalFlipped(true);
@@ -69,7 +69,7 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
 
           wait->doAfter = [=](Entity* entity) {
              // Move towards the castle
-             Camera::setCameraFrozen(false);
+         	 Camera::Get().setCameraFrozen(false);
 
              entity->addComponent<GravityComponent>();
 

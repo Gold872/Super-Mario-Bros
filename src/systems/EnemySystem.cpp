@@ -61,7 +61,7 @@ void EnemySystem::tick(World* world) {
          }
       });
 
-      if (Camera::inCameraRange(position) && enemyComponent->enemyType == EnemyType::KOOPA) {
+      if (Camera::Get().inCameraRange(position) && enemyComponent->enemyType == EnemyType::KOOPA) {
          if (!enemy->hasAny<BottomCollisionComponent, DeadComponent>()) {
             move->velocityX *= -1;
             bool horizontalFlipped = enemy->getComponent<TextureComponent>()->isHorizontalFlipped();

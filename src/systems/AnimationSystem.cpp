@@ -31,7 +31,7 @@ void AnimationSystem::tick(World* world) {
       if (!entity->hasComponent<PositionComponent>()) {
          return;
       }
-      if (!Camera::inCameraRange(entity->getComponent<PositionComponent>()) &&
+      if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
           !entity->hasComponent<IconComponent>()) {
          return;
       }
@@ -91,7 +91,7 @@ void AnimationSystem::tick(World* world) {
       if (!entity->hasComponent<PositionComponent>()) {
          return;
       }
-      if (!Camera::inCameraRange(entity->getComponent<PositionComponent>()) &&
+      if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
           !entity->hasComponent<IconComponent>()) {
          return;
       }

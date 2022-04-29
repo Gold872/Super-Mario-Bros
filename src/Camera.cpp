@@ -3,11 +3,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 
-float Camera::cameraX = 0;
-float Camera::cameraY = 0;
-float Camera::cameraMinX = 0;
-float Camera::cameraMaxX = 0;
-bool Camera::frozen = false;
+Camera Camera::instance;
 
 void Camera::setCameraX(float x) {
    cameraX = x;
