@@ -42,6 +42,9 @@ void RenderSystem::tick(World* world) {
          renderEntity(entity);
       }
    });
+   world->find<PositionComponent, TextComponent, FloatingTextComponent>([&](Entity* entity) {
+      renderText(entity, entity->getComponent<TextComponent>()->followCamera);
+   });
    world->find<PositionComponent, TextureComponent, PlayerComponent>([&](Entity* entity) {
       renderEntity(entity);
    });
@@ -55,7 +58,9 @@ void RenderSystem::tick(World* world) {
       renderEntity(entity, false);
    });
    world->find<PositionComponent, TextComponent>([&](Entity* entity) {
-      renderText(entity);
+      if (!entity->hasComponent<FloatingTextComponent>()) {
+         renderText(entity, entity->getComponent<TextComponent>()->followCamera);
+      }
    });
 
    TextureManager::Get().Display();
@@ -65,15 +70,13 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
    auto* position = entity->getComponent<PositionComponent>();
    auto* texture = entity->getComponent<TextureComponent>();
 
-   int screenPositionX, screenPositionY;
+   float screenPositionX =
+       (cameraBound) ? position->position.x - Camera::Get().getCameraX() : position->position.x;
+   float screenPositionY =
+       (cameraBound) ? position->position.y - Camera::Get().getCameraY() : position->position.y;
 
-   screenPositionX = (cameraBound) ? (int)(position->position.x - Camera::Get().getCameraX())
-                                   : (int)position->position.x;
-   screenPositionY = (cameraBound) ? (int)(position->position.y - Camera::Get().getCameraY())
-                                   : (int)position->position.y;
-
-   SDL_Rect destinationRect = {screenPositionX, screenPositionY, position->scale.x,
-                               position->scale.y};
+   SDL_Rect destinationRect = {(int)std::round(screenPositionX), (int)std::round(screenPositionY),
+                               position->scale.x, position->scale.y};
 
    if (texture->isVisible()) {
       TextureManager::Get().Draw(texture->getTexture(), texture->getSourceRect(), destinationRect,
@@ -101,9 +104,15 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
    int messageWidth = strlen(message) * textComponent->fontSize;
    int messageHeight = (int)std::round(textComponent->fontSize * (23.0 / 21.0));
 
+   float screenPositionX =
+       (followCamera) ? position->position.x - Camera::Get().getCameraX() : position->position.x;
+   float screenPositionY =
+       (followCamera) ? position->position.y - Camera::Get().getCameraY() : position->position.y;
+
    if (textComponent->isVisible()) {
-      TextureManager::Get().Draw(textComponent->texture,
-                                 (SDL_Rect){(int)position->position.x, (int)position->position.y,
-                                            messageWidth, messageHeight});
+      TextureManager::Get().Draw(
+          textComponent->texture,
+          (SDL_Rect){(int)std::round(screenPositionX), (int)std::round(screenPositionY),
+                     messageWidth, messageHeight});
    }
 }

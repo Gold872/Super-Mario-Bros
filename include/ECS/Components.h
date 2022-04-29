@@ -176,9 +176,9 @@ struct TextureComponent : public Component {
 };
 
 struct TextComponent : public Component {
-   TextComponent(std::string&& text, unsigned int fontSize, bool followCamera = false,
+   TextComponent(std::string text, unsigned int fontSize, bool followCamera = false,
                  bool visible = true)
-       : text{std::move(text)}, fontSize{fontSize}, followCamera{followCamera}, visible{visible} {}
+       : text{text}, fontSize{fontSize}, followCamera{followCamera}, visible{visible} {}
 
    ~TextComponent() {
       if (texture != nullptr) {
@@ -317,6 +317,8 @@ struct BackgroundComponent : public Component {};
 struct UndergroundComponent : public Component {};
 
 struct IconComponent : public Component {};
+
+struct FloatingTextComponent : public Component {};
 
 /* BLOCK TYPES */
 

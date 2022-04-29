@@ -90,9 +90,9 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
           auto* playerPosition = player->getComponent<PositionComponent>();
 
           if (warpPipe->newLevel != Vector2i(0, 0)) {
-         	 Camera::Get().setCameraFrozen(false);
-         	 Camera::Get().setCameraX(0);
-         	 Camera::Get().setCameraY(0);
+             Camera::Get().setCameraFrozen(false);
+             Camera::Get().setCameraX(0);
+             Camera::Get().setCameraY(0);
 
              wait->condition = 0;
              wait->doAfter = 0;

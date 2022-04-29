@@ -81,6 +81,8 @@ class PlayerSystem : public System {
 
    void updateCamera();
 
+   Entity* createFloatingText(World* world, Entity* destroyedEnemy, std::string text);
+
    int xDir = 0;
    int left = 0;
    int right = 0;

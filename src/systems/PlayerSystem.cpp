@@ -34,6 +34,20 @@ PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
 }
 
+Entity* PlayerSystem::createFloatingText(World* world, Entity* destroyedEnemy, std::string text) {
+   auto* enemyPosition = destroyedEnemy->getComponent<PositionComponent>();
+
+   Entity* scoreText(world->create());
+   scoreText->addComponent<PositionComponent>(
+       Vector2f(enemyPosition->getCenterX(), enemyPosition->getTop() - 4), Vector2i());
+   scoreText->addComponent<MovingComponent>(0, -1, 0, 0);
+   scoreText->addComponent<TextComponent>(text, 10, true);
+   scoreText->addComponent<FloatingTextComponent>();
+   scoreText->addComponent<DestroyDelayedComponent>(35);
+
+   return scoreText;
+}
+
 void PlayerSystem::setUnderwater(bool val) {
    underwater = val;
 }
@@ -392,9 +406,9 @@ void PlayerSystem::reset() {
 
       PlayerSystem::enableInput(true);
    } else {
-   	Camera::Get().setCameraFrozen(true);
-   	Camera::Get().setCameraX(0);
-   	Camera::Get().setCameraY(0);
+      Camera::Get().setCameraFrozen(true);
+      Camera::Get().setCameraX(0);
+      Camera::Get().setCameraY(0);
 
       PlayerSystem::setGameStart(true);
       PlayerSystem::enableInput(false);
@@ -501,16 +515,16 @@ void PlayerSystem::updateCamera() {
    auto* move = mario->getComponent<MovingComponent>();
 
    if (!Camera::Get().isFrozen()) {
-   	Camera::Get().updateCameraMin();
+      Camera::Get().updateCameraMin();
       if (position->position.x + 16 > Camera::Get().getCameraCenter() && move->velocityX > 0.0) {
-      	Camera::Get().increaseCameraX(move->velocityX);
+         Camera::Get().increaseCameraX(move->velocityX);
       }
       if (position->position.x <= Camera::Get().getCameraMinX()) {
          position->position.x = Camera::Get().getCameraMinX();
       }
       if (Camera::Get().getCameraMaxX() >= scene->getLevelData().cameraMax * SCALED_CUBE_SIZE) {
-      	Camera::Get().setCameraMax(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
-      	Camera::Get().setCameraMin(Camera::Get().getCameraX());
+         Camera::Get().setCameraMax(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
+         Camera::Get().setCameraMin(Camera::Get().getCameraX());
       }
    }
 }
@@ -568,7 +582,8 @@ void PlayerSystem::tick(World* world) {
       return;
    }
 
-   if (position->position.y >= Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
+   if (position->position.y >=
+       Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
       onGameOver(true);
       return;
    }
@@ -592,6 +607,8 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
+
+               createFloatingText(world, enemy, std::to_string(100));
                break;
             }
 
@@ -623,6 +640,8 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
+
+               createFloatingText(world, enemy, std::to_string(100));
                return;
             }
             if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
@@ -632,6 +651,8 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
+
+               createFloatingText(world, enemy, std::to_string(100));
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver();
@@ -647,6 +668,8 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
+
+               createFloatingText(world, enemy, std::to_string(100));
                return;
             }
             if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
@@ -656,6 +679,8 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
+
+               createFloatingText(world, enemy, std::to_string(100));
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver();

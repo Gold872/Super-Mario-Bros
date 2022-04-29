@@ -5,7 +5,7 @@
 class Camera {
   public:
    static Camera& Get() {
-      return instance;
+      return m_instance;
    }
 
    void setCameraX(float x);
@@ -32,9 +32,9 @@ class Camera {
 
    Camera(const Camera&) = delete;
 
-   static Camera instance;
+   static Camera m_instance;
 
-   float cameraX, cameraY;
-   float cameraMinX, cameraMaxX;
-   bool frozen;
+   float m_cameraX = 0.0, m_cameraY = 0.0;
+   float cameraMinX = 0.0, m_cameraMaxX = 1.0;
+   bool m_frozen = false;
 };

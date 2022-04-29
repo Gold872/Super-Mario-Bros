@@ -3,22 +3,22 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 
-Camera Camera::instance;
+Camera Camera::m_instance;
 
 void Camera::setCameraX(float x) {
-   cameraX = x;
+   m_cameraX = x;
 }
 
 void Camera::setCameraY(float y) {
-   cameraY = y;
+   m_cameraY = y;
 }
 
 void Camera::increaseCameraX(float value) {
-   cameraX += value;
+   m_cameraX += value;
 }
 
 void Camera::updateCameraMin() {
-   cameraMinX = cameraX;
+   cameraMinX = m_cameraX;
 }
 
 void Camera::setCameraMin(float x) {
@@ -30,15 +30,15 @@ void Camera::setCameraMax(float x) {
 }
 
 void Camera::setCameraFrozen(bool val) {
-   frozen = val;
+   m_frozen = val;
 }
 
 float Camera::getCameraX() {
-   return cameraX;
+   return m_cameraX;
 }
 
 float Camera::getCameraY() {
-   return cameraY;
+   return m_cameraY;
 }
 
 float Camera::getCameraCenter() {
@@ -54,7 +54,7 @@ float Camera::getCameraMaxX() {
 }
 
 bool Camera::isFrozen() {
-   return frozen;
+   return m_frozen;
 }
 
 bool Camera::inCameraRange(PositionComponent* position) {

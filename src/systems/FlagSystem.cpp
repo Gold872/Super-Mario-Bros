@@ -69,7 +69,7 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
 
           wait->doAfter = [=](Entity* entity) {
              // Move towards the castle
-         	 Camera::Get().setCameraFrozen(false);
+             Camera::Get().setCameraFrozen(false);
 
              entity->addComponent<GravityComponent>();
 
