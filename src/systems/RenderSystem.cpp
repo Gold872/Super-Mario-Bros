@@ -32,6 +32,9 @@ void RenderSystem::tick(World* world) {
    world->find<PositionComponent, TextureComponent, ParticleComponent>([&](Entity* entity) {
       renderEntity(entity);
    });
+   world->find<PositionComponent, TextureComponent, ProjectileComponent>([&](Entity* entity) {
+      renderEntity(entity);
+   });
    world->find<PositionComponent, TextureComponent, CollectibleComponent>([&](Entity* entity) {
       if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
          renderEntity(entity);

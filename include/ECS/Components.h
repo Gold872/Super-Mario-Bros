@@ -556,6 +556,13 @@ enum class EnemyType
    FIRE_BAR,
 };
 
+enum class ProjectileType
+{
+   NONE,
+   FIREBALL,
+   OTHER
+};
+
 struct EnemyComponent : public Component {
    EnemyComponent(EnemyType type) : enemyType{type} {}
 
@@ -572,7 +579,11 @@ struct CrushableComponent : public Component {
 
 struct CrushedComponent : public Component {};
 
-struct ProjectileComponent : public Component {};
+struct ProjectileComponent : public Component {
+   ProjectileComponent(ProjectileType type) : projectileType{type} {}
+
+   ProjectileType projectileType;
+};
 
 // When the enemy is killed from being above a destroyed block or hit by the player with superstar
 struct EnemyDestroyedComponent : public Component {};
@@ -583,4 +594,12 @@ struct AddScoreComponent : public Component {
 
    int score;
    bool addCoin;
+};
+
+struct CreateFloatingTextComponent : public Component {
+   CreateFloatingTextComponent(Entity* originalEntity, std::string text)
+       : originalEntity{originalEntity}, text{text} {}
+
+   Entity* originalEntity;
+   std::string text;
 };

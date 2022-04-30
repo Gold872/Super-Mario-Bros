@@ -34,18 +34,46 @@ PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
 }
 
-Entity* PlayerSystem::createFloatingText(World* world, Entity* destroyedEnemy, std::string text) {
-   auto* enemyPosition = destroyedEnemy->getComponent<PositionComponent>();
+Entity* PlayerSystem::createFireball(World* world) {
+   Entity* fireball(world->create());
 
-   Entity* scoreText(world->create());
-   scoreText->addComponent<PositionComponent>(
-       Vector2f(enemyPosition->getCenterX(), enemyPosition->getTop() - 4), Vector2i());
-   scoreText->addComponent<MovingComponent>(0, -1, 0, 0);
-   scoreText->addComponent<TextComponent>(text, 10, true);
-   scoreText->addComponent<FloatingTextComponent>();
-   scoreText->addComponent<DestroyDelayedComponent>(35);
+   auto* position = fireball->addComponent<PositionComponent>(
+       Vector2f(), Vector2i(SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2), (SDL_Rect){0, 0, 16, 16});
 
-   return scoreText;
+   fireball->addComponent<TextureComponent>(mario->getComponent<TextureComponent>()->getTexture(),
+                                            ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1, 9, 0,
+                                            ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                            Map::PlayerIDCoordinates.at(246), false, false);
+
+   auto* move = fireball->addComponent<MovingComponent>(0, 0, 0, 0);
+
+   fireball->addComponent<FrictionExemptComponent>();
+
+   fireball->addComponent<GravityComponent>();
+
+   auto* marioTexture = mario->getComponent<TextureComponent>();
+
+   if (marioTexture->isHorizontalFlipped()) {
+      position->setRight(mario->getComponent<PositionComponent>()->getLeft());
+      move->velocityX = -PROJECTILE_SPEED;
+   } else {
+      position->setLeft(mario->getComponent<PositionComponent>()->getRight());
+      move->velocityX = PROJECTILE_SPEED;
+   }
+
+   position->setTop(mario->getComponent<PositionComponent>()->getCenterY());
+
+   fireball->addComponent<WaitUntilComponent>(
+       [](Entity* entity) {
+          return entity->hasAny<LeftCollisionComponent, RightCollisionComponent>();
+       },
+       [=](Entity* entity) {
+          world->destroy(entity);
+       });
+
+   fireball->addComponent<ProjectileComponent>(ProjectileType::FIREBALL);
+
+   return fireball;
 }
 
 void PlayerSystem::setUnderwater(bool val) {
@@ -62,6 +90,7 @@ void PlayerSystem::onGameOver(bool outOfBounds) {
       texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
       mario->remove<SuperMarioComponent>();
+      mario->remove<FireMarioComponent>();
    }
 
    if (!outOfBounds && mario->hasComponent<SuperMarioComponent>()) {
@@ -244,21 +273,26 @@ void PlayerSystem::setState(Animation_State newState) {
    }
 
    if (newState == DUCKING) {
-   	position->hitbox.h = 48;
-   	position->hitbox.y = 16;
+      position->hitbox.h = 48;
+      position->hitbox.y = 16;
    } else {
-   	position->hitbox.h = position->scale.y;
-   	position->hitbox.y = 0;
+      position->hitbox.h = position->scale.y;
+      position->hitbox.y = 0;
    }
 }
 
 void PlayerSystem::grow(World* world, GrowType growType) {
    switch (growType) {
-      case GrowType::ONEUP:
-         break;
+      case GrowType::ONEUP: {
+         Entity* floatingText(world->create());
+         floatingText->addComponent<CreateFloatingTextComponent>(mario, "ONE-UP");
+      } break;
       case GrowType::MUSHROOM: {
          Entity* addScore(world->create());
          addScore->addComponent<AddScoreComponent>(1000);
+
+         Entity* floatingText(world->create());
+         floatingText->addComponent<CreateFloatingTextComponent>(mario, std::to_string(1000));
 
          if (mario->hasComponent<SuperMarioComponent>()) {
             return;
@@ -288,10 +322,16 @@ void PlayerSystem::grow(World* world, GrowType growType) {
              },
              45);
       } break;
-      case GrowType::FIRE_FLOWER:
+      case GrowType::FIRE_FLOWER: {
          if (mario->hasComponent<FireMarioComponent>()) {
             return;
          }
+
+         Entity* addScore(world->create());
+         addScore->addComponent<AddScoreComponent>(1000);
+
+         Entity* floatingText(world->create());
+         floatingText->addComponent<CreateFloatingTextComponent>(mario, std::to_string(1000));
 
          mario->addComponent<AnimationComponent>(
              std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12, 12,
@@ -306,7 +346,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
                 mario->remove<FrozenComponent>();
              },
              60);
-         break;
+      } break;
       default:
          break;
    }
@@ -641,6 +681,12 @@ void PlayerSystem::tick(World* world) {
       return;
    }
 
+   // Launch Fireballs
+   if (mario->hasComponent<FireMarioComponent>() && launchFireball) {
+      createFireball(world);
+      launchFireball = false;
+   }
+
    // Enemy collision
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
       if (!AABBTotalCollision(enemy->getComponent<PositionComponent>(), position) ||
@@ -660,8 +706,6 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-
-               createFloatingText(world, enemy, std::to_string(100));
                break;
             }
 
@@ -693,8 +737,6 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-
-               createFloatingText(world, enemy, std::to_string(100));
                return;
             }
             if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
@@ -704,8 +746,6 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-
-               createFloatingText(world, enemy, std::to_string(100));
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver();
@@ -721,8 +761,6 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-
-               createFloatingText(world, enemy, std::to_string(100));
                return;
             }
             if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
@@ -732,8 +770,6 @@ void PlayerSystem::tick(World* world) {
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-
-               createFloatingText(world, enemy, std::to_string(100));
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver();
@@ -756,7 +792,10 @@ void PlayerSystem::tick(World* world) {
           mario->hasAny<SuperStarComponent, EndingBlinkComponent, FrozenComponent>()) {
          return;
       }
-      onGameOver();
+      if (projectile->getComponent<ProjectileComponent>()->projectileType !=
+          ProjectileType::FIREBALL) {
+         onGameOver();
+      }
    });
 
    // Break blocks
@@ -887,6 +926,11 @@ void PlayerSystem::handleEvent(SDL_Event& event) {
             case SDL_SCANCODE_LCTRL:
                running = true;
                break;
+            case SDL_SCANCODE_Q:
+               if (event.key.repeat == 0) {
+                  launchFireball = true;
+               }
+               break;
             default:
                break;
          }
@@ -908,6 +952,9 @@ void PlayerSystem::handleEvent(SDL_Event& event) {
             case SDL_SCANCODE_LSHIFT:
             case SDL_SCANCODE_LCTRL:
                running = false;
+               break;
+            case SDL_SCANCODE_Q:
+               launchFireball = false;
                break;
             default:
                break;

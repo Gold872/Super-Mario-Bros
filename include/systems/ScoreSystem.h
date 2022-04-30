@@ -27,6 +27,8 @@ class ScoreSystem : public System {
    void decreaseLives();
 
   private:
+   Entity* createFloatingText(World* world, Entity* originalEntity, std::string text);
+
    Entity* scoreEntity;
    Entity* coinsEntity;
    Entity* timerEntity;

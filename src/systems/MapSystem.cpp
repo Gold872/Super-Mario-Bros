@@ -348,7 +348,11 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
       case MysteryBoxType::COINS:
          mysteryBox->whenDispensed = [=](Entity* originalBlock) {
             Entity* addScore(world->create());
-            addScore->addComponent<AddScoreComponent>(200, true);
+            addScore->addComponent<AddScoreComponent>(100, true);
+
+            Entity* floatingText(world->create());
+            floatingText->addComponent<CreateFloatingTextComponent>(originalBlock,
+                                                                    std::to_string(100));
 
             Entity* coin(world->create());
 

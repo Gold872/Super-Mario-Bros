@@ -20,5 +20,7 @@ constexpr float MARIO_BOUNCE = 3.5f;
 constexpr float ENEMY_BOUNCE = 6.0f;  // when jumping on top of enemies
 constexpr float ENEMY_SPEED = 1.0f;
 constexpr float COLLECTIBLE_SPEED = 2.0f;
+constexpr float PROJECTILE_SPEED = 10.0f;
+constexpr float PROJECTILE_BOUNCE = 4.0f;
 
 constexpr int TILE_ROUNDNESS = 4;

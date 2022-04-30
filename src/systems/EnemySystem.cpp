@@ -9,6 +9,18 @@
 #include <iostream>
 
 void EnemySystem::tick(World* world) {
+   world->find<PositionComponent, ProjectileComponent, MovingComponent>([&](Entity* entity) {
+      switch (entity->getComponent<ProjectileComponent>()->projectileType) {
+         case ProjectileType::FIREBALL:
+            if (entity->hasComponent<BottomCollisionComponent>()) {
+               entity->getComponent<MovingComponent>()->velocityY = -PROJECTILE_BOUNCE;
+               entity->remove<BottomCollisionComponent>();
+            }
+            break;
+         default:
+            break;
+      }
+   });
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
       auto* position = enemy->getComponent<PositionComponent>();
       auto* move = enemy->getComponent<MovingComponent>();
@@ -27,10 +39,11 @@ void EnemySystem::tick(World* world) {
       world->find<ProjectileComponent, MovingComponent>([&](Entity* projectile) {
          auto* projectilePosition = projectile->getComponent<PositionComponent>();
          if (!AABBCollision(position, projectilePosition) ||
-             enemy->hasComponent<ProjectileComponent>()) {
+             enemy->hasAny<ProjectileComponent, ParticleComponent>()) {
             return;
          }
          enemy->addComponent<EnemyDestroyedComponent>();
+         world->destroy(projectile);
       });
 
       // Enemy + Enemy Collision (prevents to enemies from walking through each other
@@ -88,25 +101,34 @@ void EnemySystem::tick(World* world) {
          enemy->remove<RightCollisionComponent>();
       }
 
-      if (enemy->hasComponent<CrushableComponent, CrushedComponent>()) {
-         if (enemyComponent->enemyType != EnemyType::KOOPA) {
-            enemy->addComponent<DeadComponent>();
-         }
-         enemy->getComponent<CrushableComponent>()->whenCrushed(enemy);
-         enemy->remove<CrushableComponent>();
-         enemy->remove<CrushedComponent>();
-      }
-      // Enemies that were destroyed through either a projectile or super star mario
-      if (enemy->hasComponent<EnemyDestroyedComponent>()) {
-         move->velocityY = -ENEMY_BOUNCE;
-         enemy->addComponent<ParticleComponent>();
-         enemy->addComponent<DeadComponent>();
-         enemy->getComponent<TextureComponent>()->setVerticalFlipped(true);
-         enemy->remove<EnemyDestroyedComponent>();
-         enemy->remove<AnimationComponent>();
-      }
+      if (!enemy->hasComponent<ParticleComponent>()) {
+         // If enemy is crushed
+         if (enemy->hasComponent<CrushableComponent, CrushedComponent>()) {
+            if (enemyComponent->enemyType != EnemyType::KOOPA) {
+               enemy->addComponent<DeadComponent>();
+            }
+            enemy->getComponent<CrushableComponent>()->whenCrushed(enemy);
+            enemy->remove<CrushableComponent>();
+            enemy->remove<CrushedComponent>();
 
-      enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,
-                    RightCollisionComponent>();
+            Entity* floatingText(world->create());
+            floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
+         }
+         // Enemies that were destroyed through either a projectile or super star mario
+         if (enemy->hasComponent<EnemyDestroyedComponent>()) {
+            move->velocityY = -ENEMY_BOUNCE;
+            enemy->addComponent<ParticleComponent>();
+            enemy->addComponent<DeadComponent>();
+            enemy->getComponent<TextureComponent>()->setVerticalFlipped(true);
+            enemy->remove<EnemyDestroyedComponent>();
+            enemy->remove<AnimationComponent>();
+
+            Entity* floatingText(world->create());
+            floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
+         }
+
+         enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,
+                       RightCollisionComponent>();
+      }
    });
 }

@@ -12,6 +12,20 @@ ScoreSystem::ScoreSystem(GameScene* scene) {
    this->scene = scene;
 }
 
+Entity* ScoreSystem::createFloatingText(World* world, Entity* originalEntity, std::string text) {
+   auto* originalPosition = originalEntity->getComponent<PositionComponent>();
+
+   Entity* scoreText(world->create());
+   scoreText->addComponent<PositionComponent>(
+       Vector2f(originalPosition->getCenterX(), originalPosition->getTop() - 4), Vector2i());
+   scoreText->addComponent<MovingComponent>(0, -1, 0, 0);
+   scoreText->addComponent<TextComponent>(text, 10, true);
+   scoreText->addComponent<FloatingTextComponent>();
+   scoreText->addComponent<DestroyDelayedComponent>(35);
+
+   return scoreText;
+}
+
 void ScoreSystem::onAddedToWorld(World* world) {
    int paddingW = 44;
    int paddingH = 16;
@@ -154,6 +168,14 @@ void ScoreSystem::tick(World* world) {
    bool changeScore = false;
    bool changeCoin = false;
    bool changeTime = false;
+
+   world->find<CreateFloatingTextComponent>([=](Entity* entity) {
+   	auto* floatingText = entity->getComponent<CreateFloatingTextComponent>();
+
+   	createFloatingText(world, floatingText->originalEntity, floatingText->text);
+
+   	world->destroy(entity);
+   });
 
    world->find<AddScoreComponent>([&](Entity* entity) {
       auto* score = entity->getComponent<AddScoreComponent>();
