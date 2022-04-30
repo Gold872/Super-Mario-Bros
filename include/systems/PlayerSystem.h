@@ -22,10 +22,11 @@ class PlayerSystem : public System {
       GAMEOVER
    };
 
-   enum Grow_Type
+   enum class GrowType
    {
       ONEUP,
-      MUSHROOM
+      MUSHROOM,
+      FIRE_FLOWER
    };
 
    Animation_State currentState = STANDING;
@@ -67,7 +68,7 @@ class PlayerSystem : public System {
 
    void setState(Animation_State newState);
 
-   void grow(World* world, Grow_Type growType);
+   void grow(World* world, GrowType growType);
 
    void shrink();
 

@@ -92,91 +92,112 @@ void PlayerSystem::onGameOver(bool outOfBounds) {
 
 void PlayerSystem::setState(Animation_State newState) {
    auto* texture = mario->getComponent<TextureComponent>();
+   auto* position = mario->getComponent<PositionComponent>();
+
+   if (mario->hasComponent<FrozenComponent>()) {
+      return;
+   }
 
    switch (newState) {
       case STANDING:
-         if (!mario->hasComponent<FrozenComponent>()) {
-            if (mario->hasComponent<AnimationComponent>()) {
-               mario->remove<AnimationComponent>();
-            }
-            if (mario->hasComponent<SuperMarioComponent>()) {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(25));
-            } else {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
-            }
+         if (mario->hasComponent<AnimationComponent>()) {
+            mario->remove<AnimationComponent>();
          }
-         break;
-      case WALKING:
-         if (!mario->hasComponent<FrozenComponent>()) {
-            std::vector<int> superFrameIDS = {27, 28, 29};
-            std::vector<int> normalFrameIDS = {2, 3, 4};
-            if (!mario->hasComponent<AnimationComponent>()) {
-               if (mario->hasComponent<SuperMarioComponent>()) {
-                  mario->addComponent<AnimationComponent>(superFrameIDS, 3, 8,
-                                                          Map::PlayerIDCoordinates);
-               } else {
-                  mario->addComponent<AnimationComponent>(normalFrameIDS, 3, 8,
-                                                          Map::PlayerIDCoordinates);
-               }
-               return;
-            }
-            if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
-                mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS) {
-               // If the player already has an animation but it is not the correct one
-               auto* animation = mario->getComponent<AnimationComponent>();
+         if (mario->hasComponent<FireMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(225));
+         } else if (mario->hasComponent<SuperMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(25));
+         } else {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
+         }
 
-               if (mario->hasComponent<SuperMarioComponent>()) {
-                  animation->frameIDS = superFrameIDS;
-                  animation->frameCount = 3;
-               } else {
-                  animation->frameIDS = normalFrameIDS;
-                  animation->frameCount = 3;
-               }
-            }
-            if (running) {
-               mario->getComponent<AnimationComponent>()->setFramesPerSecond(12);
-            } else {
-               mario->getComponent<AnimationComponent>()->setFramesPerSecond(8);
-            }
-         }
          break;
-      case DRIFTING:
-         if (!mario->hasComponent<FrozenComponent>()) {
-            if (mario->hasComponent<AnimationComponent>()) {
-               mario->remove<AnimationComponent>();
-            }
-            if (mario->hasComponent<SuperMarioComponent>()) {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(30));
+      case WALKING: {
+         std::vector<int> fireFrameIDS = {227, 228, 229};
+         std::vector<int> superFrameIDS = {27, 28, 29};
+         std::vector<int> normalFrameIDS = {2, 3, 4};
+         if (!mario->hasComponent<AnimationComponent>()) {
+            if (mario->hasComponent<FireMarioComponent>()) {
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 3, 8,
+                                                       Map::PlayerIDCoordinates);
+            } else if (mario->hasComponent<SuperMarioComponent>()) {
+               mario->addComponent<AnimationComponent>(superFrameIDS, 3, 8,
+                                                       Map::PlayerIDCoordinates);
             } else {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(5));
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 3, 8,
+                                                       Map::PlayerIDCoordinates);
+            }
+            return;
+         }
+         if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
+             mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
+             mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
+            // If the player already has an animation but it is not the correct one
+            auto* animation = mario->getComponent<AnimationComponent>();
+
+            if (mario->hasComponent<FireMarioComponent>()) {
+               animation->frameIDS = fireFrameIDS;
+               animation->frameCount = 3;
+            } else if (mario->hasComponent<SuperMarioComponent>()) {
+               animation->frameIDS = superFrameIDS;
+               animation->frameCount = 3;
+            } else {
+               animation->frameIDS = normalFrameIDS;
+               animation->frameCount = 3;
             }
          }
+         if (running) {
+            mario->getComponent<AnimationComponent>()->setFramesPerSecond(12);
+         } else {
+            mario->getComponent<AnimationComponent>()->setFramesPerSecond(8);
+         }
+
+      } break;
+      case DRIFTING:
+         if (mario->hasComponent<AnimationComponent>()) {
+            mario->remove<AnimationComponent>();
+         }
+         if (mario->hasComponent<FireMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(230));
+         } else if (mario->hasComponent<SuperMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(30));
+         } else {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(5));
+         }
+
          break;
       case JUMPING:
-         if (!mario->hasComponent<FrozenComponent>()) {
-            if (mario->hasComponent<AnimationComponent>()) {
-               mario->remove<AnimationComponent>();
-            }
-            if (mario->hasComponent<SuperMarioComponent>()) {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(31));
-            } else {
-               texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(6));
-            }
+         if (mario->hasComponent<AnimationComponent>()) {
+            mario->remove<AnimationComponent>();
          }
+         if (mario->hasComponent<FireMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(231));
+         } else if (mario->hasComponent<SuperMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(31));
+         } else {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(6));
+         }
+
          break;
       case DUCKING:
-         if (!mario->hasComponent<FrozenComponent>()) {
-            if (mario->hasComponent<AnimationComponent>()) {
-               mario->remove<AnimationComponent>();
-            }
+         if (mario->hasComponent<AnimationComponent>()) {
+            mario->remove<AnimationComponent>();
+         }
+         if (mario->hasComponent<FireMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(226));
+         } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
          }
          break;
       case CLIMBING: {
+         std::vector<int> fireFrameIDS = {238, 239};
          std::vector<int> superFrameIDS = {38, 39};
          std::vector<int> normalFrameIDS = {13, 14};
          if (!mario->hasComponent<AnimationComponent>()) {
-            if (mario->hasComponent<SuperMarioComponent>()) {
+            if (mario->hasComponent<FireMarioComponent>()) {
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 2, 8,
+                                                       Map::PlayerIDCoordinates);
+            } else if (mario->hasComponent<SuperMarioComponent>()) {
                mario->addComponent<AnimationComponent>(superFrameIDS, 2, 8,
                                                        Map::PlayerIDCoordinates);
             } else {
@@ -184,11 +205,14 @@ void PlayerSystem::setState(Animation_State newState) {
                                                        Map::PlayerIDCoordinates);
             }
          } else if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
-                    mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS) {
+                    mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
+                    mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
             // If the player already has an animation but it is not the correct one
             auto* animation = mario->getComponent<AnimationComponent>();
-
-            if (mario->hasComponent<SuperMarioComponent>()) {
+            if (mario->hasComponent<FireMarioComponent>()) {
+               animation->frameIDS = fireFrameIDS;
+               animation->frameCount = 2;
+            } else if (mario->hasComponent<SuperMarioComponent>()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 2;
             } else {
@@ -201,7 +225,9 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<SuperMarioComponent>()) {
+         if (mario->hasComponent<FireMarioComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(238));
+         } else if (mario->hasComponent<SuperMarioComponent>()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(38));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(13));
@@ -216,13 +242,21 @@ void PlayerSystem::setState(Animation_State newState) {
       default:
          break;
    }
+
+   if (newState == DUCKING) {
+   	position->hitbox.h = 48;
+   	position->hitbox.y = 16;
+   } else {
+   	position->hitbox.h = position->scale.y;
+   	position->hitbox.y = 0;
+   }
 }
 
-void PlayerSystem::grow(World* world, Grow_Type growType) {
+void PlayerSystem::grow(World* world, GrowType growType) {
    switch (growType) {
-      case ONEUP:
+      case GrowType::ONEUP:
          break;
-      case MUSHROOM: {
+      case GrowType::MUSHROOM: {
          Entity* addScore(world->create());
          addScore->addComponent<AddScoreComponent>(1000);
 
@@ -254,13 +288,32 @@ void PlayerSystem::grow(World* world, Grow_Type growType) {
              },
              45);
       } break;
+      case GrowType::FIRE_FLOWER:
+         if (mario->hasComponent<FireMarioComponent>()) {
+            return;
+         }
+
+         mario->addComponent<AnimationComponent>(
+             std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12, 12,
+             Map::PlayerIDCoordinates, false);
+
+         mario->addComponent<FireMarioComponent>();
+
+         mario->addComponent<FrozenComponent>();
+
+         mario->addComponent<CallbackComponent>(
+             [&](Entity* mario) {
+                mario->remove<FrozenComponent>();
+             },
+             60);
+         break;
       default:
          break;
    }
 }
 
 void PlayerSystem::shrink() {
-   mario->remove<SuperMarioComponent>();
+   mario->remove<FireMarioComponent, SuperMarioComponent>();
 
    mario->addComponent<AnimationComponent>(std::vector<int>{25, 45, 46, 25, 45, 46, 25, 45, 46}, 9,
                                            12, Map::PlayerIDCoordinates, false);
@@ -755,7 +808,7 @@ void PlayerSystem::tick(World* world) {
 
       switch (collect->collectibleType) {
          case CollectibleType::MUSHROOM: {
-            grow(world, Grow_Type::MUSHROOM);
+            grow(world, GrowType::MUSHROOM);
             world->destroy(collectible);
          } break;
          case CollectibleType::SUPER_STAR:
@@ -767,6 +820,10 @@ void PlayerSystem::tick(World* world) {
                    entity->remove<SuperStarComponent>();
                 },
                 600);
+            break;
+         case CollectibleType::FIRE_FLOWER:
+            world->destroy(collectible);
+            grow(world, GrowType::FIRE_FLOWER);
             break;
          case CollectibleType::COIN: {
             Entity* coinScore(world->create());

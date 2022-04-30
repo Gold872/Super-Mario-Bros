@@ -282,32 +282,67 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
    switch (mysteryBox->boxType) {
       case MysteryBoxType::MUSHROOM:
          mysteryBox->whenDispensed = [=](Entity* originalBlock) {
-            Entity* mushroom(world->create());
+            if (world->findFirst<PlayerComponent>()->hasComponent<SuperMarioComponent>()) {
+               Entity* fireFlower(world->create());
 
-            auto* position = originalBlock->getComponent<PositionComponent>();
+               auto* position = originalBlock->getComponent<PositionComponent>();
 
-            mushroom->addComponent<PositionComponent>(position->position,
-                                                      Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+               fireFlower->addComponent<PositionComponent>(
+                   position->position, Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
 
-            mushroom->addComponent<TextureComponent>(
-                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(608));
+               int flowerID = getReferenceBlockIDAsEntity(entityID, 48);
 
-            mushroom->addComponent<CollectibleComponent>(CollectibleType::MUSHROOM);
+               fireFlower->addComponent<TextureComponent>(
+                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(flowerID));
 
-            mushroom->addComponent<MovingComponent>(0, -1.0f);
+               fireFlower->addComponent<AnimationComponent>(
+                   std::vector<int>{flowerID, flowerID + 1, flowerID + 2, flowerID + 3}, 4, 8,
+                   Map::BlockIDCoordinates);
 
-            mushroom->addComponent<WaitUntilComponent>(
-                [=](Entity* entity) {
-                   return position->getTop() >
-                          entity->getComponent<PositionComponent>()->getBottom();
-                },
-                [&](Entity* entity) {
-                   entity->addComponent<GravityComponent>();
-                   entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
-                   entity->remove<WaitUntilComponent>();
-                   entity->remove<MysteryBoxComponent>();
-                });
+               fireFlower->addComponent<CollectibleComponent>(CollectibleType::FIRE_FLOWER);
+
+               fireFlower->addComponent<MovingComponent>(0, -1.0f);
+
+               fireFlower->addComponent<WaitUntilComponent>(
+                   [=](Entity* entity) {
+                      return position->getTop() >
+                             entity->getComponent<PositionComponent>()->getBottom();
+                   },
+                   [&](Entity* entity) {
+                      entity->addComponent<GravityComponent>();
+                      entity->getComponent<MovingComponent>()->velocityY = 0;
+                      entity->remove<WaitUntilComponent>();
+                      entity->remove<MysteryBoxComponent>();
+                   });
+            } else {
+               Entity* mushroom(world->create());
+
+               auto* position = originalBlock->getComponent<PositionComponent>();
+
+               mushroom->addComponent<PositionComponent>(
+                   position->position, Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
+               mushroom->addComponent<TextureComponent>(
+                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(608));
+
+               mushroom->addComponent<CollectibleComponent>(CollectibleType::MUSHROOM);
+
+               mushroom->addComponent<MovingComponent>(0, -1.0f);
+
+               mushroom->addComponent<WaitUntilComponent>(
+                   [=](Entity* entity) {
+                      return position->getTop() >
+                             entity->getComponent<PositionComponent>()->getBottom();
+                   },
+                   [&](Entity* entity) {
+                      entity->addComponent<GravityComponent>();
+                      entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                      entity->remove<WaitUntilComponent>();
+                      entity->remove<MysteryBoxComponent>();
+                   });
+            }
          };
          break;
       case MysteryBoxType::COINS:

@@ -480,6 +480,7 @@ enum class CollectibleType
    NONE,
    MUSHROOM,
    SUPER_STAR,
+   FIRE_FLOWER,
    COIN,
 };
 
@@ -536,6 +537,8 @@ struct EnemyCollisionComponent : public Component {};
 struct PlayerComponent : public Component {};
 
 struct SuperMarioComponent : public Component {};
+
+struct FireMarioComponent : public Component {};
 
 struct FrozenComponent : public Component {};
 
