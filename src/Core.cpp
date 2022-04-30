@@ -12,9 +12,9 @@ Core::Core() {
    game.setCore(this);
 }
 
-void Core::limitFPS(int startTick) {
-   if (1000 / MAX_FPS > SDL_GetTicks() - startTick) {
-      SDL_Delay(1000 / MAX_FPS - (SDL_GetTicks() - startTick));
+void Core::limitFPS(Uint64 startTick) {
+   if (1000 / MAX_FPS > SDL_GetTicks64() - startTick) {
+      SDL_Delay(1000 / MAX_FPS - (SDL_GetTicks64() - startTick));
    }
 }
 
@@ -35,10 +35,10 @@ void Core::run() {
 }
 
 void Core::mainLoop() {
-   unsigned int ticksNow = SDL_GetTicks();
+   Uint64 startTicks = SDL_GetTicks64();
    game.handleInput();
    game.update();
-   limitFPS(ticksNow);
+   limitFPS(startTicks);
    std::cout << std::flush;
 }
 

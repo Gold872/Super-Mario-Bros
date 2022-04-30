@@ -19,7 +19,7 @@ class Core {
 
    void mainLoop();
 
-   void limitFPS(int startTick);
+   void limitFPS(Uint64 startTick);
 
    static void setRunning(bool val);
 
