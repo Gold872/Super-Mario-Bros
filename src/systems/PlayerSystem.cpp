@@ -323,6 +323,10 @@ void PlayerSystem::grow(World* world, GrowType growType) {
              45);
       } break;
       case GrowType::FIRE_FLOWER: {
+         if (!mario->hasComponent<SuperMarioComponent>()) {
+            grow(world, GrowType::MUSHROOM);
+            return;
+         }
          if (mario->hasComponent<FireMarioComponent>()) {
             return;
          }
@@ -681,7 +685,25 @@ void PlayerSystem::tick(World* world) {
       return;
    }
 
-   // Launch Fireballs
+   bool platformMoved = false;
+
+   // Move mario with the platforms
+   world->find<MovingPlatformComponent, MovingComponent>([&](Entity* entity) {
+      if (!AABBCollision(position, entity->getComponent<PositionComponent>()) || platformMoved) {
+         return;
+      }
+      auto* platformMove = entity->getComponent<MovingComponent>();
+      position->position.x += platformMove->velocityX;
+
+      if (position->position.x + 16 > Camera::Get().getCameraCenter() &&
+          platformMove->velocityX > 0) {
+         Camera::Get().increaseCameraX(platformMove->velocityX);
+      }
+
+      platformMoved = true;
+   });
+
+   // Launch fireballs
    if (mario->hasComponent<FireMarioComponent>() && launchFireball) {
       createFireball(world);
       launchFireball = false;
