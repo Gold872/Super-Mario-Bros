@@ -21,8 +21,13 @@ MenuScene::MenuScene() {
 
 void MenuScene::handleEvents(SDL_Event& event) {
    if (event.type == SDL_KEYDOWN) {
-      if (event.key.keysym.scancode == SDL_SCANCODE_RETURN) {
-         finished = true;
+      switch (event.key.keysym.scancode) {
+         case SDL_SCANCODE_RETURN:
+         case SDL_SCANCODE_SPACE:
+            finished = true;
+            break;
+         default:
+            break;
       }
    }
    world->handleEvent(event);
