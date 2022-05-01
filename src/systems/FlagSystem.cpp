@@ -143,6 +143,10 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
 
    world->destroy(world->findFirst<BridgeChainComponent>());
 
+   Entity* bowser = world->findFirst<BowserComponent>();
+
+   bowser->addComponent<FrozenComponent>();
+
    Entity* bridge = world->findFirst<BridgeComponent>();
 
    bridge->addComponent<TimerComponent>(
@@ -158,6 +162,9 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
           if (bridgeComponent->connectedBridgeParts.empty()) {
              entity->remove<TimerComponent>();
           }
+
+          Entity* bridgeCollapseSound(world->create());
+          bridgeCollapseSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);
        },
        5);
 
@@ -169,32 +176,51 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
        [=](Entity* entity) {
           auto* wait = entity->getComponent<WaitUntilComponent>();
 
-          world->destroy(axe);
+          bowser->remove<FrozenComponent>();
+          bowser->addComponent<DeadComponent>();
 
-          playerMove->velocityX = 3.0;
-
-          player->addComponent<GravityComponent>();
-
-          player->remove<FrozenComponent>();
+          Entity* bowserFall(world->create());
+          bowserFall->addComponent<SoundComponent>(SoundID::BOWSER_FALL);
 
           wait->condition = [=](Entity* entity) {
-             return entity->hasComponent<RightCollisionComponent>();
+             return !Camera::Get().inCameraRange(bowser->getComponent<PositionComponent>());
           };
 
           wait->doAfter = [=](Entity* entity) {
-             playerMove->velocityX = 0;
-
-             entity->addComponent<CallbackComponent>(
+             Entity* worldClear(world->create());
+             worldClear->addComponent<CallbackComponent>(
                  [=](Entity* entity) {
-                    Vector2i nextLevel = scene->getLevelData().nextLevel;
-
-                    player->getComponent<TextureComponent>()->setVisible(false);
-
-                    scene->switchLevel(nextLevel.x, nextLevel.y);
+                    entity->addComponent<SoundComponent>(SoundID::CASTLE_CLEAR);
                  },
-                 240);
+                 MAX_FPS * 0.325);
 
-             entity->remove<WaitUntilComponent>();
+             world->destroy(axe);
+
+             playerMove->velocityX = 3.0;
+
+             player->addComponent<GravityComponent>();
+
+             player->remove<FrozenComponent>();
+
+             wait->condition = [=](Entity* entity) {
+                return entity->hasComponent<RightCollisionComponent>();
+             };
+
+             wait->doAfter = [=](Entity* entity) {
+                playerMove->velocityX = 0;
+
+                entity->addComponent<CallbackComponent>(
+                    [=](Entity* entity) {
+                       Vector2i nextLevel = scene->getLevelData().nextLevel;
+
+                       player->getComponent<TextureComponent>()->setVisible(false);
+
+                       scene->switchLevel(nextLevel.x, nextLevel.y);
+                    },
+                    240);
+
+                entity->remove<WaitUntilComponent>();
+             };
           };
        });
 }

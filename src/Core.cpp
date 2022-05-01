@@ -5,6 +5,7 @@
 #include "TextureManager.h"
 
 #include <iostream>
+#include <stdlib.h>
 
 bool Core::running;
 
@@ -33,6 +34,7 @@ int Core::init() {
 }
 
 void Core::run() {
+   srand(time(NULL));  // Generates a random time seed for the game to generate random numbers
    while (running) {
       mainLoop();
    }

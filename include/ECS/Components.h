@@ -569,6 +569,7 @@ enum class EnemyType
    FLYING_KOOPA,
    KOOPA_SHELL,
    PIRANHA_PLANT,
+   BOWSER,
    FIRE_BAR,
 };
 
@@ -583,6 +584,24 @@ struct EnemyComponent : public Component {
    EnemyComponent(EnemyType type) : enemyType{type} {}
 
    EnemyType enemyType;
+};
+
+struct BowserComponent : public Component {
+   BowserComponent(std::vector<std::function<void(Entity*, int number)>> attacks,
+                   std::vector<std::function<void(Entity*)>> movements)
+       : bowserAttacks{attacks}, bowserMovements{movements} {}
+
+   std::vector<std::function<void(Entity*, int number)>> bowserAttacks;
+   std::vector<std::function<void(Entity*)>> bowserMovements;
+
+   float distanceMoved = 0;
+
+   int lastAttackTime = 0;
+   int lastMoveTime = 0;
+   int lastStopTime = 0;
+   int lastJumpTime = 0;
+
+   Direction lastMoveDirection = Direction::NONE;
 };
 
 struct DeadComponent : public Component {};

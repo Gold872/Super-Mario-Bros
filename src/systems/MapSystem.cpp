@@ -8,6 +8,7 @@
 #include "SoundManager.h"
 
 #include <iostream>
+#include <time.h>
 #include <tuple>
 
 template <typename T>
@@ -718,6 +719,154 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
       } break;
       case 44: {  // PIRHANNA PLANT
 
+      } break;
+      case 61: {  // BOWSER
+         Entity* bowser(world->create());
+
+         auto* position = bowser->addComponent<PositionComponent>(
+             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
+             Vector2i(SCALED_CUBE_SIZE * 2, SCALED_CUBE_SIZE * 2));
+
+         auto* texture = bowser->addComponent<TextureComponent>(
+             scene->enemyTexture, ORIGINAL_CUBE_SIZE * 2, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+
+         auto* move = bowser->addComponent<MovingComponent>(0, 0, 0, -0.3);
+
+         bowser->addComponent<GravityComponent>();
+         bowser->addComponent<FrictionExemptComponent>();
+
+         int mouthOpenID = getReferenceEnemyIDAsEntity(entityID, 61);
+         int mouthClosedID = getReferenceEnemyIDAsEntity(entityID, 65);
+
+         int hammerID = getReferenceEnemyIDAsEntity(entityID, 60);
+
+         std::vector<int> mouthOpenAnimation = {mouthOpenID, mouthOpenID + 2};
+         std::vector<int> mouthClosedAnimation = {mouthClosedID, mouthClosedID + 2};
+
+         auto* animation = bowser->addComponent<AnimationComponent>(mouthOpenAnimation, 2, 2,
+                                                                    Map::EnemyIDCoordinates);
+
+         std::vector<std::function<void(Entity*)>> bowserMovements = {
+             [=](Entity* entity) {  // MOVE
+                auto* bowserComponent = entity->getComponent<BowserComponent>();
+
+                if (bowserComponent->lastMoveDirection == Direction::LEFT) {
+                   move->velocityX = 1.0;
+                   bowserComponent->lastMoveDirection = Direction::RIGHT;
+                } else {
+                   move->velocityX = -1.0;
+                   bowserComponent->lastMoveDirection = Direction::LEFT;
+                }
+                bowserComponent->lastMoveTime = 0;
+             },
+             [=](Entity* entity) {  // STOP
+                move->velocityX = 0;
+                entity->getComponent<BowserComponent>()->lastStopTime = 0;
+             },
+             [=](Entity* entity) {  // JUMP
+                auto* bowserComponent = entity->getComponent<BowserComponent>();
+
+                move->velocityY = -5.0;
+                move->accelerationY = -0.35;
+                bowserComponent->lastJumpTime = 0;
+             },
+         };
+
+         std::vector<std::function<void(Entity*, int number)>> bowserAttacks = {
+             [=](Entity* entity, int number) {  // LAUNCH FIRE
+                auto* bowserComponent = entity->getComponent<BowserComponent>();
+
+                animation->frameIDS = mouthClosedAnimation;
+                entity->addComponent<CallbackComponent>(
+                    [=](Entity* entity, int number = 0) {
+                       animation->frameIDS = mouthOpenAnimation;
+
+                       Entity* blastSound(world->create());
+                       blastSound->addComponent<SoundComponent>(SoundID::BOWSER_FIRE);
+
+                       Entity* fireBlast(world->create());
+
+                       auto* blastPosition = fireBlast->addComponent<PositionComponent>(
+                           Vector2f(0, position->getTop() + 4),
+                           Vector2i(SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2));
+
+                       auto* blastTexture = fireBlast->addComponent<TextureComponent>(
+                           scene->enemyTexture, ORIGINAL_CUBE_SIZE + ORIGINAL_CUBE_SIZE / 2,
+                           ORIGINAL_CUBE_SIZE / 2, 1, 1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                           Map::EnemyIDCoordinates.at(470));
+
+                       fireBlast->addComponent<AnimationComponent>(std::vector<int>{470, 505}, 2,
+                                                                   16, Map::EnemyIDCoordinates);
+
+                       auto* blastMove = fireBlast->addComponent<MovingComponent>(0, 0, 0, 0);
+                       fireBlast->addComponent<FrictionExemptComponent>();
+
+                       if (texture->isHorizontalFlipped()) {
+                          blastMove->velocityX = 3.0;
+                          blastPosition->setLeft(position->getRight());
+                          blastTexture->setHorizontalFlipped(true);
+                       } else {
+                          blastMove->velocityX = -3.0;
+                          blastPosition->setRight(position->getLeft());
+                          blastTexture->setHorizontalFlipped(false);
+                       }
+
+                       fireBlast->addComponent<ProjectileComponent>(ProjectileType::OTHER);
+                    },
+                    MAX_FPS * 2);
+                bowserComponent->lastAttackTime = 0;
+             },
+             [=](Entity* entity, int number = 0) {  // THROW HAMMERS
+                auto* bowserComponent = entity->getComponent<BowserComponent>();
+
+                for (int i = 0; i < number; i++) {
+                   Entity* hammer(world->create());
+                   hammer->addComponent<CallbackComponent>(
+                       [=](Entity* hammer) {
+                          auto* hammerPosition = hammer->addComponent<PositionComponent>(
+                              Vector2f(position->getLeft(), position->getTop()),
+                              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
+                          if (texture->isHorizontalFlipped()) {
+                             hammerPosition->setLeft(position->getRight());
+                          } else {
+                             hammerPosition->setRight(position->getLeft());
+                          }
+
+                          hammer->addComponent<TextureComponent>(
+                              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                              Map::EnemyIDCoordinates.at(hammerID));
+
+                          float randomXVelocity =
+                              -((float)((float)rand() / (float)RAND_MAX) + 2.25);
+                          float randomYVelocity =
+                              -((float)((float)rand() / (float)RAND_MAX) * 0.5 + 6);
+
+                          if (texture->isHorizontalFlipped()) {
+                             randomXVelocity *= -1;
+                          }
+
+                          hammer->addComponent<MovingComponent>(randomXVelocity, randomYVelocity, 0,
+                                                                -0.35);
+
+                          hammer->addComponent<FrictionExemptComponent>();
+                          hammer->addComponent<GravityComponent>();
+
+                          hammer->addComponent<ProjectileComponent>(ProjectileType::OTHER);
+
+                          hammer->addComponent<ParticleComponent>();
+                       },
+                       i * 4);
+                }
+                bowserComponent->lastAttackTime = 0;
+             },
+         };
+
+         bowser->addComponent<BowserComponent>(bowserAttacks, bowserMovements);
+
+         bowser->addComponent<EnemyComponent>(EnemyType::BOWSER);
       } break;
       case 70: {  // GOOMBA
          Entity* entity(world->create());

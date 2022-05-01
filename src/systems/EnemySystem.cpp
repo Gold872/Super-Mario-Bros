@@ -7,7 +7,41 @@
 #include "ECS/ECS.h"
 #include "SoundManager.h"
 
+#include <SDL2/SDL.h>
+
 #include <iostream>
+#include <time.h>
+
+void EnemySystem::performBowserActions(World* world, Entity* entity) {
+   if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+      return;
+   }
+
+   auto* bowserComponent = entity->getComponent<BowserComponent>();
+
+   bowserComponent->lastMoveTime++;
+   bowserComponent->lastStopTime++;
+   bowserComponent->lastJumpTime++;
+   bowserComponent->lastAttackTime++;
+
+   if (bowserComponent->lastMoveTime >= MAX_FPS * 3 &&
+       bowserComponent->lastStopTime < MAX_FPS * 4) {
+      bowserComponent->bowserMovements[0](entity);
+   }
+   if (bowserComponent->lastStopTime >= MAX_FPS * 4) {
+      bowserComponent->bowserMovements[1](entity);
+   }
+   if (bowserComponent->lastJumpTime >= MAX_FPS * 5) {
+      bowserComponent->bowserMovements[2](entity);
+   }
+
+   if (bowserComponent->lastAttackTime >= MAX_FPS * 3) {
+      int attackSelect = rand() % bowserComponent->bowserAttacks.size();
+      int hammerAmount = rand() % 5 + 6;
+
+      bowserComponent->bowserAttacks[attackSelect](entity, hammerAmount);
+   }
+}
 
 void EnemySystem::tick(World* world) {
    world->find<PositionComponent, ProjectileComponent, MovingComponent>([&](Entity* entity) {
@@ -27,6 +61,10 @@ void EnemySystem::tick(World* world) {
       auto* move = enemy->getComponent<MovingComponent>();
       auto* enemyComponent = enemy->getComponent<EnemyComponent>();
 
+      if (enemyComponent->enemyType == EnemyType::BOWSER) {
+         performBowserActions(world, enemy);
+      }
+
       // If the enemy is standing on a block and the block gets hit
       if (enemy->hasComponent<BottomCollisionComponent>()) {
          world->find<BlockBumpComponent>([&](Entity* block) {
@@ -40,7 +78,15 @@ void EnemySystem::tick(World* world) {
       world->find<ProjectileComponent, MovingComponent>([&](Entity* projectile) {
          auto* projectilePosition = projectile->getComponent<PositionComponent>();
          if (!AABBCollision(position, projectilePosition) ||
-             enemy->hasAny<ProjectileComponent, ParticleComponent>()) {
+             enemy->hasAny<ProjectileComponent, ParticleComponent>() ||
+             enemy->getComponent<EnemyComponent>()->enemyType == EnemyType::FIRE_BAR) {
+            return;
+         }
+         if (enemy->hasComponent<BowserComponent>()) {
+            if (projectile->getComponent<ProjectileComponent>()->projectileType ==
+                ProjectileType::FIREBALL) {
+               // Decrease HP
+            }
             return;
          }
          enemy->addComponent<EnemyDestroyedComponent>();

@@ -46,10 +46,10 @@ GameScene::GameScene(int level, int subLevel) {
    world->registerSystem<AnimationSystem>();
    playerSystem = world->registerSystem<PlayerSystem>(this);
    world->registerSystem<EnemySystem>();
-   world->registerSystem<CallbackSystem>();
    world->registerSystem<CollectibleSystem>();
    world->registerSystem<WarpSystem>(this);
    world->registerSystem<FlagSystem>(this);
+   world->registerSystem<CallbackSystem>();
    scoreSystem = world->registerSystem<ScoreSystem>(this);
    soundSystem = world->registerSystem<SoundSystem>();
    world->registerSystem<RenderSystem>();
