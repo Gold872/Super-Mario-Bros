@@ -17,6 +17,7 @@ class PlayerSystem : public System {
       DUCKING,
       JUMPING,
       SWIMMING,
+      LAUNCH_FIREBALL,
       CLIMBING,  // Climbing a vine
       SLIDING,   // Sliding down a flag
       GAMEOVER
@@ -90,6 +91,7 @@ class PlayerSystem : public System {
    int jump = 0;
    int duck = 0;
    int launchFireball = 0;
+   int holdFireballTexture = 0;
 
    static bool inputEnabled;
    static bool inGameStart;

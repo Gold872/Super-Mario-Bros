@@ -36,6 +36,16 @@ PlayerSystem::PlayerSystem(GameScene* scene) {
 }
 
 Entity* PlayerSystem::createFireball(World* world) {
+   holdFireballTexture = true;
+
+   currentState = LAUNCH_FIREBALL;
+
+   mario->addComponent<CallbackComponent>(
+       [&](Entity* entity) {
+          holdFireballTexture = false;
+       },
+       6);
+
    Entity* fireball(world->create());
 
    auto* position = fireball->addComponent<PositionComponent>(
@@ -46,7 +56,7 @@ Entity* PlayerSystem::createFireball(World* world) {
                                             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
                                             Map::PlayerIDCoordinates.at(246), false, false);
 
-   auto* move = fireball->addComponent<MovingComponent>(0, 0, 0, 0);
+   auto* move = fireball->addComponent<MovingComponent>(0, 3, 0, 0);
 
    fireball->addComponent<FrictionExemptComponent>();
 
@@ -62,14 +72,26 @@ Entity* PlayerSystem::createFireball(World* world) {
       move->velocityX = PROJECTILE_SPEED;
    }
 
-   position->setTop(mario->getComponent<PositionComponent>()->getCenterY());
+   position->setTop(mario->getComponent<PositionComponent>()->getTop() + 4);
 
    fireball->addComponent<WaitUntilComponent>(
-       [](Entity* entity) {
-          return entity->hasAny<LeftCollisionComponent, RightCollisionComponent>();
+       [=](Entity* entity) {
+          return entity->hasAny<LeftCollisionComponent, RightCollisionComponent>() ||
+                 !Camera::Get().inCameraRange(entity->getComponent<PositionComponent>());
        },
        [=](Entity* entity) {
-          world->destroy(entity);
+          entity->remove<WaitUntilComponent>();
+          if (entity->hasAny<LeftCollisionComponent, RightCollisionComponent>()) {
+             entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+                 Map::PlayerIDCoordinates.at(247));
+             entity->addComponent<DestroyDelayedComponent>(4);
+             entity->remove<MovingComponent>();
+
+             Entity* fireballHitSound(world->create());
+             fireballHitSound->addComponent<SoundComponent>(SoundID::BLOCK_HIT);
+          } else {
+             world->destroy(entity);
+          }
        });
 
    fireball->addComponent<ProjectileComponent>(ProjectileType::FIREBALL);
@@ -223,6 +245,16 @@ void PlayerSystem::setState(Animation_State newState) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
          }
          break;
+      case LAUNCH_FIREBALL: {
+         if (mario->hasComponent<AnimationComponent>()) {
+            mario->remove<AnimationComponent>();
+         }
+         if (mario->hasComponent<BottomCollisionComponent>()) {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(240));
+         } else {
+            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(243));
+         }
+      } break;
       case CLIMBING: {
          std::vector<int> fireFrameIDS = {238, 239};
          std::vector<int> superFrameIDS = {38, 39};
@@ -306,8 +338,6 @@ void PlayerSystem::grow(World* world, GrowType growType) {
             return;
          }
 
-         mario->addComponent<SuperMarioComponent>();
-
          auto position = mario->getComponent<PositionComponent>();
 
          auto texture = mario->getComponent<TextureComponent>();
@@ -326,6 +356,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
 
          mario->addComponent<CallbackComponent>(
              [&](Entity* mario) {
+                mario->addComponent<SuperMarioComponent>();
                 mario->remove<FrozenComponent>();
              },
              45);
@@ -353,12 +384,11 @@ void PlayerSystem::grow(World* world, GrowType growType) {
              std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12, 12,
              Map::PlayerIDCoordinates, false);
 
-         mario->addComponent<FireMarioComponent>();
-
          mario->addComponent<FrozenComponent>();
 
          mario->addComponent<CallbackComponent>(
              [&](Entity* mario) {
+                mario->addComponent<FireMarioComponent>();
                 mario->remove<FrozenComponent>();
              },
              60);
@@ -505,6 +535,7 @@ void PlayerSystem::reset() {
    move->velocityX = move->accelerationX = 0;
 
    mario->getComponent<TextureComponent>()->setVisible(true);
+   mario->getComponent<TextureComponent>()->setHorizontalFlipped(false);
 
    if (scene->getLevelData().levelType != LevelType::START_UNDERGROUND) {
       mario->addComponent<GravityComponent>();
@@ -695,6 +726,11 @@ void PlayerSystem::tick(World* world) {
       // If game over
       currentState = GAMEOVER;
       return;
+   }
+
+   // Hold the launching texture
+   if (holdFireballTexture) {
+      currentState = LAUNCH_FIREBALL;
    }
 
    if (position->position.y >=
