@@ -39,7 +39,7 @@ GameScene::GameScene(int level, int subLevel) {
 
    loadLevel(level, subLevel);
 
-   TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
+   TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
 
    mapSystem = world->registerSystem<MapSystem>(this);
    world->registerSystem<PhysicsSystem>();
@@ -54,12 +54,29 @@ GameScene::GameScene(int level, int subLevel) {
    soundSystem = world->registerSystem<SoundSystem>();
    world->registerSystem<RenderSystem>();
 
-   mapSystem->loadEntities(world);
+   scoreSystem->showTransitionEntities();
 
-   playerSystem->reset();
-   scoreSystem->reset();
+   Entity* callbackEntity(world->create());
+   callbackEntity->addComponent<CallbackComponent>(
+       [=](Entity* entity) {
+          TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
-   startLevelMusic();
+          scoreSystem->hideTransitionEntities();
+
+          mapSystem->loadEntities(world);
+
+          startTimer();
+
+          startLevelMusic();
+
+          playerSystem->reset();
+          scoreSystem->reset();
+
+          startLevelMusic();
+
+          world->destroy(callbackEntity);
+       },
+       180);
 }
 
 void GameScene::update() {
@@ -72,6 +89,10 @@ void GameScene::emptyCommandQueue() {
       command();
    }
    commandQueue.clear();
+}
+
+bool GameScene::isFinished() {
+   return false;
 }
 
 void GameScene::switchLevel(int level, int subLevel) {
@@ -111,6 +132,8 @@ void GameScene::switchLevel(int level, int subLevel) {
              startLevelMusic();
 
              playerSystem->reset();
+
+             world->destroy(callbackEntity);
           },
           180);
    });
@@ -150,6 +173,8 @@ void GameScene::restartLevel() {
              startLevelMusic();
 
              playerSystem->reset();
+
+             world->destroy(callbackEntity);
           },
           180);
    });

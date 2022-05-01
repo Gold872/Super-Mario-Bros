@@ -22,6 +22,8 @@ class GameScene : public Scene {
 
    void update() override;
 
+   bool isFinished() override;
+
    void loadLevel(int level, int subLevel);
    void loadEntities();
 

@@ -511,11 +511,17 @@ void PlayerSystem::onAddedToWorld(World* world) {
    mario->addComponent<PositionComponent>(
        Vector2f(startCoordinates.x * SCALED_CUBE_SIZE, startCoordinates.y * SCALED_CUBE_SIZE),
        Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
    mario->addComponent<TextureComponent>(playerTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1,
                                          9, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
                                          Map::PlayerIDCoordinates.at(0), false, false);
+
+   mario->getComponent<TextureComponent>()->setVisible(false);
+
    mario->addComponent<MovingComponent>(0, 0, 0, 0);
-   mario->addComponent<GravityComponent>();
+
+//   mario->addComponent<GravityComponent>();
+
    mario->addComponent<PlayerComponent>();
 }
 

@@ -112,9 +112,9 @@ void ScoreSystem::onAddedToWorld(World* world) {
 
       timerEntity->addComponent<PositionComponent>(
           Vector2f(paddingW + (3 * columnWidth) + 4, paddingH + textHeight + spacingH), Vector2i());
-   }
 
-   timerEntity->addComponent<TextComponent>(std::to_string(255), 16);
+      timerEntity->addComponent<TextComponent>(std::to_string(gameTime), 16);
+   }
    /* ************************************************************** */
    {
       worldNumberTransition = world->create();
@@ -270,31 +270,25 @@ void ScoreSystem::decreaseLives() {
 }
 
 void ScoreSystem::scoreCountdown(World* world) {
-//   static int countdownDelay = MAX_FPS / 30;
-//   countdownDelay--;
-//   if (countdownDelay % 2 == 0) {
-      gameTime--;
+   gameTime--;
 
-      timerEntity->getComponent<TextComponent>()->destroyTexture();
+   timerEntity->getComponent<TextComponent>()->destroyTexture();
 
-      std::string timeString = std::to_string(gameTime);
-      std::string finalString = std::string{};
+   std::string timeString = std::to_string(gameTime);
+   std::string finalString = std::string{};
 
-      for (int zeros = 3 - timeString.length(); zeros > 0; zeros--) {
-         finalString += '0';
-      }
-      finalString += timeString;
+   for (int zeros = 3 - timeString.length(); zeros > 0; zeros--) {
+      finalString += '0';
+   }
+   finalString += timeString;
 
-      timerEntity->getComponent<TextComponent>()->text = finalString;
+   timerEntity->getComponent<TextComponent>()->text = finalString;
 
-      Entity* timerTickSound(world->create());
-      timerTickSound->addComponent<SoundComponent>(SoundID::TIMER_TICK);
+   Entity* timerTickSound(world->create());
+   timerTickSound->addComponent<SoundComponent>(SoundID::TIMER_TICK);
 
-//      countdownDelay = MAX_FPS / 30;
-
-      Entity* addScore(world->create());
-      addScore->addComponent<AddScoreComponent>(100);
-//   }
+   Entity* addScore(world->create());
+   addScore->addComponent<AddScoreComponent>(100);
 }
 
 bool ScoreSystem::scoreCountFinished() {

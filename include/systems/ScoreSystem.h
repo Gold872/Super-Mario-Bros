@@ -49,7 +49,7 @@ class ScoreSystem : public System {
    int scoreCountTime = 0;
    int lives = 3;
 
-   bool timerRunning = true;
+   bool timerRunning = false;
 
    GameScene* scene;
 };

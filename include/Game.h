@@ -4,6 +4,7 @@
 #include "ECS/ECS.h"
 #include "Map.h"
 #include "scenes/GameScene.h"
+#include "scenes/MenuScene.h"
 #include "scenes/Scene.h"
 
 #include <SDL2/SDL.h>
@@ -17,6 +18,12 @@
 
 class Core;
 
+enum class Scenes
+{
+   MENU,
+   GAME
+};
+
 class Game {
   public:
    Game();
@@ -24,9 +31,7 @@ class Game {
    void init();
 
    void handleInput();
-   void loadLevel(int level, int subLevel);
-   void loadSubRoom(int roomNumber);
-   void loadEntities();
+
    void update();
 
    void setCore(Core* core);
@@ -34,10 +39,7 @@ class Game {
   private:
    Core* core;
 
-   std::unique_ptr<Scene> scene;
+   Scenes currentScene;
 
-   Map entitiesMap;
-   Map foregroundMap;
-   Map undergroundMap;
-   Map backgroundMap;
+   std::unique_ptr<Scene> scene;
 };

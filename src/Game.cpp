@@ -11,7 +11,9 @@
 Game::Game() {}
 
 void Game::init() {
-   scene = std::make_unique<GameScene>(1, 1);
+   currentScene = Scenes::MENU;
+
+   scene = std::make_unique<MenuScene>();
 }
 
 void Game::handleInput() {
@@ -41,6 +43,27 @@ void Game::handleInput() {
 
 void Game::update() {
    scene->update();
+
+   if (scene->isFinished()) {
+      Scene* exitingScene = scene.get();
+      switch (currentScene) {
+         case Scenes::MENU: {
+            MenuScene* menuScene = static_cast<MenuScene*>(exitingScene);
+
+            int startLevel = menuScene->getSelectedLevel();
+            int startSublevel = menuScene->getSelectedSublevel();
+
+            scene = std::make_unique<GameScene>(startLevel, startSublevel);
+
+            currentScene = Scenes::GAME;
+         } break;
+         case Scenes::GAME: {
+            scene = std::make_unique<MenuScene>();
+         } break;
+         default:
+            break;
+      }
+   }
 }
 
 void Game::setCore(Core* core) {

@@ -6,6 +6,7 @@
 #include "EnemySystem.h"
 #include "FlagSystem.h"
 #include "MapSystem.h"
+#include "MenuSystem.h"
 #include "PhysicsSystem.h"
 #include "PlayerSystem.h"
 #include "RenderSystem.h"
