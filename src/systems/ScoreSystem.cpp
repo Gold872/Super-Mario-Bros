@@ -291,6 +291,9 @@ void ScoreSystem::scoreCountdown(World* world) {
       timerTickSound->addComponent<SoundComponent>(SoundID::TIMER_TICK);
 
       countdownDelay = MAX_FPS / 30;
+
+      Entity* addScore(world->create());
+      addScore->addComponent<AddScoreComponent>(100);
    }
 }
 

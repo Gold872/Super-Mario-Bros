@@ -11,7 +11,7 @@
 TextureManager TextureManager::instance;
 
 int TextureManager::Init() {
-   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0) {
+   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_TIMER) != 0) {
       std::cerr << "Failed to Initialize SDL2: " << SDL_GetError() << std::endl;
       return -1;
    }

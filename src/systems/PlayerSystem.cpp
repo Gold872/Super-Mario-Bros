@@ -530,7 +530,7 @@ void PlayerSystem::reset() {
 
       mario->remove<GravityComponent>();
 
-      move->velocityX = 1.5;
+      move->velocityX = 1.6;
    }
 
    currentState = STANDING;
@@ -668,7 +668,7 @@ void PlayerSystem::tick(World* world) {
    if (!PlayerSystem::isInputEnabled()) {
       if (scene->getLevelData().levelType == LevelType::START_UNDERGROUND &&
           PlayerSystem::isGameStart()) {
-         move->velocityX = 1.5;
+         move->velocityX = 1.6;
       }
 
       if (move->velocityX != 0 && move->velocityY == 0) {
