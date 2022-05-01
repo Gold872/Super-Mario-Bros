@@ -819,9 +819,7 @@ void PlayerSystem::tick(World* world) {
             }
             break;
          case EnemyType::FIRE_BAR:
-            if (!mario->hasComponent<SuperMarioComponent>()) {
-               onGameOver(world);
-            }
+            onGameOver(world);
             break;
          default:
             break;
