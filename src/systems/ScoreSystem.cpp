@@ -292,7 +292,7 @@ void ScoreSystem::scoreCountdown(World* world) {
 }
 
 bool ScoreSystem::scoreCountFinished() {
-   return gameTime == 0;
+   return gameTime <= 0;
 }
 
 void ScoreSystem::showTransitionEntities() {
