@@ -40,8 +40,6 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
     - Koopa Paratroopa
     - Lakitu
 
-- Add in the sounds
-
 - Finish all of the Levels
 
 - Add a menu screen
