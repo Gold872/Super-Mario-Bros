@@ -94,7 +94,7 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
       mario->remove<FireMarioComponent>();
    }
 
-   if (!outOfBounds && mario->hasComponent<SuperMarioComponent>()) {
+   if (!outOfBounds && mario->hasAny<SuperMarioComponent, FireMarioComponent>()) {
       shrink(world);
       return;
    }
@@ -733,6 +733,7 @@ void PlayerSystem::tick(World* world) {
    // Enemy collision
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
       if (!AABBTotalCollision(enemy->getComponent<PositionComponent>(), position) ||
+          mario->hasComponent<FrozenComponent>() ||
           enemy->hasAny<ParticleComponent, DeadComponent>() || currentState == GAMEOVER) {
          return;
       }

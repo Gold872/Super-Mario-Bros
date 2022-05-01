@@ -135,6 +135,8 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
 
    scene->stopTimer();
 
+   scene->stopMusic();
+
    player->remove<GravityComponent>();
    player->addComponent<FrictionExemptComponent>();
    player->addComponent<FrozenComponent>();

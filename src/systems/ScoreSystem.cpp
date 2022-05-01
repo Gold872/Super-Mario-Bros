@@ -193,7 +193,7 @@ void ScoreSystem::tick(World* world) {
    });
 
    if (timerRunning) {
-      time--;
+      time -= 2;
       if (time % MAX_FPS == 0) {
          gameTime--;
          changeTime = true;
@@ -245,8 +245,8 @@ void ScoreSystem::tick(World* world) {
 
 void ScoreSystem::reset() {
    timerEntity->getComponent<TextComponent>()->destroyTexture();
-   gameTime = 255;
-   time = 255 * MAX_FPS;
+   gameTime = 400;
+   time = 400 * MAX_FPS;
    timerEntity->getComponent<TextComponent>()->text = std::to_string(gameTime);
 
    worldNumberEntity->getComponent<TextComponent>()->destroyTexture();
@@ -270,9 +270,9 @@ void ScoreSystem::decreaseLives() {
 }
 
 void ScoreSystem::scoreCountdown(World* world) {
-   static int countdownDelay = MAX_FPS / 30;
-   countdownDelay--;
-   if (countdownDelay % 2 == 0) {
+//   static int countdownDelay = MAX_FPS / 30;
+//   countdownDelay--;
+//   if (countdownDelay % 2 == 0) {
       gameTime--;
 
       timerEntity->getComponent<TextComponent>()->destroyTexture();
@@ -290,11 +290,11 @@ void ScoreSystem::scoreCountdown(World* world) {
       Entity* timerTickSound(world->create());
       timerTickSound->addComponent<SoundComponent>(SoundID::TIMER_TICK);
 
-      countdownDelay = MAX_FPS / 30;
+//      countdownDelay = MAX_FPS / 30;
 
       Entity* addScore(world->create());
       addScore->addComponent<AddScoreComponent>(100);
-   }
+//   }
 }
 
 bool ScoreSystem::scoreCountFinished() {

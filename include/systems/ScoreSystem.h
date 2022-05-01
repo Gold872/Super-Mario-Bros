@@ -44,8 +44,8 @@ class ScoreSystem : public System {
 
    int totalScore = 0;
    int coins = 0;
-   int time = 255 * MAX_FPS;
-   int gameTime = 255;
+   int time = 400 * MAX_FPS;
+   int gameTime = 400;
    int scoreCountTime = 0;
    int lives = 3;
 
