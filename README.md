@@ -1,3 +1,4 @@
+![](res/screenshots/banner.png)
 
 # Super Mario Bros
 
@@ -36,7 +37,6 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 - Finish creating the methods for loading all of the enemies
     - Piranha Plant
-    - Bowser
     - Koopa Paratroopa
     - Lakitu
 
