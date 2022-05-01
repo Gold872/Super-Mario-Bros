@@ -339,8 +339,9 @@ void PhysicsSystem::tick(World* world) {
    });
    // Update gravity for entities that have a gravity component
    world->find<GravityComponent, MovingComponent>([&](Entity* entity) {
-      if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
-          !entity->hasAny<MoveOutsideCameraComponent, PlayerComponent>()) {
+      if ((!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
+           !entity->hasAny<MoveOutsideCameraComponent, PlayerComponent>()) ||
+          entity->hasComponent<FrozenComponent>()) {
          return;
       }
       entity->getComponent<MovingComponent>()->velocityY += GRAVITY;
