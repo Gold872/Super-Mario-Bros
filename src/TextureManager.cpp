@@ -33,6 +33,12 @@ int TextureManager::Init() {
       return -1;
    }
 
+   SDL_Surface* iconSurface = IMG_Load("res/sprites/icons/windowicon.png");
+
+   SDL_SetWindowIcon(window, iconSurface);
+
+   SDL_FreeSurface(iconSurface);
+
    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
    if (!renderer) {
       SDL_LogError(SDL_LOG_CATEGORY_RENDER, "Failed to Create Renderer: %s", SDL_GetError());
