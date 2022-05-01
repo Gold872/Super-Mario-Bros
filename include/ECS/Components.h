@@ -2,8 +2,10 @@
 
 #include "Constants.h"
 #include "ECS.h"
+//#include "Level.h"
 #include "Map.h"
 #include "Math.h"
+#include "SoundManager.h"
 #include "TextureManager.h"
 
 #include <SDL2/SDL.h>
@@ -206,6 +208,18 @@ struct TextComponent : public Component {
    SDL_Texture* texture = nullptr;
 };
 
+/* SOUND COMPONENTS */
+struct SoundComponent : public Component {
+   SoundComponent(SoundID sound) : soundID{sound} {}
+   SoundID soundID;
+};
+
+struct MusicComponent : public Component {
+   MusicComponent(MusicID music) : musicID{music} {}
+
+   MusicID musicID;
+};
+
 /* ANIMATION COMPONENTS */
 struct AnimationComponent : public Component {
    AnimationComponent(std::vector<int> frameIDS, int frameCount, int framesPerSecond,
@@ -351,17 +365,19 @@ enum class PlatformMotionType
    GRAVITY                    // Affected by Gravity when mario stands on it
 };
 
+enum class LevelType;
+
 struct WarpPipeComponent : public Component {
    WarpPipeComponent(Vector2i playerLocation, Vector2i cameraLocation, Direction inDirection,
                      Direction outDirection, bool cameraFreeze, BackgroundColor backgroundColor,
-                     bool underwater, Vector2i newLevel)
+                     LevelType levelType, Vector2i newLevel)
        : playerLocation{playerLocation},
          cameraLocation{cameraLocation},
          inDirection{inDirection},
          outDirection{outDirection},
          cameraFreeze{cameraFreeze},
          backgroundColor{backgroundColor},
-         underwater{underwater},
+         levelType{levelType},
          newLevel{newLevel} {}
 
    Vector2i playerLocation;
@@ -374,7 +390,7 @@ struct WarpPipeComponent : public Component {
 
    BackgroundColor backgroundColor;
 
-   bool underwater;
+   LevelType levelType;
 
    Vector2i newLevel;
 };

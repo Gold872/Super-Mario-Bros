@@ -16,10 +16,10 @@ TEST_LOCATIONS=\
 	(16, 14),\
 	(19, 27)
 
-# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Underwater) (New Level (0, 0) if none)
+# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (New Level (0, 0) if none)
 WARP_PIPE=\
-	(57, 9) (2, 20) (0, 18) DOWN NONE TRUE BLACK FALSE (0, 0),\
-	(13, 30) (163, 11) (159, 0) RIGHT UP FALSE BLUE FALSE (0, 0)
+	(57, 9) (2, 20) (0, 18) DOWN NONE TRUE BLACK UNDERGROUND (0, 0),\
+	(13, 30) (163, 11) (159, 0) RIGHT UP FALSE BLUE OVERWORLD (0, 0)
 
 MYSTERY_BOX=\
 	(22, 5) COINS,\

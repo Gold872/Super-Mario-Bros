@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
+#include "SoundManager.h"
 
 #include <iostream>
 #include <tuple>
@@ -36,22 +37,22 @@ auto getPlatformCoordinate(
 }
 
 auto getPipeCoordinate(std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction,
-                                              bool, BackgroundColor, bool, Vector2i>>
+                                              bool, BackgroundColor, LevelType, Vector2i>>
                            levelData,
                        Vector2i coordinate) {
    for (auto tupledData : levelData) {
       if (std::get<0>(tupledData) == coordinate) {
-         return std::tuple<Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor, bool,
-                           Vector2i>(std::get<1>(tupledData), std::get<2>(tupledData),
-                                     std::get<3>(tupledData), std::get<4>(tupledData),
-                                     std::get<5>(tupledData), std::get<6>(tupledData),
-                                     std::get<7>(tupledData), std::get<8>(tupledData));
+         return std::tuple<Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
+                           LevelType, Vector2i>(std::get<1>(tupledData), std::get<2>(tupledData),
+                                                std::get<3>(tupledData), std::get<4>(tupledData),
+                                                std::get<5>(tupledData), std::get<6>(tupledData),
+                                                std::get<7>(tupledData), std::get<8>(tupledData));
       }
    }
 
-   return std::tuple<Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor, bool,
+   return std::tuple<Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor, LevelType,
                      Vector2i>({0, 0}, {0, 0}, Direction::NONE, Direction::NONE, false,
-                               BackgroundColor::BLACK, false, Vector2i(0, 0));
+                               BackgroundColor::BLACK, LevelType::NONE, Vector2i(0, 0));
 }
 
 auto getFireBarCoordinate(std::vector<std::tuple<Vector2i, int, RotationDirection, int>> levelData,
@@ -282,6 +283,9 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
    switch (mysteryBox->boxType) {
       case MysteryBoxType::MUSHROOM:
          mysteryBox->whenDispensed = [=](Entity* originalBlock) {
+            Entity* dispenseSound(world->create());
+            dispenseSound->addComponent<SoundComponent>(SoundID::POWER_UP_APPEAR);
+
             if (world->findFirst<PlayerComponent>()->hasComponent<SuperMarioComponent>()) {
                Entity* fireFlower(world->create());
 
@@ -347,6 +351,9 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
          break;
       case MysteryBoxType::COINS:
          mysteryBox->whenDispensed = [=](Entity* originalBlock) {
+            Entity* coinSound(world->create());
+            coinSound->addComponent<SoundComponent>(SoundID::COIN);
+
             Entity* addScore(world->create());
             addScore->addComponent<AddScoreComponent>(100, true);
 
@@ -982,12 +989,12 @@ void MapSystem::loadEntities(World* world) {
                   Direction outDirection = std::get<3>(pipe);
                   bool cameraFreeze = std::get<4>(pipe);
                   BackgroundColor color = std::get<5>(pipe);
-                  bool underwater = std::get<6>(pipe);
+                  LevelType levelType = std::get<6>(pipe);
                   Vector2i newLevel = std::get<7>(pipe);
 
                   entity->addComponent<WarpPipeComponent>(playerCoordinates, cameraCoordinates,
                                                           inDirection, outDirection, cameraFreeze,
-                                                          color, underwater, newLevel);
+                                                          color, levelType, newLevel);
 
                   switch (inDirection) {
                      case Direction::UP:

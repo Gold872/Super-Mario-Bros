@@ -6,6 +6,7 @@
 #include "ECS/Components.h"
 #include "systems/PlayerSystem.h"
 
+#include <cmath>
 #include <iostream>
 
 bool FlagSystem::climbing = false;
@@ -14,7 +15,7 @@ FlagSystem::FlagSystem(GameScene* scene) {
    this->scene = scene;
 }
 
-void FlagSystem::climbFlag(Entity* player, Entity* flag) {
+void FlagSystem::climbFlag(World* world, Entity* player, Entity* flag) {
    if (player->hasComponent<WaitUntilComponent>()) {
       return;
    }
@@ -31,11 +32,16 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
 
    playerMove->velocityX = playerMove->accelerationX = playerMove->accelerationY = 0;
 
-   playerMove->velocityY = 3.0;
+   playerMove->velocityY = 4;
 
-   flagMove->velocityY = 3.0;
+   flagMove->velocityY = 4;
 
    scene->stopTimer();
+
+   scene->stopMusic();
+
+   Entity* flagSound(world->create());
+   flagSound->addComponent<SoundComponent>(SoundID::FLAG_RAISE);
 
    player->remove<GravityComponent>();
    player->addComponent<FrictionExemptComponent>();
@@ -59,7 +65,7 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
           wait->condition = [](Entity* entity) {
              static int climbTimer = 0;
              // Delay the sequence for 1 second
-             if (climbTimer++ == MAX_FPS) {
+             if (climbTimer++ == (int)std::round(MAX_FPS * 0.6)) {
                 FlagSystem::setClimbing(false);
                 climbTimer = 0;
                 return true;
@@ -82,16 +88,34 @@ void FlagSystem::climbFlag(Entity* player, Entity* flag) {
              };
 
              wait->doAfter = [=](Entity* entity) {
-                Vector2i nextLevel = scene->getLevelData().nextLevel;
+                wait->condition = [=](Entity* entity) {
+                   // Count down the score and timer (if needed)
+                   static int nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
 
-                entity->getComponent<TextureComponent>()->setVisible(false);
+                   if (nextLevelDelay > 0) {
+                      nextLevelDelay--;
+                   }
 
-                entity->addComponent<CallbackComponent>(
-                    [=](Entity* entity) {
-                       scene->switchLevel(nextLevel.x, nextLevel.y);
-                    },
-                    90);
-                entity->remove<WaitUntilComponent>();
+                   scene->scoreCountdown();
+
+                   if (scene->scoreCountdownFinished() && nextLevelDelay == 0) {
+                      nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
+                      return true;
+                   }
+                   return false;
+                };
+                wait->doAfter = [=](Entity* entity) {
+                   Vector2i nextLevel = scene->getLevelData().nextLevel;
+
+                   entity->getComponent<TextureComponent>()->setVisible(false);
+
+                   entity->addComponent<CallbackComponent>(
+                       [=](Entity* entity) {
+                          scene->switchLevel(nextLevel.x, nextLevel.y);
+                       },
+                       MAX_FPS * 2);
+                   entity->remove<WaitUntilComponent>();
+                };
              };
           };
        });
@@ -178,13 +202,14 @@ void FlagSystem::tick(World* world) {
       Entity* player = world->findFirst<PlayerComponent>();
 
       if (!AABBTotalCollision(entity->getComponent<PositionComponent>(),
-                              player->getComponent<PositionComponent>())) {
+                              player->getComponent<PositionComponent>()) ||
+          FlagSystem::isClimbing()) {
          return;
       }
 
       Entity* flag = world->findFirst<FlagComponent>();
 
-      climbFlag(player, flag);
+      climbFlag(world, player, flag);
    });
    world->find<AxeComponent>([&](Entity* entity) {
       Entity* player = world->findFirst<PlayerComponent>();

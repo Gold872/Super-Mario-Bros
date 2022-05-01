@@ -11,6 +11,7 @@
 class PlayerSystem;  // Idk why this is needed, but it doesn't work without it
 class MapSystem;
 class ScoreSystem;
+class SoundSystem;
 
 class Level;
 struct LevelData;
@@ -27,8 +28,15 @@ class GameScene : public Scene {
    void switchLevel(int level, int subLevel);
    void restartLevel();
 
+   void startLevelMusic();
+   void setLevelMusic(LevelType levelType);
+   void stopMusic();
+
    void stopTimer();
    void startTimer();
+
+   void scoreCountdown();
+   bool scoreCountdownFinished();
 
    void destroyWorldEntities();
 
@@ -58,6 +66,7 @@ class GameScene : public Scene {
    PlayerSystem* playerSystem;
    MapSystem* mapSystem;
    ScoreSystem* scoreSystem;
+   SoundSystem* soundSystem;
 
    std::unique_ptr<Level> gameLevel = std::make_unique<Level>();
 

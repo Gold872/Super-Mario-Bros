@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
+#include "SoundManager.h"
 
 #include <iostream>
 
@@ -113,6 +114,9 @@ void EnemySystem::tick(World* world) {
 
             Entity* floatingText(world->create());
             floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
+
+            Entity* stompSound(world->create());
+            stompSound->addComponent<SoundComponent>(SoundID::STOMP);
          }
          // Enemies that were destroyed through either a projectile or super star mario
          if (enemy->hasComponent<EnemyDestroyedComponent>()) {
@@ -125,6 +129,9 @@ void EnemySystem::tick(World* world) {
 
             Entity* floatingText(world->create());
             floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
+
+            Entity* destroyedSound(world->create());
+            destroyedSound->addComponent<SoundComponent>(SoundID::KICK);
          }
 
          enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,

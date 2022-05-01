@@ -6,6 +6,7 @@
 #include "Level.h"
 #include "Map.h"
 #include "Math.h"
+#include "SoundManager.h"
 #include "TextureManager.h"
 #include "systems/Systems.h"
 
@@ -50,12 +51,15 @@ GameScene::GameScene(int level, int subLevel) {
    world->registerSystem<WarpSystem>(this);
    world->registerSystem<FlagSystem>(this);
    scoreSystem = world->registerSystem<ScoreSystem>(this);
+   soundSystem = world->registerSystem<SoundSystem>();
    world->registerSystem<RenderSystem>();
 
    mapSystem->loadEntities(world);
 
    playerSystem->reset();
    scoreSystem->reset();
+
+   startLevelMusic();
 }
 
 void GameScene::update() {
@@ -104,6 +108,8 @@ void GameScene::switchLevel(int level, int subLevel) {
 
              startTimer();
 
+             startLevelMusic();
+
              playerSystem->reset();
           },
           180);
@@ -141,10 +147,40 @@ void GameScene::restartLevel() {
 
              startTimer();
 
+             startLevelMusic();
+
              playerSystem->reset();
           },
           180);
    });
+}
+
+void GameScene::startLevelMusic() {
+   setLevelMusic(getLevelData().levelType);
+}
+
+void GameScene::setLevelMusic(LevelType levelType) {
+   switch (levelType) {
+      case LevelType::OVERWORLD:
+      case LevelType::START_UNDERGROUND: {
+         Entity* overworldMusic(world->create());
+         overworldMusic->addComponent<MusicComponent>(MusicID::OVERWORLD);
+      } break;
+      case LevelType::UNDERGROUND: {
+         Entity* undergroundMusic(world->create());
+         undergroundMusic->addComponent<MusicComponent>(MusicID::UNDERGROUND);
+      } break;
+      case LevelType::CASTLE: {
+         Entity* castleMusic(world->create());
+         castleMusic->addComponent<MusicComponent>(MusicID::CASTLE);
+      } break;
+      default:
+         break;
+   }
+}
+
+void GameScene::stopMusic() {
+   SoundManager::Get().stopMusic();
 }
 
 void GameScene::stopTimer() {
@@ -153,6 +189,14 @@ void GameScene::stopTimer() {
 
 void GameScene::startTimer() {
    scoreSystem->startTimer();
+}
+
+void GameScene::scoreCountdown() {
+   scoreSystem->scoreCountdown(world);
+}
+
+bool GameScene::scoreCountdownFinished() {
+   return scoreSystem->scoreCountFinished();
 }
 
 void GameScene::destroyWorldEntities() {

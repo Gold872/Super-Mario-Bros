@@ -22,7 +22,7 @@ class FlagSystem : public System {
   private:
    GameScene* scene;
 
-   void climbFlag(Entity* player, Entity* flag);
+   void climbFlag(World* world, Entity* player, Entity* flag);
 
    void hitAxe(World* world, Entity* player, Entity* axe);
 

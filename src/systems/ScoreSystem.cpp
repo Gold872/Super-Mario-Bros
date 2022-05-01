@@ -170,11 +170,11 @@ void ScoreSystem::tick(World* world) {
    bool changeTime = false;
 
    world->find<CreateFloatingTextComponent>([=](Entity* entity) {
-   	auto* floatingText = entity->getComponent<CreateFloatingTextComponent>();
+      auto* floatingText = entity->getComponent<CreateFloatingTextComponent>();
 
-   	createFloatingText(world, floatingText->originalEntity, floatingText->text);
+      createFloatingText(world, floatingText->originalEntity, floatingText->text);
 
-   	world->destroy(entity);
+      world->destroy(entity);
    });
 
    world->find<AddScoreComponent>([&](Entity* entity) {
@@ -194,9 +194,8 @@ void ScoreSystem::tick(World* world) {
 
    if (timerRunning) {
       time--;
-      int updatedTime = (int)std::round(time / MAX_FPS);
-      if (updatedTime != gameTime) {
-         gameTime = updatedTime;
+      if (time % MAX_FPS == 0) {
+         gameTime--;
          changeTime = true;
       }
    }
@@ -268,6 +267,35 @@ void ScoreSystem::decreaseLives() {
    lives--;
    livesText->getComponent<TextComponent>()->destroyTexture();
    livesText->getComponent<TextComponent>()->text = " x  " + std::to_string(lives);
+}
+
+void ScoreSystem::scoreCountdown(World* world) {
+   static int countdownDelay = MAX_FPS / 30;
+   countdownDelay--;
+   if (countdownDelay % 2 == 0) {
+      gameTime--;
+
+      timerEntity->getComponent<TextComponent>()->destroyTexture();
+
+      std::string timeString = std::to_string(gameTime);
+      std::string finalString = std::string{};
+
+      for (int zeros = 3 - timeString.length(); zeros > 0; zeros--) {
+         finalString += '0';
+      }
+      finalString += timeString;
+
+      timerEntity->getComponent<TextComponent>()->text = finalString;
+
+      Entity* timerTickSound(world->create());
+      timerTickSound->addComponent<SoundComponent>(SoundID::TIMER_TICK);
+
+      countdownDelay = MAX_FPS / 30;
+   }
+}
+
+bool ScoreSystem::scoreCountFinished() {
+   return gameTime == 0;
 }
 
 void ScoreSystem::showTransitionEntities() {

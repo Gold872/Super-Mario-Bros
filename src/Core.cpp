@@ -1,6 +1,7 @@
 #include "Core.h"
 
 #include "Constants.h"
+#include "SoundManager.h"
 #include "TextureManager.h"
 
 #include <iostream>
@@ -23,6 +24,10 @@ int Core::init() {
       std::cerr << "Error Initializing Texture Manager" << std::endl;
       return -1;
    }
+   if (SoundManager::Get().Init() != 0) {
+      std::cerr << "Error Initializing Sound Manager" << std::endl;
+      return -1;
+   }
    game.init();
    return 0;
 }
@@ -32,6 +37,7 @@ void Core::run() {
       mainLoop();
    }
    TextureManager::Get().Quit();
+   SoundManager::Get().Quit();
 }
 
 void Core::mainLoop() {

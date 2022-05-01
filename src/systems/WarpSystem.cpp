@@ -33,6 +33,11 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
    WarpSystem::setWarping(true);
    PlayerSystem::enableInput(false);
 
+   scene->stopMusic();
+
+   Entity* pipeSound(world->create());
+   pipeSound->addComponent<SoundComponent>(SoundID::PIPE);
+
    player->addComponent<CollisionExemptComponent>();
    player->addComponent<FrictionExemptComponent>();
    player->remove<GravityComponent>();
@@ -110,7 +115,8 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
              return;
           }
 
-          scene->setUnderwater(warpPipe->underwater);
+          scene->setUnderwater(warpPipe->levelType == LevelType::UNDERWATER);
+          scene->setLevelMusic(warpPipe->levelType);
 
           Camera::Get().setCameraX(warpPipe->cameraLocation.x * SCALED_CUBE_SIZE);
           Camera::Get().setCameraY(warpPipe->cameraLocation.y * SCALED_CUBE_SIZE);
@@ -209,7 +215,8 @@ void WarpSystem::tick(World* world) {
 
       // If colliding with pipe
       if (!AABBCollision(entity->getComponent<PositionComponent>(),
-                         player->getComponent<PositionComponent>())) {
+                         player->getComponent<PositionComponent>()) ||
+          WarpSystem::isWarping()) {
          return;
       }
 

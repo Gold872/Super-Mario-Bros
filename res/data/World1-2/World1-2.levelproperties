@@ -8,12 +8,12 @@ BACKGROUND_COLOR = BLUE
 
 CAMERA_MAX = 192
 
-# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Underwater) (New Level (0, 0) if none)
+# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (New Level (0, 0) if none)
 WARP_PIPE=\
-	(10, 12) (3, 20) (0, 18) RIGHT NONE FALSE BLACK FALSE (0, 0),\
-	(103, 28) (101, 38) (100, 36) DOWN NONE TRUE BLACK FALSE (0, 0),\
-	(113, 48) (115, 29) (103, 18) RIGHT UP FALSE BLACK FALSE (0, 0),\
-	(166, 27) (153, 11) (150, 0) RIGHT UP FALSE BLUE FALSE (0, 0)
+	(10, 12) (3, 20) (0, 18) RIGHT NONE FALSE BLACK UNDERGROUND (0, 0),\
+	(103, 28) (101, 38) (100, 36) DOWN NONE TRUE BLACK UNDERGROUND (0, 0),\
+	(113, 48) (115, 29) (103, 18) RIGHT UP FALSE BLACK UNDERGROUND (0, 0),\
+	(166, 27) (153, 11) (150, 0) RIGHT UP FALSE BLUE OVERWORLD (0, 0)
 
 MYSTERY_BOX=\
 	(10, 27) MUSHROOM,\

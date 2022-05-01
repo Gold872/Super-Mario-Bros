@@ -10,4 +10,5 @@
 #include "PlayerSystem.h"
 #include "RenderSystem.h"
 #include "ScoreSystem.h"
+#include "SoundSystem.h"
 #include "WarpSystem.h"

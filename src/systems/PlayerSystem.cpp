@@ -7,6 +7,7 @@
 #include "Level.h"
 #include "Map.h"
 #include "Math.h"
+#include "SoundManager.h"
 #include "TextureManager.h"
 #include "systems/FlagSystem.h"
 #include "systems/WarpSystem.h"
@@ -80,7 +81,7 @@ void PlayerSystem::setUnderwater(bool val) {
    underwater = val;
 }
 
-void PlayerSystem::onGameOver(bool outOfBounds) {
+void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    auto* position = mario->getComponent<PositionComponent>();
    auto* texture = mario->getComponent<TextureComponent>();
 
@@ -94,7 +95,7 @@ void PlayerSystem::onGameOver(bool outOfBounds) {
    }
 
    if (!outOfBounds && mario->hasComponent<SuperMarioComponent>()) {
-      shrink();
+      shrink(world);
       return;
    }
 
@@ -110,13 +111,17 @@ void PlayerSystem::onGameOver(bool outOfBounds) {
    currentState = GAMEOVER;
 
    scene->stopTimer();
+   scene->stopMusic();
+
+   Entity* deathSound(world->create());
+   deathSound->addComponent<SoundComponent>(SoundID::DEATH);
 
    mario->addComponent<CallbackComponent>(
        [=](Entity* entity) {
           entity->remove<ParticleComponent>();
           scene->restartLevel();
        },
-       90);
+       180);
 }
 
 void PlayerSystem::setState(Animation_State newState) {
@@ -294,6 +299,9 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          Entity* floatingText(world->create());
          floatingText->addComponent<CreateFloatingTextComponent>(mario, std::to_string(1000));
 
+         Entity* powerUpSound(world->create());
+         powerUpSound->addComponent<SoundComponent>(SoundID::POWER_UP_COLLECT);
+
          if (mario->hasComponent<SuperMarioComponent>()) {
             return;
          }
@@ -327,15 +335,19 @@ void PlayerSystem::grow(World* world, GrowType growType) {
             grow(world, GrowType::MUSHROOM);
             return;
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
-            return;
-         }
 
          Entity* addScore(world->create());
          addScore->addComponent<AddScoreComponent>(1000);
 
          Entity* floatingText(world->create());
          floatingText->addComponent<CreateFloatingTextComponent>(mario, std::to_string(1000));
+
+         Entity* powerUpSound(world->create());
+         powerUpSound->addComponent<SoundComponent>(SoundID::POWER_UP_COLLECT);
+
+         if (mario->hasComponent<FireMarioComponent>()) {
+            return;
+         }
 
          mario->addComponent<AnimationComponent>(
              std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12, 12,
@@ -356,8 +368,11 @@ void PlayerSystem::grow(World* world, GrowType growType) {
    }
 }
 
-void PlayerSystem::shrink() {
+void PlayerSystem::shrink(World* world) {
    mario->remove<FireMarioComponent, SuperMarioComponent>();
+
+   Entity* shrinkSound(world->create());
+   shrinkSound->addComponent<SoundComponent>(SoundID::PIPE);
 
    mario->addComponent<AnimationComponent>(std::vector<int>{25, 45, 46, 25, 45, 46, 25, 45, 46}, 9,
                                            12, Map::PlayerIDCoordinates, false);
@@ -515,14 +530,14 @@ void PlayerSystem::reset() {
 
       mario->remove<GravityComponent>();
 
-      move->velocityX = 2.0;
+      move->velocityX = 1.5;
    }
 
    currentState = STANDING;
 }
 
 // Updates the velocity and acceleration for when mario is on the ground
-void PlayerSystem::updateGroundVelocity() {
+void PlayerSystem::updateGroundVelocity(World* world) {
    auto* texture = mario->getComponent<TextureComponent>();
    auto* move = mario->getComponent<MovingComponent>();
 
@@ -545,6 +560,9 @@ void PlayerSystem::updateGroundVelocity() {
    if (jump && !jumpHeld) {
       jumpHeld = true;
       move->velocityY = -10.3;
+
+      Entity* jumpSound(world->create());
+      jumpSound->addComponent<SoundComponent>(SoundID::JUMP);
    }
    if (duck && mario->hasComponent<SuperMarioComponent>()) {
       currentState = DUCKING;
@@ -598,7 +616,7 @@ void PlayerSystem::updateAirVelocity() {
    currentState = JUMPING;
 }
 
-void PlayerSystem::updateWaterVelocity() {
+void PlayerSystem::updateWaterVelocity(World* world) {
    if (!mario->hasComponent<FrictionExemptComponent>()) {
       mario->addComponent<FrictionExemptComponent>();
    }
@@ -650,7 +668,7 @@ void PlayerSystem::tick(World* world) {
    if (!PlayerSystem::isInputEnabled()) {
       if (scene->getLevelData().levelType == LevelType::START_UNDERGROUND &&
           PlayerSystem::isGameStart()) {
-         move->velocityX = 2.0;
+         move->velocityX = 1.5;
       }
 
       if (move->velocityX != 0 && move->velocityY == 0) {
@@ -667,9 +685,9 @@ void PlayerSystem::tick(World* world) {
 
    if (currentState != GAMEOVER) {  // If the player isn't dead
       if (underwater) {
-         updateWaterVelocity();
+         updateWaterVelocity(world);
       } else if (mario->hasComponent<BottomCollisionComponent>()) {
-         updateGroundVelocity();
+         updateGroundVelocity(world);
       } else {
          updateAirVelocity();
       }
@@ -681,7 +699,7 @@ void PlayerSystem::tick(World* world) {
 
    if (position->position.y >=
        Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
-      onGameOver(true);
+      onGameOver(world, true);
       return;
    }
 
@@ -707,6 +725,9 @@ void PlayerSystem::tick(World* world) {
    if (mario->hasComponent<FireMarioComponent>() && launchFireball) {
       createFireball(world);
       launchFireball = false;
+
+      Entity* fireballSound(world->create());
+      fireballSound->addComponent<SoundComponent>(SoundID::FIREBALL);
    }
 
    // Enemy collision
@@ -770,7 +791,7 @@ void PlayerSystem::tick(World* world) {
                score->addComponent<AddScoreComponent>(100);
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
-               onGameOver();
+               onGameOver(world);
             }
             break;
          case EnemyType::GOOMBA:
@@ -794,12 +815,12 @@ void PlayerSystem::tick(World* world) {
                score->addComponent<AddScoreComponent>(100);
             } else if (move->velocityY <= 0 && !mario->hasComponent<FrozenComponent>() &&
                        !mario->hasComponent<EndingBlinkComponent>()) {
-               onGameOver();
+               onGameOver(world);
             }
             break;
          case EnemyType::FIRE_BAR:
             if (!mario->hasComponent<SuperMarioComponent>()) {
-               onGameOver();
+               onGameOver(world);
             }
             break;
          default:
@@ -816,7 +837,7 @@ void PlayerSystem::tick(World* world) {
       }
       if (projectile->getComponent<ProjectileComponent>()->projectileType !=
           ProjectileType::FIREBALL) {
-         onGameOver();
+         onGameOver(world);
       }
    });
 
@@ -838,6 +859,9 @@ void PlayerSystem::tick(World* world) {
                 [&](Entity* breakable) {
                    createBlockDebris(world, breakable);
                    world->destroy(breakable);
+
+                   Entity* breakSound(world->create());
+                   breakSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);
                 },
                 1);
             return;
@@ -846,6 +870,9 @@ void PlayerSystem::tick(World* world) {
       // If the player is in normal state, make the block bump
       if (!breakable->hasComponent<BlockBumpComponent>()) {
          breakable->addComponent<BlockBumpComponent>(std::vector<int>{-3, -3, -2, -1, 1, 2, 3, 3});
+
+         Entity* bumpSound(world->create());
+         bumpSound->addComponent<SoundComponent>(SoundID::BLOCK_HIT);
       }
       breakable->remove<BottomCollisionComponent>();
 
@@ -889,6 +916,9 @@ void PlayerSystem::tick(World* world) {
          case CollectibleType::COIN: {
             Entity* coinScore(world->create());
             coinScore->addComponent<AddScoreComponent>(100, true);
+
+            Entity* coinSound(world->create());
+            coinSound->addComponent<SoundComponent>(SoundID::COIN);
 
             world->destroy(collectible);
          } break;

@@ -64,21 +64,21 @@ class PlayerSystem : public System {
    }
 
   private:
-   void onGameOver(bool outOfBounds = false);
+   void onGameOver(World* world, bool outOfBounds = false);
 
    void setState(Animation_State newState);
 
    void grow(World* world, GrowType growType);
 
-   void shrink();
+   void shrink(World* world);
 
    void createBlockDebris(World* world, Entity* block);
 
-   void updateGroundVelocity();
+   void updateGroundVelocity(World* world);
 
    void updateAirVelocity();
 
-   void updateWaterVelocity();
+   void updateWaterVelocity(World* world);
 
    void updateCamera();
 

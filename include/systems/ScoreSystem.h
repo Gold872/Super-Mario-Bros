@@ -21,6 +21,10 @@ class ScoreSystem : public System {
    void startTimer();
    void stopTimer();
 
+   void scoreCountdown(World* world);
+
+   bool scoreCountFinished();
+
    void showTransitionEntities();
    void hideTransitionEntities();
 
@@ -42,6 +46,7 @@ class ScoreSystem : public System {
    int coins = 0;
    int time = 255 * MAX_FPS;
    int gameTime = 255;
+   int scoreCountTime = 0;
    int lives = 3;
 
    bool timerRunning = true;

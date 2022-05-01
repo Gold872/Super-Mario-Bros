@@ -30,6 +30,7 @@ enum class LevelType
 {
    NONE,
    OVERWORLD,
+   UNDERGROUND,
    UNDERWATER,
    CASTLE,
    START_UNDERGROUND
@@ -48,7 +49,7 @@ struct LevelData {
    Vector2i nextLevel;
 
    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
-                          bool, Vector2i>>
+                          LevelType, Vector2i>>
        warpPipeLocations;
    std::vector<std::tuple<Vector2i, MysteryBoxType>> questionBlockLocations;
    std::vector<std::tuple<Vector2i, MysteryBoxType>> mysteryBrickLocations;
@@ -86,6 +87,7 @@ class Level {
    std::unordered_map<string, LevelType> levelTypeString = {
        {"NONE", LevelType::NONE},
        {"OVERWORLD", LevelType::OVERWORLD},
+       {"UNDERGROUND", LevelType::UNDERGROUND},
        {"UNDERWATER", LevelType::UNDERWATER},
        {"CASTLE", LevelType::CASTLE},
        {"START_UNDERGROUND", LevelType::START_UNDERGROUND},
@@ -230,13 +232,13 @@ class Level {
    }
 
    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
-                          bool, Vector2i>>
+                          LevelType, Vector2i>>
    loadWarpPipeLocation(string regexPattern, string stringToSearch, string pipeSearch) {
       std::regex arrayRegex(regexPattern);
       std::regex pipeRegex(pipeSearch);
 
       std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
-                             BackgroundColor, bool, Vector2i>>
+                             BackgroundColor, LevelType, Vector2i>>
           warpLocation;
 
       std::smatch arrayMatch;
@@ -263,16 +265,16 @@ class Level {
 
                   BackgroundColor color = backgroundColorString.at(pairMatch[i + 9]);
 
-                  bool underwater = pairMatch[i + 10] == "TRUE";
+                  LevelType levelType = levelTypeString.at(pairMatch[i + 10]);
 
                   Vector2i newLevel =
                       Vector2i(std::stoi(pairMatch[i + 11]), std::stoi(pairMatch[i + 12]));
 
                   warpLocation.push_back(
                       std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
-                                 BackgroundColor, bool, Vector2i>(
+                                 BackgroundColor, LevelType, Vector2i>(
                           pipeCoordinates, teleportCoordinates, cameraCoordinates, inDirection,
-                          outDirection, cameraFreeze, color, underwater, newLevel));
+                          outDirection, cameraFreeze, color, levelType, newLevel));
                }
             }
          }
