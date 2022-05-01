@@ -1,5 +1,3 @@
-#include "systems/PlayerSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -10,6 +8,7 @@
 #include "SoundManager.h"
 #include "TextureManager.h"
 #include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>
@@ -520,7 +519,7 @@ void PlayerSystem::onAddedToWorld(World* world) {
 
    mario->addComponent<MovingComponent>(0, 0, 0, 0);
 
-//   mario->addComponent<GravityComponent>();
+   //   mario->addComponent<GravityComponent>();
 
    mario->addComponent<PlayerComponent>();
 }

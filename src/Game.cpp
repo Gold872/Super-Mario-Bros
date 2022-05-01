@@ -1,7 +1,6 @@
-#include "Game.h"
-
 #include "Camera.h"
 #include "Core.h"
+#include "Game.h"
 #include "TextureManager.h"
 
 #include <SDL2/SDL.h>

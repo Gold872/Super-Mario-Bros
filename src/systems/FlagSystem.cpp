@@ -1,9 +1,8 @@
-#include "systems/FlagSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "systems/FlagSystem.h"
 #include "systems/PlayerSystem.h"
 
 #include <cmath>

@@ -1,9 +1,8 @@
-#include "scenes/MenuScene.h"
-
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "TextureManager.h"
+#include "scenes/MenuScene.h"
 #include "systems/Systems.h"
 
 #include <SDL2/SDL.h>

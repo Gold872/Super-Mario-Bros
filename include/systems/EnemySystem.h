@@ -5,6 +5,7 @@
 class EnemySystem : public System {
   public:
    void tick(World* world) override;
+
   private:
    void performBowserActions(World* world, Entity* entity);
 };
