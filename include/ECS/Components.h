@@ -601,6 +601,8 @@ struct BowserComponent : public Component {
    int lastStopTime = 0;
    int lastJumpTime = 0;
 
+   int currentMoveIndex = 0;
+
    Direction lastMoveDirection = Direction::NONE;
 };
 

@@ -6,13 +6,6 @@ class Core {
   public:
    Core();
 
-   enum GameState
-   {
-      MAIN_MENU,
-      GAME,
-      TRANSITION
-   };
-
    int init();
 
    void run();
@@ -21,9 +14,9 @@ class Core {
 
    void limitFPS(Uint64 startTick);
 
-   static void setRunning(bool val);
+   void setRunning(bool val);
 
   private:
    Game game;
-   static bool running;
+   bool running;
 };

@@ -519,8 +519,6 @@ void PlayerSystem::onAddedToWorld(World* world) {
 
    mario->addComponent<MovingComponent>(0, 0, 0, 0);
 
-   //   mario->addComponent<GravityComponent>();
-
    mario->addComponent<PlayerComponent>();
 }
 

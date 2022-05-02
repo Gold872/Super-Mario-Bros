@@ -7,8 +7,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-bool Core::running;
-
 Core::Core() {
    running = true;
    game.setCore(this);

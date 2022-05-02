@@ -1,10 +1,11 @@
+#include "systems/EnemySystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
-#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -16,25 +17,85 @@ void EnemySystem::performBowserActions(World* world, Entity* entity) {
       return;
    }
 
+   //   std::vector<std::function<void(Entity*)>> bowserMovementPattern = {};
+
    auto* bowserComponent = entity->getComponent<BowserComponent>();
+   auto* bowserTexture = entity->getComponent<TextureComponent>();
+
+   Entity* player = world->findFirst<PlayerComponent>();
+
+   bool flipHorizontal = player->getComponent<PositionComponent>()->position.x >
+                         entity->getComponent<PositionComponent>()->position.x;
+
+   if ((flipHorizontal != bowserTexture->isHorizontalFlipped())) {
+      bowserComponent->lastMoveDirection = (bowserComponent->lastMoveDirection == Direction::LEFT)
+                                               ? Direction::RIGHT
+                                               : Direction::LEFT;
+
+      bowserTexture->setHorizontalFlipped(flipHorizontal);
+   }
 
    bowserComponent->lastMoveTime++;
    bowserComponent->lastStopTime++;
    bowserComponent->lastJumpTime++;
    bowserComponent->lastAttackTime++;
 
-   if (bowserComponent->lastMoveTime >= MAX_FPS * 3 &&
-       bowserComponent->lastStopTime < MAX_FPS * 4) {
-      bowserComponent->bowserMovements[0](entity);
-   }
-   if (bowserComponent->lastStopTime >= MAX_FPS * 4) {
-      bowserComponent->bowserMovements[1](entity);
-   }
-   if (bowserComponent->lastJumpTime >= MAX_FPS * 5) {
-      bowserComponent->bowserMovements[2](entity);
+   switch (bowserComponent->currentMoveIndex) {
+      case 0:
+         if (bowserComponent->lastStopTime >= MAX_FPS * 2) {
+            // Move and jump
+            bowserComponent->bowserMovements[0](entity);
+            bowserComponent->bowserMovements[2](entity);
+
+            bowserComponent->currentMoveIndex++;
+         }
+         break;
+      case 1:
+         if (bowserComponent->lastMoveTime >= MAX_FPS * 3) {
+            // Stop
+            bowserComponent->bowserMovements[1](entity);
+
+            bowserComponent->currentMoveIndex++;
+         }
+         break;
+      case 2:
+         if (bowserComponent->lastStopTime >= MAX_FPS * 2) {
+            // Move and jump
+            bowserComponent->bowserMovements[0](entity);
+            bowserComponent->bowserMovements[2](entity);
+
+            bowserComponent->currentMoveIndex++;
+         }
+         break;
+      case 3:
+         if (bowserComponent->lastMoveTime >= MAX_FPS * 3) {
+            // Stop
+            bowserComponent->bowserMovements[1](entity);
+
+            bowserComponent->currentMoveIndex++;
+         }
+         break;
+      case 4:
+         if (bowserComponent->lastStopTime >= MAX_FPS * 2) {
+            // Move
+            bowserComponent->bowserMovements[0](entity);
+
+            bowserComponent->currentMoveIndex++;
+         }
+         break;
+      case 5:
+         if (bowserComponent->lastMoveTime >= MAX_FPS * 3) {
+            // Stop
+            bowserComponent->bowserMovements[1](entity);
+
+            bowserComponent->currentMoveIndex = 0;
+         }
+         break;
+      default:
+         break;
    }
 
-   if (bowserComponent->lastAttackTime >= MAX_FPS * 3) {
+   if (bowserComponent->lastAttackTime >= MAX_FPS * 2) {
       int attackSelect = rand() % bowserComponent->bowserAttacks.size();
       int hammerAmount = rand() % 5 + 6;
 

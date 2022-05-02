@@ -1,10 +1,11 @@
+#include "systems/MapSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
 #include "SoundManager.h"
-#include "systems/MapSystem.h"
 
 #include <iostream>
 #include <time.h>
@@ -754,7 +755,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                    move->velocityX = 1.0;
                    bowserComponent->lastMoveDirection = Direction::RIGHT;
                 } else {
-                   move->velocityX = -1.0;
+                   move->velocityX = 1.0;
                    bowserComponent->lastMoveDirection = Direction::LEFT;
                 }
                 bowserComponent->lastMoveTime = 0;
