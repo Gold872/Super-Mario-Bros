@@ -1,4 +1,3 @@
-![](res/screenshots/banner.png)
 
 # Super Mario Bros
 
@@ -24,17 +23,23 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 ## How it Works
 
 ### The Entities
+
 - The Entities in this game are creating using an Entity Component System
     - Instead of having one Entity class that every Entity inherits, an Entity is a class that has nothing, but you are able to attatch components to it. Such components include:
         - Position Component
         - Texture Component
         - Moving Component
+
     - These Components get used by the Systems, where they find Entities with certain components, and update the Entities properly using the data from the Components.
 
-### The Levels
-* The Levels were created with the help of a program called [Tiled Map Editor](https://www.mapeditor.org/)
+- Entities don't only serve the purpose of displaying a texture on the screen, some are used to add properties to Entities (For example, classifying an entity as the player with the PlayerComponent), and some are also used to schedule an action (this is most commonly used in the sound and score system)
 
-* After creating the Map in the Tiled Editor, they are exported as a CSV file, and then get read by the Map class, and using the IDs from the Map, the Entities get created with their needed components.
+### The Levels
+
+- The Levels were created with the help of a program called [Tiled Map Editor](https://www.mapeditor.org/)
+
+- After creating the Map in the Tiled Editor, they are exported as a CSV file, and then get read by the Map class, and using the IDs from the Map, the Entities get created with their needed components.
+
 ## Roadmap
 
 - Finish creating the methods for loading all of the enemies
@@ -44,8 +49,19 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 - Finish all of the Levels
 
+- Create custom levels
+
+- Record a demo video of the game
 
 ## Special Thanks
 People that have been a huge help in developing this project with their amazing knowledge and skills
  - [Killme](https://github.com/killme)
  - [lemur68](https://github.com/friedkeenan/)
+
+ ## Screenshots
+
+ ### Main Menu
+ ![Main Menu](res/screenshots/menu.png)
+
+ ### Game
+ ![Game](res/screenshots/game.png)
