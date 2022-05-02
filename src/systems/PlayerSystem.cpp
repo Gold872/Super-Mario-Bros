@@ -29,7 +29,7 @@ bool gameOver = false;
 
 bool underwater = false;
 
-PIDController accelerationControllerY(0.4, 0, 0.02, 60);
+PIDController accelerationControllerY(0.45, 0, 0.02, 60);
 
 PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
@@ -46,7 +46,8 @@ Entity* PlayerSystem::createFireball(World* world) {
        [&](Entity* entity) {
           holdFireballTexture = false;
 
-          world->destroy(entity);
+          // For some reason world->destroy(entity) caused a bunch of weird stuff to happen
+          entity->addComponent<DestroyDelayedComponent>(0);
        },
        6);
 
@@ -55,10 +56,11 @@ Entity* PlayerSystem::createFireball(World* world) {
    auto* position = fireball->addComponent<PositionComponent>(
        Vector2f(), Vector2i(SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2), (SDL_Rect){0, 0, 16, 16});
 
-   fireball->addComponent<TextureComponent>(mario->getComponent<TextureComponent>()->getTexture(),
-                                            ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1, 9, 0,
-                                            ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
-                                            Map::PlayerIDCoordinates.at(246), false, false);
+   auto playerTexture = mario->getComponent<TextureComponent>()->getTexture();
+
+   fireball->addComponent<TextureComponent>(
+       playerTexture, ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1, 9, 0, ORIGINAL_CUBE_SIZE,
+       ORIGINAL_CUBE_SIZE, Map::PlayerIDCoordinates.at(246), false, false);
 
    auto* move = fireball->addComponent<MovingComponent>(0, 3, 0, 0);
 
@@ -89,7 +91,7 @@ Entity* PlayerSystem::createFireball(World* world) {
              entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
                  Map::PlayerIDCoordinates.at(247));
              entity->addComponent<DestroyDelayedComponent>(4);
-             entity->remove<MovingComponent>();
+             entity->remove<MovingComponent, GravityComponent, FrictionExemptComponent>();
 
              Entity* fireballHitSound(world->create());
              fireballHitSound->addComponent<SoundComponent>(SoundID::BLOCK_HIT);
@@ -99,6 +101,10 @@ Entity* PlayerSystem::createFireball(World* world) {
        });
 
    fireball->addComponent<ProjectileComponent>(ProjectileType::FIREBALL);
+
+   if (move->velocityX > 10) {
+      std::cout << "I don't feel so good... Mr stark\n";
+   }
 
    return fireball;
 }
@@ -664,7 +670,7 @@ void PlayerSystem::updateAirVelocity() {
                                       : accelerationControllerY.calculate(
                                             move->accelerationY, -MARIO_JUMP_ACCELERATION / 2.5);
    } else {
-      move->accelerationY = accelerationControllerY.calculate(move->accelerationY, 0);
+      move->accelerationY = 0;
    }
    currentState = JUMPING;
 }
@@ -1111,8 +1117,4 @@ void PlayerSystem::handleEvent(const Uint8* keystates) {
    (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP])
        ? jump = true
        : jump = jumpHeld = false;
-   //   (keystates[SDL_SCANCODE_A]) ? left = true : left = false;
-   //   (keystates[SDL_SCANCODE_D]) ? right = true : right = false;
-   //
-   //   xDir = right - left;
 }

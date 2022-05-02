@@ -14,15 +14,7 @@ void CallbackSystem::tick(World* world) {
          entity->remove<CallbackComponent>();
       }
    });
-   world->find<DestroyDelayedComponent>([&](Entity* entity) {
-      auto* destroy = entity->getComponent<DestroyDelayedComponent>();
 
-      if (destroy->time > 0) {
-         destroy->time--;
-      } else if (destroy->time <= 0) {
-         world->destroy(entity);
-      }
-   });
    world->find<WaitUntilComponent>([&](Entity* entity) {
       auto* waitUntil = entity->getComponent<WaitUntilComponent>();
 
@@ -30,6 +22,7 @@ void CallbackSystem::tick(World* world) {
          waitUntil->doAfter(entity);
       }
    });
+
    world->find<TimerComponent>([&](Entity* entity) {
       auto* timer = entity->getComponent<TimerComponent>();
 
@@ -37,6 +30,16 @@ void CallbackSystem::tick(World* world) {
       if (timer->time == 0) {
          timer->onExecute(entity);
          timer->time = timer->delay;
+      }
+   });
+
+   world->find<DestroyDelayedComponent>([&](Entity* entity) {
+      auto* destroy = entity->getComponent<DestroyDelayedComponent>();
+
+      if (destroy->time > 0) {
+         destroy->time--;
+      } else if (destroy->time <= 0) {
+         world->destroy(entity);
       }
    });
 }
