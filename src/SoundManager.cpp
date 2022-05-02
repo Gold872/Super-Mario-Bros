@@ -78,4 +78,5 @@ void SoundManager::loadMusics() {
    musics.insert({MusicID::OVERWORLD, loadMusic("res/sounds/music/overworld.wav")});
    musics.insert({MusicID::UNDERGROUND, loadMusic("res/sounds/music/underground.wav")});
    musics.insert({MusicID::CASTLE, loadMusic("res/sounds/music/castle.wav")});
+   musics.insert({MusicID::SUPER_STAR, loadMusic("res/sounds/music/superstar.wav")});
 }

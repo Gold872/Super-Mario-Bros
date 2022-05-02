@@ -27,6 +27,7 @@ class PlayerSystem : public System {
    {
       ONEUP,
       MUSHROOM,
+      SUPER_STAR,
       FIRE_FLOWER
    };
 

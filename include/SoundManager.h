@@ -31,7 +31,8 @@ enum class MusicID
 {
    OVERWORLD,
    UNDERGROUND,
-   CASTLE
+   CASTLE,
+   SUPER_STAR
 };
 
 class SoundManager {

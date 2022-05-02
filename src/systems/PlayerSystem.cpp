@@ -40,9 +40,13 @@ Entity* PlayerSystem::createFireball(World* world) {
 
    currentState = LAUNCH_FIREBALL;
 
-   mario->addComponent<CallbackComponent>(
+   Entity* tempCallback(world->create());
+
+   tempCallback->addComponent<CallbackComponent>(
        [&](Entity* entity) {
           holdFireballTexture = false;
+
+          world->destroy(entity);
        },
        6);
 
@@ -323,6 +327,20 @@ void PlayerSystem::grow(World* world, GrowType growType) {
       case GrowType::ONEUP: {
          Entity* floatingText(world->create());
          floatingText->addComponent<CreateFloatingTextComponent>(mario, "ONE-UP");
+      } break;
+      case GrowType::SUPER_STAR: {
+         mario->addComponent<SuperStarComponent>();
+
+         mario->addComponent<EndingBlinkComponent>(5, 600);
+         mario->addComponent<CallbackComponent>(
+             [=](Entity* entity) {
+                entity->remove<SuperStarComponent>();
+                scene->startLevelMusic();
+             },
+             600);
+
+         Entity* superStarMusic(world->create());
+         superStarMusic->addComponent<MusicComponent>(MusicID::SUPER_STAR);
       } break;
       case GrowType::MUSHROOM: {
          Entity* addScore(world->create());
@@ -699,7 +717,6 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             if (mario->hasComponent<SuperStarComponent>()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
-               enemy->addComponent<ParticleComponent>();
                enemy->addComponent<EnemyDestroyedComponent>();
 
                Entity* score(world->create());
@@ -731,8 +748,6 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             if (mario->hasComponent<SuperStarComponent>()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
-               enemy->addComponent<DeadComponent>();
-               enemy->addComponent<ParticleComponent>();
                enemy->addComponent<EnemyDestroyedComponent>();
 
                Entity* score(world->create());
@@ -765,8 +780,6 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             if (mario->hasComponent<SuperStarComponent>()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
-               enemy->addComponent<DeadComponent>();
-               enemy->addComponent<ParticleComponent>();
                enemy->addComponent<EnemyDestroyedComponent>();
 
                Entity* score(world->create());
@@ -967,21 +980,18 @@ void PlayerSystem::tick(World* world) {
       switch (collect->collectibleType) {
          case CollectibleType::MUSHROOM: {
             grow(world, GrowType::MUSHROOM);
+
             world->destroy(collectible);
          } break;
          case CollectibleType::SUPER_STAR:
+            grow(world, GrowType::SUPER_STAR);
+
             world->destroy(collectible);
-            mario->addComponent<EndingBlinkComponent>(5, 600);
-            mario->addComponent<SuperStarComponent>();
-            mario->addComponent<CallbackComponent>(
-                [](Entity* entity) {
-                   entity->remove<SuperStarComponent>();
-                },
-                600);
             break;
          case CollectibleType::FIRE_FLOWER:
-            world->destroy(collectible);
             grow(world, GrowType::FIRE_FLOWER);
+
+            world->destroy(collectible);
             break;
          case CollectibleType::COIN: {
             Entity* coinScore(world->create());
