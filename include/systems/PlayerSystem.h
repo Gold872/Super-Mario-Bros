@@ -83,6 +83,8 @@ class PlayerSystem : public System {
 
    void updateCamera();
 
+   void checkEnemyCollisions(World* world);
+
    Entity* createFireball(World* world);
 
    int xDir = 0;
