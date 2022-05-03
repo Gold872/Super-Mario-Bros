@@ -95,7 +95,7 @@ void ScoreSystem::onAddedToWorld(World* world) {
           Vector2f(paddingW + (2 * columnWidth), paddingH + textHeight + spacingH), Vector2i());
 
       worldNumberEntity->addComponent<TextComponent>(
-          std::to_string(scene->level) + "-" + std::to_string(scene->subLevel), 16);
+          std::to_string(scene->getLevel()) + "-" + std::to_string(scene->getSublevel()), 16);
    }
    /* ************************************************************** */
    {
@@ -124,7 +124,8 @@ void ScoreSystem::onAddedToWorld(World* world) {
           Vector2i());
 
       auto* worldNumberText = worldNumberTransition->addComponent<TextComponent>(
-          "WORLD " + std::to_string(scene->level) + "-" + std::to_string(scene->subLevel), 16);
+          "WORLD " + std::to_string(scene->getLevel()) + "-" + std::to_string(scene->getSublevel()),
+          16);
 
       worldNumberText->setVisible(false);
    }
@@ -251,7 +252,7 @@ void ScoreSystem::reset() {
 
    worldNumberEntity->getComponent<TextComponent>()->destroyTexture();
    worldNumberEntity->getComponent<TextComponent>()->text =
-       std::to_string(scene->level) + "-" + std::to_string(scene->subLevel);
+       std::to_string(scene->getLevel()) + "-" + std::to_string(scene->getSublevel());
 }
 
 void ScoreSystem::startTimer() {
@@ -270,6 +271,11 @@ void ScoreSystem::decreaseLives() {
 }
 
 void ScoreSystem::scoreCountdown(World* world) {
+   if (gameTime <= 0) {
+      gameTime = 0;
+      return;
+   }
+
    gameTime--;
 
    timerEntity->getComponent<TextComponent>()->destroyTexture();
@@ -298,7 +304,7 @@ bool ScoreSystem::scoreCountFinished() {
 void ScoreSystem::showTransitionEntities() {
    worldNumberTransition->getComponent<TextComponent>()->destroyTexture();
    worldNumberTransition->getComponent<TextComponent>()->text =
-       "WORLD " + std::to_string(scene->level) + "-" + std::to_string(scene->subLevel);
+       "WORLD " + std::to_string(scene->getLevel()) + "-" + std::to_string(scene->getSublevel());
    worldNumberTransition->getComponent<TextComponent>()->setVisible(true);
 
    marioIcon->getComponent<TextureComponent>()->setVisible(true);

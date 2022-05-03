@@ -1117,4 +1117,12 @@ void PlayerSystem::handleEvent(const Uint8* keystates) {
    (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP])
        ? jump = true
        : jump = jumpHeld = false;
+
+   if (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP]) {
+      jump = true;
+      jumpHeldTime++;
+   } else {
+      jump = jumpHeld = false;
+      jumpHeldTime = 0;
+   }
 }

@@ -25,7 +25,14 @@ class GameScene : public Scene {
    bool isFinished() override;
 
    void loadLevel(int level, int subLevel);
-   void loadEntities();
+
+   int getLevel() {
+      return level;
+   }
+
+   int getSublevel() {
+      return subLevel;
+   }
 
    void switchLevel(int level, int subLevel);
    void restartLevel();
@@ -50,20 +57,11 @@ class GameScene : public Scene {
       return gameLevel->getData();
    }
 
-   enum class ScreenMode
-   {
-      NONE,
-      GAME,
-      TRANSITION,
-      NEW_LEVEL,
-   };
-
    std::shared_ptr<SDL_Texture> blockTexture;
    std::shared_ptr<SDL_Texture> enemyTexture;
 
   private:
    friend class MapSystem;
-   friend class ScoreSystem;
 
    PlayerSystem* playerSystem;
    MapSystem* mapSystem;

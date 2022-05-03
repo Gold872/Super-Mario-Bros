@@ -94,7 +94,9 @@ class PlayerSystem : public System {
    int jump = 0;
    int duck = 0;
    int launchFireball = 0;
+
    int holdFireballTexture = 0;
+   int jumpHeldTime = 0;
 
    static bool inputEnabled;
    static bool inGameStart;
