@@ -31,11 +31,11 @@ GameScene::GameScene(int level, int subLevel) {
    enemyTexture =
        TextureManager::Get().LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
 
-   foregroundMap = gameLevel->createMap();
-   backgroundMap = gameLevel->createMap();
-   undergroundMap = gameLevel->createMap();
-   enemiesMap = gameLevel->createMap();
-   aboveForegroundMap = gameLevel->createMap();
+   foregroundMap = Map();
+   backgroundMap = Map();
+   undergroundMap = Map();
+   enemiesMap = Map();
+   aboveForegroundMap = Map();
 
    loadLevel(level, subLevel);
 
@@ -103,11 +103,11 @@ void GameScene::switchLevel(int level, int subLevel) {
       //      std::cout << "Number of Entities: " << world->getEntities().size() << '\n';
       destroyWorldEntities();
 
-      enemiesMap->reset();
-      foregroundMap->reset();
-      undergroundMap->reset();
-      backgroundMap->reset();
-      aboveForegroundMap->reset();
+      enemiesMap.reset();
+      foregroundMap.reset();
+      undergroundMap.reset();
+      backgroundMap.reset();
+      aboveForegroundMap.reset();
 
       gameLevel->clearLevelData();
 
@@ -143,11 +143,11 @@ void GameScene::restartLevel() {
    commandQueue.push_back([=]() {
       destroyWorldEntities();
 
-      enemiesMap->reset();
-      foregroundMap->reset();
-      undergroundMap->reset();
-      backgroundMap->reset();
-      aboveForegroundMap->reset();
+      enemiesMap.reset();
+      foregroundMap.reset();
+      undergroundMap.reset();
+      backgroundMap.reset();
+      aboveForegroundMap.reset();
 
       gameLevel->clearLevelData();
 
@@ -189,19 +189,24 @@ void GameScene::setLevelMusic(LevelType levelType) {
       case LevelType::OVERWORLD:
       case LevelType::START_UNDERGROUND: {
          Entity* overworldMusic(world->create());
-         overworldMusic->addComponent<MusicComponent>(MusicID::OVERWORLD);
+         overworldMusic->addComponent<MusicComponent>(currentMusicID = MusicID::OVERWORLD);
       } break;
       case LevelType::UNDERGROUND: {
          Entity* undergroundMusic(world->create());
-         undergroundMusic->addComponent<MusicComponent>(MusicID::UNDERGROUND);
+         undergroundMusic->addComponent<MusicComponent>(currentMusicID = MusicID::UNDERGROUND);
       } break;
       case LevelType::CASTLE: {
          Entity* castleMusic(world->create());
-         castleMusic->addComponent<MusicComponent>(MusicID::CASTLE);
+         castleMusic->addComponent<MusicComponent>(currentMusicID = MusicID::CASTLE);
       } break;
       default:
          break;
    }
+}
+
+void GameScene::resumeLastPlayedMusic() {
+   Entity* music(world->create());
+   music->addComponent<MusicComponent>(currentMusicID);
 }
 
 void GameScene::stopMusic() {
@@ -262,11 +267,11 @@ void GameScene::loadLevel(int level, int subLevel) {
 
    gameLevel->loadLevelData(propertiesString);
 
-   foregroundMap->loadMap(foregroundPath.c_str());
-   backgroundMap->loadMap(backgroundPath.c_str());
-   undergroundMap->loadMap(undergroundPath.c_str());
-   enemiesMap->loadMap(enemiesPath.c_str());
-   aboveForegroundMap->loadMap(aboveForegroundPath.c_str());
+   foregroundMap.loadMap(foregroundPath.c_str());
+   backgroundMap.loadMap(backgroundPath.c_str());
+   undergroundMap.loadMap(undergroundPath.c_str());
+   enemiesMap.loadMap(enemiesPath.c_str());
+   aboveForegroundMap.loadMap(aboveForegroundPath.c_str());
 }
 
 void GameScene::setUnderwater(bool val) {

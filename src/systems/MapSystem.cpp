@@ -578,7 +578,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
       case 392: {  // BRIDGE
          if (scene->getLevelData().levelType == LevelType::CASTLE) {
             if (getReferenceBlockID(
-                    scene->foregroundMap->getLevelData()[coordinateY][coordinateX - 1]) != 392) {
+                    scene->foregroundMap.getLevelData()[coordinateY][coordinateX - 1]) != 392) {
                Entity* bridge(createBlockEntity(world, coordinateX, coordinateY, entityID));
 
                auto* bridgeComponent = bridge->addComponent<BridgeComponent>();
@@ -587,9 +587,10 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
                int futureCoordinateCheck = coordinateX;
 
-               while (getReferenceBlockID(
-                          scene->foregroundMap
-                              ->getLevelData()[coordinateY][++futureCoordinateCheck]) == 392) {
+               while (
+                   getReferenceBlockID(
+                       scene->foregroundMap.getLevelData()[coordinateY][++futureCoordinateCheck]) ==
+                   392) {
                   Entity* connectedBridge(
                       createBlockEntity(world, futureCoordinateCheck, coordinateY, entityID));
 
@@ -1001,8 +1002,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 }
 
 void MapSystem::createFireBarEntities(World* world) {
-   for (unsigned int i = 0; i < scene->foregroundMap->getLevelData().size(); i++) {
-      for (unsigned int j = 0; j < scene->foregroundMap->getLevelData()[i].size(); j++) {
+   for (unsigned int i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
+      for (unsigned int j = 0; j < scene->foregroundMap.getLevelData()[i].size(); j++) {
          auto fireBarCoordinate =
              getFireBarCoordinate(scene->getLevelData().fireBarLocations, Vector2i(j, i));
 
@@ -1040,9 +1041,9 @@ void MapSystem::loadEntities(World* world) {
    auto blockTexture = scene->blockTexture;
    auto enemyTexture = scene->enemyTexture;
 
-   for (unsigned i = 0; i < scene->backgroundMap->getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->backgroundMap->getLevelData()[i].size(); j++) {
-         int entityID = scene->backgroundMap->getLevelData()[i][j];
+   for (unsigned i = 0; i < scene->backgroundMap.getLevelData().size(); i++) {
+      for (unsigned j = 0; j < scene->backgroundMap.getLevelData()[i].size(); j++) {
+         int entityID = scene->backgroundMap.getLevelData()[i][j];
          switch (entityID) {
             case -1:
                break;
@@ -1063,9 +1064,9 @@ void MapSystem::loadEntities(World* world) {
          }
       }
    }
-   for (unsigned i = 0; i < scene->undergroundMap->getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->undergroundMap->getLevelData()[i].size(); j++) {
-         int entityID = scene->undergroundMap->getLevelData()[i][j];
+   for (unsigned i = 0; i < scene->undergroundMap.getLevelData().size(); i++) {
+      for (unsigned j = 0; j < scene->undergroundMap.getLevelData()[i].size(); j++) {
+         int entityID = scene->undergroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
 
          if (entityID != -1) {
@@ -1073,9 +1074,9 @@ void MapSystem::loadEntities(World* world) {
          }
       }
    }
-   for (unsigned i = 0; i < scene->foregroundMap->getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->foregroundMap->getLevelData()[i].size(); j++) {
-         int entityID = scene->foregroundMap->getLevelData()[i][j];
+   for (unsigned i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
+      for (unsigned j = 0; j < scene->foregroundMap.getLevelData()[i].size(); j++) {
+         int entityID = scene->foregroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
          if (entityID != -1) {
             createForegroundEntities(world, j, i, entityID, referenceID);
@@ -1085,9 +1086,9 @@ void MapSystem::loadEntities(World* world) {
 
    createFireBarEntities(world);
 
-   for (unsigned i = 0; i < scene->enemiesMap->getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->enemiesMap->getLevelData()[i].size(); j++) {
-         int entityID = scene->enemiesMap->getLevelData()[i][j];
+   for (unsigned i = 0; i < scene->enemiesMap.getLevelData().size(); i++) {
+      for (unsigned j = 0; j < scene->enemiesMap.getLevelData()[i].size(); j++) {
+         int entityID = scene->enemiesMap.getLevelData()[i][j];
          int referenceID = getReferenceEnemyID(entityID);
          switch (entityID) {
             case -1:
@@ -1108,9 +1109,9 @@ void MapSystem::loadEntities(World* world) {
       }
    }
 
-   for (unsigned int i = 0; i < scene->aboveForegroundMap->getLevelData().size(); i++) {
-      for (unsigned int j = 0; j < scene->aboveForegroundMap->getLevelData()[i].size(); j++) {
-         int entityID = scene->aboveForegroundMap->getLevelData()[i][j];
+   for (unsigned int i = 0; i < scene->aboveForegroundMap.getLevelData().size(); i++) {
+      for (unsigned int j = 0; j < scene->aboveForegroundMap.getLevelData()[i].size(); j++) {
+         int entityID = scene->aboveForegroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
          switch (referenceID) {
             case -1:

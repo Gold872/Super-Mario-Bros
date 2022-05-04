@@ -40,6 +40,7 @@ class GameScene : public Scene {
    void startLevelMusic();
    void setLevelMusic(LevelType levelType);
    void stopMusic();
+   void resumeLastPlayedMusic();
 
    void stopTimer();
    void startTimer();
@@ -73,11 +74,13 @@ class GameScene : public Scene {
    int level;
    int subLevel;
 
-   Map* enemiesMap;
-   Map* foregroundMap;
-   Map* undergroundMap;
-   Map* backgroundMap;
-   Map* aboveForegroundMap;
+   MusicID currentMusicID;
+
+   Map enemiesMap;
+   Map foregroundMap;
+   Map undergroundMap;
+   Map backgroundMap;
+   Map aboveForegroundMap;
 
    std::vector<std::function<void(void)>> commandQueue;
 };

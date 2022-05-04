@@ -341,7 +341,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          mario->addComponent<CallbackComponent>(
              [=](Entity* entity) {
                 entity->remove<SuperStarComponent>();
-                scene->startLevelMusic();
+                scene->resumeLastPlayedMusic();
              },
              600);
 

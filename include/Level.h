@@ -37,8 +37,6 @@ enum class LevelType
 };
 
 struct LevelData {
-   std::vector<std::unique_ptr<Map>> levelMaps;
-
    Vector2i playerStart;
    LevelType levelType;
 
@@ -62,9 +60,7 @@ class Level {
   public:
    Level() = default;
 
-   ~Level() {
-      maps.clear();
-   }
+   ~Level() {}
 
    std::unordered_map<string, Direction> directionString = {
        {"NONE", Direction::NONE}, {"UP", Direction::UP},       {"DOWN", Direction::DOWN},
@@ -318,16 +314,6 @@ class Level {
       return barLocations;
    }
 
-   Map* createMap() {
-      Map* map(new Map());
-
-      std::unique_ptr<Map> uniqueMap{map};
-
-      data.levelMaps.emplace_back(std::move(uniqueMap));
-
-      return map;
-   }
-
    void loadLevelData(string levelProperties) {
       data.levelType = loadEnumData<LevelType>("LEVEL_TYPE" + DefaultRegexPattern, levelProperties,
                                                levelTypeString);
@@ -378,31 +364,14 @@ class Level {
       return data;
    }
 
-   std::vector<std::unique_ptr<Map>>& getMaps() {
-      return data.levelMaps;
-   }
-
-   LevelType& getLevelType() {
-      return data.levelType;
-   }
-
   private:
    LevelData data;
-
-   std::vector<std::unique_ptr<Map>> maps;
-
-   std::vector<Vector2i> testLocations;
 
    string DefaultRegexPattern = /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
    //   		":\\s(\\w+|[+-]*\\d+)";
 
    string DefaultArrayPattern =
        /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s\\w,\\\\\\n]+)";
-
-   //"SEARCH_NAME(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+"
-   //"TEST_COORDINATES(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s,]+)"
-
-   // OG: \\s\\{\n([\n\\d\\s\\(\\),]+)\\}
 
    string DefaultPairPattern = "\\((\\d+), (\\d+)\\)";
 
