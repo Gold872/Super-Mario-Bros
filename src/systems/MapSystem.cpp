@@ -486,7 +486,8 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE + 16, coordinateY * SCALED_CUBE_SIZE),
+             Vector2f(coordinateX * SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2,
+                      coordinateY * SCALED_CUBE_SIZE),
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
@@ -721,7 +722,78 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
       } break;
       case 44: {  // PIRHANNA PLANT
+         Entity* pirhanna(world->create());
 
+         auto* position = pirhanna->addComponent<PositionComponent>(
+             Vector2f(coordinateX * SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2,
+                      coordinateY * SCALED_CUBE_SIZE),
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2), (SDL_Rect){24, 48, 16, 16});
+
+         pirhanna->addComponent<TextureComponent>(
+             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+
+         pirhanna->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 2, 4,
+                                                    Map::EnemyIDCoordinates);
+
+         pirhanna->addComponent<MovingComponent>(0, 0, 0, 0);
+
+         pirhanna->addComponent<MoveOutsideCameraComponent>();
+
+         pirhanna->addComponent<CollisionExemptComponent>();
+
+         pirhanna->addComponent<FrictionExemptComponent>();
+
+         pirhanna->addComponent<EnemyComponent>(EnemyType::PIRANHA_PLANT);
+
+         auto* piranhaComponent = pirhanna->addComponent<PiranhaPlantComponent>();
+
+         piranhaComponent->pipeCoordinates =
+             Vector2f(position->position.x, position->position.y + SCALED_CUBE_SIZE * 2);
+
+         pirhanna->addComponent<TimerComponent>(
+             [](Entity* entity) {
+                auto* piranha = entity->getComponent<PiranhaPlantComponent>();
+
+                if (piranha->inPipe) {
+                   entity->getComponent<MovingComponent>()->velocityY = -1;
+
+                   entity->addComponent<WaitUntilComponent>(
+                       [=](Entity* entity) {
+                          return entity->getComponent<PositionComponent>()->position.y <=
+                                 piranha->pipeCoordinates.y - SCALED_CUBE_SIZE * 2;
+                       },
+                       [=](Entity* entity) {
+                          entity->getComponent<PositionComponent>()->setBottom(
+                              piranha->pipeCoordinates.y);
+
+                          entity->getComponent<MovingComponent>()->velocityY = 0;
+
+                          entity->remove<WaitUntilComponent>();
+                       });
+
+                   piranha->inPipe = false;
+                } else {
+                   entity->getComponent<MovingComponent>()->velocityY = 1;
+
+                   entity->addComponent<WaitUntilComponent>(
+                       [=](Entity* entity) {
+                          return entity->getComponent<PositionComponent>()->position.y >=
+                                 piranha->pipeCoordinates.y;
+                       },
+                       [=](Entity* entity) {
+                          entity->getComponent<PositionComponent>()->setTop(
+                              piranha->pipeCoordinates.y);
+
+                          entity->getComponent<MovingComponent>()->velocityY = 0;
+
+                          entity->remove<WaitUntilComponent>();
+                       });
+
+                   piranha->inPipe = true;
+                }
+             },
+             5 * MAX_FPS);
       } break;
       case 61: {  // BOWSER
          Entity* bowser(world->create());

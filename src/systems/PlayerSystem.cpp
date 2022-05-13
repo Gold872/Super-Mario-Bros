@@ -815,8 +815,20 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             }
             break;
          case EnemyType::FIRE_BAR:
-            onGameOver(world);
+            if (!mario->hasAny<SuperStarComponent, EndingBlinkComponent>()) {
+               onGameOver(world);
+            }
             break;
+         case EnemyType::PIRANHA_PLANT: {
+            if (mario->hasComponent<SuperStarComponent>()) {
+               enemy->addComponent<EnemyDestroyedComponent>();
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
+               onGameOver(world);
+            }
+         } break;
          default:
             break;
       }

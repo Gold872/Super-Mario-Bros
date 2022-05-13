@@ -115,6 +115,20 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
              return;
           }
 
+          // Puts the piranha plants back in the pipe
+          world->find<PiranhaPlantComponent>([&](Entity* piranha) {
+             auto* piranhaComponent = piranha->getComponent<PiranhaPlantComponent>();
+
+             if (!piranhaComponent->inPipe) {
+                piranha->getComponent<PositionComponent>()->position.y =
+                    piranhaComponent->pipeCoordinates.y;
+                piranha->getComponent<PiranhaPlantComponent>()->inPipe = true;
+                piranha->getComponent<MovingComponent>()->velocityY = 0;
+
+                piranha->remove<WaitUntilComponent>();
+             }
+          });
+
           scene->setUnderwater(warpPipe->levelType == LevelType::UNDERWATER);
           scene->setLevelMusic(warpPipe->levelType);
 

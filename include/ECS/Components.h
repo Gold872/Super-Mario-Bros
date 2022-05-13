@@ -586,6 +586,11 @@ struct EnemyComponent : public Component {
    EnemyType enemyType;
 };
 
+struct PiranhaPlantComponent : public Component {
+   Vector2f pipeCoordinates;
+   bool inPipe = false;
+};
+
 struct BowserComponent : public Component {
    BowserComponent(std::vector<std::function<void(Entity*, int number)>> attacks,
                    std::vector<std::function<void(Entity*)>> movements)
