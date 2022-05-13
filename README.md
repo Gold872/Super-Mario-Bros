@@ -43,7 +43,6 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 ## Roadmap
 
 - Finish creating the methods for loading all of the enemies
-    - Piranha Plant
     - Koopa Paratroopa
     - Lakitu
 
