@@ -14,11 +14,12 @@ CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
 
    if (move->velocityY >= 0.0f) {
       // If falling
-      if (AABBTotalCollision(
-              position->position.x + (TILE_ROUNDNESS / 2), position->position.y + move->velocityY,
-              position->scale.x - TILE_ROUNDNESS, position->scale.y,
-              solidPosition->position.x + (TILE_ROUNDNESS / 2), solidPosition->position.y,
-              solidPosition->scale.x - TILE_ROUNDNESS, solidPosition->scale.y)) {
+      if (AABBTotalCollision(position->position.x + position->hitbox.x + (TILE_ROUNDNESS / 2),
+                             position->position.y + position->hitbox.y + move->velocityY,
+                             position->hitbox.w - TILE_ROUNDNESS, position->hitbox.h,
+                             solidPosition->position.x + (TILE_ROUNDNESS / 2),
+                             solidPosition->position.y, solidPosition->hitbox.w - TILE_ROUNDNESS,
+                             solidPosition->hitbox.h)) {
          float topDistance =
              std::abs(solidPosition->getTop() - (position->getBottom() + move->velocityY));
          float bottomDistance =
@@ -34,11 +35,12 @@ CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
       }
    } else {
       // Jumping
-      if (AABBTotalCollision(
-              position->position.x + TILE_ROUNDNESS, position->position.y + move->velocityY,
-              position->scale.x - (TILE_ROUNDNESS * 2), position->scale.y,
-              solidPosition->position.x + TILE_ROUNDNESS, solidPosition->position.y,
-              solidPosition->scale.x - (TILE_ROUNDNESS * 2), solidPosition->scale.y)) {
+      if (AABBTotalCollision(position->position.x + position->hitbox.x + TILE_ROUNDNESS,
+                             position->position.y + position->hitbox.y + move->velocityY,
+                             position->hitbox.w - (TILE_ROUNDNESS * 2), position->hitbox.h,
+                             solidPosition->position.x + TILE_ROUNDNESS, solidPosition->position.y,
+                             solidPosition->hitbox.w - (TILE_ROUNDNESS * 2),
+                             solidPosition->hitbox.h)) {
          float topDistance =
              std::abs(solidPosition->getTop() - (position->getBottom() + move->velocityY));
          float bottomDistance =
@@ -60,9 +62,9 @@ CollisionDirection checkCollisionX(Entity* solid, PositionComponent* position,
    auto solidPosition = solid->getComponent<PositionComponent>();
    CollisionDirection direction = CollisionDirection::NONE;
 
-   if (AABBTotalCollision(position->position.x + move->velocityX, position->position.y,
-                          position->scale.x, position->scale.y - (TILE_ROUNDNESS * 2),
-                          solidPosition)) {
+   if (AABBTotalCollision(position->position.x + position->hitbox.x + move->velocityX,
+                          position->position.y + position->hitbox.y, position->hitbox.w,
+                          position->hitbox.h - (TILE_ROUNDNESS * 2), solidPosition)) {
       float leftDistance =
           std::abs((position->getLeft() + move->velocityX) - solidPosition->getRight());
       float rightDistance =

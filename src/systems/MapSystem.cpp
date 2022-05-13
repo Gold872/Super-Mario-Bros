@@ -637,7 +637,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
+             (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -662,7 +663,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox.h = SCALED_CUBE_SIZE;
+            position->hitbox = (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
@@ -680,7 +681,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<PositionComponent>(
              Vector2f((coordinateX * SCALED_CUBE_SIZE) + ORIGINAL_CUBE_SIZE,
                       coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
+             (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -705,7 +707,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox.h = SCALED_CUBE_SIZE;
+            position->hitbox = (SDL_Rect){0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);

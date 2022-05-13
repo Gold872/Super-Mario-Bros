@@ -14,6 +14,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <memory>
@@ -29,7 +30,7 @@ bool gameOver = false;
 
 bool underwater = false;
 
-PIDController accelerationControllerY(0.45, 0, 0.02, 60);
+PIDController accelerationControllerY(0.60, 0, 0.02, 60);
 
 PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
@@ -47,7 +48,7 @@ Entity* PlayerSystem::createFireball(World* world) {
           holdFireballTexture = false;
 
           // For some reason world->destroy(entity) caused a bunch of weird stuff to happen
-          entity->addComponent<DestroyDelayedComponent>(0);
+          entity->addComponent<DestroyDelayedComponent>(1);
        },
        6);
 
@@ -101,10 +102,6 @@ Entity* PlayerSystem::createFireball(World* world) {
        });
 
    fireball->addComponent<ProjectileComponent>(ProjectileType::FIREBALL);
-
-   if (move->velocityX > 10) {
-      std::cout << "I don't feel so good... Mr stark\n";
-   }
 
    return fireball;
 }
@@ -608,9 +605,10 @@ void PlayerSystem::updateGroundVelocity(World* world) {
    }
    // Updates the acceleration
    move->accelerationX = (float)xDir * MARIO_ACCELERATION_X;
-   if (mario->hasComponent<SuperStarComponent>()) {
-      move->accelerationX *= 1.5957446808510638297f;
-   } else if (running) {
+   //   if (mario->hasComponent<SuperStarComponent>()) {
+   //      move->accelerationX *= 1.5957446808510638297f;
+   //   } else
+   if (running) {
       move->accelerationX *= 1.3297872340425531914f;
    } else {
       move->accelerationX *= 0.7978723404255319148936f;
@@ -618,7 +616,7 @@ void PlayerSystem::updateGroundVelocity(World* world) {
 
    if (jump && !jumpHeld) {
       jumpHeld = true;
-      move->velocityY = -10.3;
+      move->velocityY = -7.3;
 
       Entity* jumpSound(world->create());
       jumpSound->addComponent<SoundComponent>(SoundID::JUMP);
@@ -653,11 +651,12 @@ void PlayerSystem::updateAirVelocity() {
       if ((move->accelerationX >= 0 && move->velocityX >= 0) ||
           (move->accelerationX <= 0 && move->velocityX <= 0)) {
          // If the acceleration and velocity aren't in opposite directions
-         if (mario->hasComponent<SuperStarComponent>()) {
-            move->accelerationX *= 1.5957446808510638297f;
-         } else {
-            move->accelerationX *= 1.3297872340425531914f;
-         }
+         //         if (mario->hasComponent<SuperStarComponent>()) {
+         //            move->accelerationX *= 1.5957446808510638297f;
+         //         } else {
+         //            move->accelerationX *= 1.3297872340425531914f;
+         //         }
+         move->accelerationX *= 1.3297872340425531914f;
       } else {
          move->accelerationX *= 0.35f;
       }
@@ -665,10 +664,11 @@ void PlayerSystem::updateAirVelocity() {
    // Changes mario's acceleration while in the air (the longer you jump the higher mario
    // will go)
    if (jump && move->velocityY < 0.0) {
-      move->accelerationY = (running) ? accelerationControllerY.calculate(
-                                            move->accelerationY, -MARIO_JUMP_ACCELERATION / 1.9)
-                                      : accelerationControllerY.calculate(
-                                            move->accelerationY, -MARIO_JUMP_ACCELERATION / 2.5);
+      if (running && std::abs(move->velocityX) > 3.5) {
+         move->accelerationY = -0.370;
+      } else {
+         move->accelerationY = -0.359;
+      }
    } else {
       move->accelerationY = 0;
    }
