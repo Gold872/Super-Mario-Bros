@@ -102,8 +102,7 @@ CollisionDirection checkCollisionX(Entity* solid, PositionComponent* position,
    return direction;
 }
 
-void PhysicsSystem::tick(World* world) {
-   // Update the spinning of the fire bars
+void PhysicsSystem::updateFireBars(World* world) {
    world->find<FireBarComponent, PositionComponent>([&](Entity* entity) {
       auto* fireBar = entity->getComponent<FireBarComponent>();
       auto* position = entity->getComponent<PositionComponent>();
@@ -135,8 +134,9 @@ void PhysicsSystem::tick(World* world) {
             break;
       }
    });
-   // Update the velocities for the moving platforms (it doesn't matter if these are in camera
-   // range)
+}
+
+void PhysicsSystem::updateMovingPlatforms(World* world) {
    world->find<MovingPlatformComponent, MovingComponent, PositionComponent>([&](Entity* entity) {
       auto* platform = entity->getComponent<MovingPlatformComponent>();
       auto* platformMove = entity->getComponent<MovingComponent>();
@@ -340,6 +340,15 @@ void PhysicsSystem::tick(World* world) {
             break;
       }
    });
+}
+
+void PhysicsSystem::tick(World* world) {
+   // Update the spinning of the fire bars
+   updateFireBars(world);
+
+   // Update the velocities for the moving platforms
+   updateMovingPlatforms(world);
+
    // Update gravity for entities that have a gravity component
    world->find<GravityComponent, MovingComponent>([&](Entity* entity) {
       if ((!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
@@ -364,6 +373,7 @@ void PhysicsSystem::tick(World* world) {
       }
    });
 
+   // Main Physics update loop
    world->find<MovingComponent, PositionComponent>([&](Entity* entity) {
       if (entity->hasAny<BackgroundComponent, FrozenComponent>() ||
           (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
@@ -371,8 +381,8 @@ void PhysicsSystem::tick(World* world) {
          return;
       }
 
-      auto move = entity->getComponent<MovingComponent>();
-      auto position = entity->getComponent<PositionComponent>();
+      auto* move = entity->getComponent<MovingComponent>();
+      auto* position = entity->getComponent<PositionComponent>();
 
       position->position.x += move->velocityX;
       position->position.y += move->velocityY;

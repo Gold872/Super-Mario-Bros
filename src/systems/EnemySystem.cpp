@@ -252,7 +252,6 @@ void EnemySystem::tick(World* world) {
          if (enemy->hasComponent<LeftCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
                move->velocityX = 6.0;
-               std::cout << "Turtle Shell Left\n";
             } else {
                move->velocityX = ENEMY_SPEED;
             }
@@ -260,7 +259,6 @@ void EnemySystem::tick(World* world) {
             enemy->remove<LeftCollisionComponent>();
          } else if (enemy->hasComponent<RightCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
-               std::cout << "Turtle Shell Right\n";
                move->velocityX = -6.0;
             } else {
                move->velocityX = -ENEMY_SPEED;

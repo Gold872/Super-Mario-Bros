@@ -11,4 +11,9 @@ class PhysicsSystem : public System {
    void tick(World* world) override;
 
    void onRemovedFromWorld(World* world) override{};
+
+  private:
+   void updateFireBars(World* world);
+   void updateMovingPlatforms(World* world);
+
 };
