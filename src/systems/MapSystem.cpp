@@ -1116,7 +1116,7 @@ void MapSystem::loadEntities(World* world) {
    auto enemyTexture = scene->enemyTexture;
 
    for (unsigned i = 0; i < scene->backgroundMap.getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->backgroundMap.getLevelData()[i].size(); j++) {
+      for (unsigned j = 0; j < scene->backgroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->backgroundMap.getLevelData()[i][j];
          switch (entityID) {
             case -1:
@@ -1139,7 +1139,7 @@ void MapSystem::loadEntities(World* world) {
       }
    }
    for (unsigned i = 0; i < scene->undergroundMap.getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->undergroundMap.getLevelData()[i].size(); j++) {
+      for (unsigned j = 0; j < scene->undergroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->undergroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
 
@@ -1149,7 +1149,7 @@ void MapSystem::loadEntities(World* world) {
       }
    }
    for (unsigned i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->foregroundMap.getLevelData()[i].size(); j++) {
+      for (unsigned j = 0; j < scene->foregroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->foregroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
          if (entityID != -1) {
@@ -1161,7 +1161,7 @@ void MapSystem::loadEntities(World* world) {
    createFireBarEntities(world);
 
    for (unsigned i = 0; i < scene->enemiesMap.getLevelData().size(); i++) {
-      for (unsigned j = 0; j < scene->enemiesMap.getLevelData()[i].size(); j++) {
+      for (unsigned j = 0; j < scene->enemiesMap.getLevelData()[0].size(); j++) {
          int entityID = scene->enemiesMap.getLevelData()[i][j];
          int referenceID = getReferenceEnemyID(entityID);
          switch (entityID) {
@@ -1184,7 +1184,7 @@ void MapSystem::loadEntities(World* world) {
    }
 
    for (unsigned int i = 0; i < scene->aboveForegroundMap.getLevelData().size(); i++) {
-      for (unsigned int j = 0; j < scene->aboveForegroundMap.getLevelData()[i].size(); j++) {
+      for (unsigned int j = 0; j < scene->aboveForegroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->aboveForegroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
          switch (referenceID) {
