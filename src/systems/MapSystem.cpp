@@ -1014,7 +1014,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
