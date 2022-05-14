@@ -185,9 +185,8 @@ int MapSystem::getReferenceEnemyIDAsEntity(int entityID, int referenceID) {
 Entity* MapSystem::createBlockEntity(World* world, int coordinateX, int coordinateY, int entityID) {
    Entity* entity(world->create());
 
-   entity->addComponent<PositionComponent>(
-       Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-       Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+   entity->addComponent<PositionComponent>(Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+                                           Vector2i(SCALED_CUBE_SIZE));
 
    entity->addComponent<TextureComponent>(
        scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -292,8 +291,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                auto* position = originalBlock->getComponent<PositionComponent>();
 
-               fireFlower->addComponent<PositionComponent>(
-                   position->position, Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+               fireFlower->addComponent<PositionComponent>(position->position,
+                                                           Vector2i(SCALED_CUBE_SIZE));
 
                int flowerID = getReferenceBlockIDAsEntity(entityID, 48);
 
@@ -328,8 +327,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                auto* position = originalBlock->getComponent<PositionComponent>();
 
-               mushroom->addComponent<PositionComponent>(
-                   position->position, Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+               mushroom->addComponent<PositionComponent>(position->position,
+                                                         Vector2i(SCALED_CUBE_SIZE));
 
                mushroom->addComponent<TextureComponent>(
                    blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
@@ -372,8 +371,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             auto* position = originalBlock->getComponent<PositionComponent>();
 
-            coin->addComponent<PositionComponent>(position->position,
-                                                  Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+            coin->addComponent<PositionComponent>(position->position, Vector2i(SCALED_CUBE_SIZE));
 
             coin->addComponent<TextureComponent>(
                 blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -406,8 +404,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             auto* position = originalBlock->getComponent<PositionComponent>();
 
-            star->addComponent<PositionComponent>(position->position,
-                                                  Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+            star->addComponent<PositionComponent>(position->position, Vector2i(SCALED_CUBE_SIZE));
 
             int starID = getReferenceBlockIDAsEntity(entityID, 96);
 
@@ -450,8 +447,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
                                                 ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -474,8 +470,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
                                                 ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -494,7 +489,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX * SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2,
                       coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
                                                 ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -534,8 +529,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
                                                 ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
@@ -643,9 +637,9 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
-             (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
+             SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -670,7 +664,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox = (SDL_Rect){0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
+            position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
@@ -686,10 +680,10 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f((coordinateX * SCALED_CUBE_SIZE) + ORIGINAL_CUBE_SIZE,
+             Vector2f(coordinateX * SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2,
                       coordinateY * SCALED_CUBE_SIZE),
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
-             (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
+             SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -714,7 +708,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox = (SDL_Rect){0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
+            position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
@@ -733,7 +727,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          auto* position = pirhanna->addComponent<PositionComponent>(
              Vector2f(coordinateX * SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2,
                       coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2), (SDL_Rect){24, 48, 16, 16});
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2), SDL_Rect{24, 48, 16, 16});
 
          pirhanna->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -805,8 +799,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* bowser(world->create());
 
          auto* position = bowser->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE * 2, SCALED_CUBE_SIZE * 2));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE * 2));
 
          auto* texture = bowser->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE * 2, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -907,7 +900,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                        [=](Entity* hammer) {
                           auto* hammerPosition = hammer->addComponent<PositionComponent>(
                               Vector2f(position->getLeft(), position->getTop()),
-                              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+                              Vector2i(SCALED_CUBE_SIZE));
 
                           if (texture->isHorizontalFlipped()) {
                              hammerPosition->setLeft(position->getRight());
@@ -953,8 +946,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
@@ -990,7 +982,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<PositionComponent>(
              Vector2f((coordinateX * SCALED_CUBE_SIZE) + ORIGINAL_CUBE_SIZE,
                       coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+             Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
@@ -1022,8 +1014,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          Entity* entity(world->create());
 
          entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
          entity->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -1083,7 +1074,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
 void MapSystem::createFireBarEntities(World* world) {
    for (unsigned int i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
-      for (unsigned int j = 0; j < scene->foregroundMap.getLevelData()[i].size(); j++) {
+      for (unsigned int j = 0; j < scene->foregroundMap.getLevelData()[0].size(); j++) {
          auto fireBarCoordinate =
              getFireBarCoordinate(scene->getLevelData().fireBarLocations, Vector2i(j, i));
 
@@ -1096,8 +1087,8 @@ void MapSystem::createFireBarEntities(World* world) {
                Entity* barElement(world->create());
 
                barElement->addComponent<PositionComponent>(
-                   Vector2f(j * SCALED_CUBE_SIZE, i * SCALED_CUBE_SIZE),
-                   Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+                   Vector2f(j, i) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE),
+                   SDL_Rect{0, 0, SCALED_CUBE_SIZE / 4, SCALED_CUBE_SIZE / 4});
 
                barElement->addComponent<TextureComponent>(
                    scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
@@ -1108,7 +1099,9 @@ void MapSystem::createFireBarEntities(World* world) {
                                                           bar * ORIGINAL_CUBE_SIZE, startAngle,
                                                           rotationDirection);
 
-               barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);
+               if (bar != barLength - 1) {
+                  barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);
+               }
 
                barElement->addComponent<ForegroundComponent>();
             }
@@ -1130,9 +1123,8 @@ void MapSystem::loadEntities(World* world) {
             default: {
                Entity* entity(world->create());
 
-               entity->addComponent<PositionComponent>(
-                   Vector2f(j * SCALED_CUBE_SIZE, i * SCALED_CUBE_SIZE),
-                   Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+               entity->addComponent<PositionComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
+                                                       Vector2i(SCALED_CUBE_SIZE));
 
                entity->addComponent<TextureComponent>(
                    blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
@@ -1149,18 +1141,15 @@ void MapSystem::loadEntities(World* world) {
          int entityID = scene->undergroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
 
-         if (entityID != -1) {
-            createForegroundEntities(world, j, i, entityID, referenceID);
-         }
+         createForegroundEntities(world, j, i, entityID, referenceID);
       }
    }
    for (unsigned i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
       for (unsigned j = 0; j < scene->foregroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->foregroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
-         if (entityID != -1) {
-            createForegroundEntities(world, j, i, entityID, referenceID);
-         }
+
+         createForegroundEntities(world, j, i, entityID, referenceID);
       }
    }
 
@@ -1201,8 +1190,7 @@ void MapSystem::loadEntities(World* world) {
                Entity* entity(world->create());
 
                auto* position = entity->addComponent<PositionComponent>(
-                   Vector2f(j * SCALED_CUBE_SIZE, i * SCALED_CUBE_SIZE),
-                   Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+                   Vector2f(j, i) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
                entity->addComponent<TextureComponent>(
                    blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
@@ -1253,9 +1241,8 @@ void MapSystem::loadEntities(World* world) {
             default: {
                Entity* entity(world->create());
 
-               entity->addComponent<PositionComponent>(
-                   Vector2f(j * SCALED_CUBE_SIZE, i * SCALED_CUBE_SIZE),
-                   Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+               entity->addComponent<PositionComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
+                                                       Vector2i(SCALED_CUBE_SIZE));
 
                entity->addComponent<TextureComponent>(
                    blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,

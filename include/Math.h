@@ -12,6 +12,7 @@ class Vector2 {
   public:
    Vector2() : x{0}, y{0} {};
    Vector2(T X, T Y) : x{X}, y{Y} {};
+   Vector2(T BOTH) : x{BOTH}, y{BOTH} {};
 
    void setPosition(T X, T Y) {
       x = X;
