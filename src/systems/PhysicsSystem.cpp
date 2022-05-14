@@ -375,9 +375,15 @@ void PhysicsSystem::tick(World* world) {
 
    // Main Physics update loop
    world->find<MovingComponent, PositionComponent>([&](Entity* entity) {
-      if (entity->hasAny<BackgroundComponent, FrozenComponent>() ||
-          (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
-           !entity->hasAny<MoveOutsideCameraComponent, PlayerComponent>())) {
+      if (entity->hasComponent<FrozenComponent>()) {
+         return;
+      }
+
+      if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
+          !entity->hasAny<MoveOutsideCameraComponent, PlayerComponent>()) {
+         if (entity->hasComponent<DestroyOutsideCameraComponent>()) {
+            world->destroy(entity);
+         }
          return;
       }
 

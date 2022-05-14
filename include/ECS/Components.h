@@ -526,6 +526,8 @@ struct FrictionExemptComponent : public Component {};
 
 struct MoveOutsideCameraComponent : public Component {};
 
+struct DestroyOutsideCameraComponent : public Component {};
+
 struct GravityComponent : public Component {};
 
 /* COLLISION COMPONENTS */
@@ -546,8 +548,6 @@ struct BottomCollisionComponent : public Component {};
 struct LeftCollisionComponent : public Component {};
 
 struct RightCollisionComponent : public Component {};
-
-struct EnemyCollisionComponent : public Component {};
 
 /* PLAYER COMPONENTS */
 struct PlayerComponent : public Component {};

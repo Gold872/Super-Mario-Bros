@@ -660,7 +660,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             entity->getComponent<MovingComponent>()->velocityX = 0.0;
             entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
-            entity->addComponent<MoveOutsideCameraComponent>();
+            entity->addComponent<DestroyOutsideCameraComponent>();
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
@@ -704,7 +704,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             entity->getComponent<MovingComponent>()->velocityX = 0.0;
             entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
-            entity->addComponent<MoveOutsideCameraComponent>();
+            entity->addComponent<DestroyOutsideCameraComponent>();
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
