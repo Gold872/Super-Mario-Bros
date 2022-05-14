@@ -309,6 +309,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                fireFlower->addComponent<MovingComponent>(0, -1.0f);
 
+               fireFlower->addComponent<CollisionExemptComponent>();
+
                fireFlower->addComponent<WaitUntilComponent>(
                    [=](Entity* entity) {
                       return position->getTop() >
@@ -319,6 +321,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                       entity->getComponent<MovingComponent>()->velocityY = 0;
                       entity->remove<WaitUntilComponent>();
                       entity->remove<MysteryBoxComponent>();
+                      entity->remove<CollisionExemptComponent>();
                    });
             } else {
                Entity* mushroom(world->create());
@@ -336,6 +339,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                mushroom->addComponent<MovingComponent>(0, -1.0f);
 
+               mushroom->addComponent<CollisionExemptComponent>();
+
                mushroom->addComponent<WaitUntilComponent>(
                    [=](Entity* entity) {
                       return position->getTop() >
@@ -346,6 +351,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                       entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
                       entity->remove<WaitUntilComponent>();
                       entity->remove<MysteryBoxComponent>();
+                      entity->remove<CollisionExemptComponent>();
                    });
             }
          };
@@ -664,7 +670,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox = (SDL_Rect){0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
+            position->hitbox = (SDL_Rect){0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
@@ -1191,7 +1197,7 @@ void MapSystem::loadEntities(World* world) {
             case -1:
                break;
             case 150:
-            case 292: {
+            case 292: {  // WARP PIPE
                Entity* entity(world->create());
 
                auto* position = entity->addComponent<PositionComponent>(

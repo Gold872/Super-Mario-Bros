@@ -137,9 +137,6 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
          Entity* destroyedSound(world->create());
          destroyedSound->addComponent<SoundComponent>(SoundID::KICK);
       }
-
-      enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,
-                    RightCollisionComponent>();
    } else if (!enemy->hasComponent<ParticleComponent>() &&
               enemy->hasComponent<EnemyDestroyedComponent>() &&
               enemyComponent->enemyType == EnemyType::PIRANHA_PLANT) {  // Destroy Pirhanna
@@ -255,6 +252,7 @@ void EnemySystem::tick(World* world) {
          if (enemy->hasComponent<LeftCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
                move->velocityX = 6.0;
+               std::cout << "Turtle Shell Left\n";
             } else {
                move->velocityX = ENEMY_SPEED;
             }
@@ -262,6 +260,7 @@ void EnemySystem::tick(World* world) {
             enemy->remove<LeftCollisionComponent>();
          } else if (enemy->hasComponent<RightCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
+               std::cout << "Turtle Shell Right\n";
                move->velocityX = -6.0;
             } else {
                move->velocityX = -ENEMY_SPEED;
@@ -272,5 +271,8 @@ void EnemySystem::tick(World* world) {
       }
 
       checkEnemyDestroyed(world, enemy);
+
+      enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,
+                    RightCollisionComponent>();
    });
 }

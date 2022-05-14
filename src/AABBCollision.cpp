@@ -8,8 +8,8 @@ bool AABBCollision(PositionComponent* a, PositionComponent* b) {
 }
 
 bool AABBCollision(float x, float y, float w, float h, PositionComponent* b) {
-   return x <= b->position.x + b->scale.x && x + w >= b->position.x &&
-          y <= b->position.y + b->scale.x && y + h >= b->position.y;
+   return x <= b->position.x + b->hitbox.x + b->hitbox.w && x + w >= b->position.x + b->hitbox.x &&
+          y <= b->position.y + b->hitbox.y + b->hitbox.h && y + h >= b->position.y + b->hitbox.y;
 }
 
 bool AABBCollision(float x1, float y1, float w1, float h1, float x2, float y2, float w2, float h2) {
@@ -23,8 +23,8 @@ bool AABBTotalCollision(PositionComponent* a, PositionComponent* b) {
           a->position.y + a->hitbox.y + a->hitbox.h > b->position.y + b->hitbox.y;
 }
 bool AABBTotalCollision(float x, float y, float w, float h, PositionComponent* b) {
-   return x < b->position.x + b->scale.x && x + w > b->position.x &&
-          y < b->position.y + b->scale.x && y + h > b->position.y;
+   return x < b->position.x + b->hitbox.x + b->hitbox.w && x + w > b->position.x + b->hitbox.x &&
+          y < b->position.y + b->hitbox.y + b->hitbox.h && y + h > b->position.y + b->hitbox.y;
 }
 
 bool AABBTotalCollision(float x1, float y1, float w1, float h1, float x2, float y2, float w2,

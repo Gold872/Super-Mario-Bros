@@ -9,7 +9,7 @@
 #include <iostream>
 CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
                                    MovingComponent* move, bool adjustPosition = true) {
-   auto solidPosition = solid->getComponent<PositionComponent>();
+   auto* solidPosition = solid->getComponent<PositionComponent>();
    CollisionDirection direction = CollisionDirection::NONE;
 
    if (move->velocityY >= 0.0f) {
@@ -59,16 +59,17 @@ CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
 
 CollisionDirection checkCollisionX(Entity* solid, PositionComponent* position,
                                    MovingComponent* move, bool adjustPosition = true) {
-   auto solidPosition = solid->getComponent<PositionComponent>();
+   auto* solidPosition = solid->getComponent<PositionComponent>();
    CollisionDirection direction = CollisionDirection::NONE;
 
    if (AABBTotalCollision(position->position.x + position->hitbox.x + move->velocityX,
                           position->position.y + position->hitbox.y, position->hitbox.w,
                           position->hitbox.h - (TILE_ROUNDNESS * 2), solidPosition)) {
-      float leftDistance =
-          std::abs((position->getLeft() + move->velocityX) - solidPosition->getRight());
-      float rightDistance =
-          std::abs((position->getRight() + move->velocityX) - solidPosition->getLeft());
+      float leftDistance = std::abs((position->position.x + position->hitbox.x + move->velocityX) -
+                                    solidPosition->getRight());
+      float rightDistance = std::abs(
+          (position->position.x + position->hitbox.x + position->hitbox.w + move->velocityX) -
+          solidPosition->getLeft());
       if (leftDistance < rightDistance) {
          if (adjustPosition) {
             // Entity is inside block, push out
@@ -406,9 +407,7 @@ void PhysicsSystem::tick(World* world) {
          CollisionDirection collidedDirectionVertical;
          CollisionDirection collidedDirectionHorizontal;
 
-         if ((entity->hasComponent<CollectibleComponent>() &&
-              !entity->hasComponent<GravityComponent>()) ||
-             entity->hasComponent<CollisionExemptComponent>()) {
+         if (entity->hasComponent<CollisionExemptComponent>()) {
             collidedDirectionVertical = checkCollisionY(other, position, move, false);
             collidedDirectionHorizontal = checkCollisionX(other, position, move, false);
          } else {
