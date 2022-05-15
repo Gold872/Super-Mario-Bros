@@ -872,7 +872,10 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                                                                    Map::EnemyIDCoordinates);
 
                        auto* blastMove = fireBlast->addComponent<MovingComponent>(0, 0, 0, 0);
+
                        fireBlast->addComponent<FrictionExemptComponent>();
+
+                       fireBlast->addComponent<DestroyOutsideCameraComponent>();
 
                        if (texture->isHorizontalFlipped()) {
                           blastMove->velocityX = 3.0;
@@ -924,7 +927,10 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                                                                 -0.35);
 
                           hammer->addComponent<FrictionExemptComponent>();
+
                           hammer->addComponent<GravityComponent>();
+
+                          hammer->addComponent<DestroyOutsideCameraComponent>();
 
                           hammer->addComponent<ProjectileComponent>(ProjectileType::OTHER);
 
@@ -1031,7 +1037,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             entity->getComponent<MovingComponent>()->velocityX = 0.0;
             entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
-            entity->addComponent<MoveOutsideCameraComponent>();
+            entity->addComponent<DestroyOutsideCameraComponent>();
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;

@@ -69,6 +69,8 @@ Entity* PlayerSystem::createFireball(World* world) {
 
    fireball->addComponent<GravityComponent>();
 
+   fireball->addComponent<DestroyOutsideCameraComponent>();
+
    auto* marioTexture = mario->getComponent<TextureComponent>();
 
    if (marioTexture->isHorizontalFlipped()) {
@@ -461,6 +463,8 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
        ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates, true);
 
    debris1->addComponent<ParticleComponent>();
+
+   debris1->addComponent<DestroyOutsideCameraComponent>();
    /* ******************************************************************* */
    Entity* debris2(world->create());  // Top Right
 
@@ -477,6 +481,8 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
        ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris2->addComponent<ParticleComponent>();
+
+   debris2->addComponent<DestroyOutsideCameraComponent>();
    /* ******************************************************************* */
    Entity* debris3(world->create());  // Bottom Left
 
@@ -493,6 +499,8 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
        ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates, true);
 
    debris3->addComponent<ParticleComponent>();
+
+   debris3->addComponent<DestroyOutsideCameraComponent>();
    /* ******************************************************************* */
    Entity* debris4(world->create());  // Bottom Right
 
@@ -509,6 +517,8 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
        ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris4->addComponent<ParticleComponent>();
+
+   debris4->addComponent<DestroyOutsideCameraComponent>();
 }
 
 void PlayerSystem::onAddedToWorld(World* world) {
