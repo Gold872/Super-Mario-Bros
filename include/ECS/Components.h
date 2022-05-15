@@ -550,15 +550,20 @@ struct LeftCollisionComponent : public Component {};
 struct RightCollisionComponent : public Component {};
 
 /* PLAYER COMPONENTS */
-struct PlayerComponent : public Component {};
+enum class PlayerState
+{
+   SMALL_MARIO,
+   SUPER_MARIO,
+   FIRE_MARIO
+};
 
-struct SuperMarioComponent : public Component {};
-
-struct FireMarioComponent : public Component {};
-
-struct FrozenComponent : public Component {};
+struct PlayerComponent : public Component {
+   PlayerState playerState = PlayerState::SMALL_MARIO;
+};
 
 struct SuperStarComponent : public Component {};
+
+struct FrozenComponent : public Component {};
 
 /* ENEMY COMPONENTS */
 enum class EnemyType

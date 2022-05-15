@@ -286,7 +286,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
             Entity* dispenseSound(world->create());
             dispenseSound->addComponent<SoundComponent>(SoundID::POWER_UP_APPEAR);
 
-            if (world->findFirst<PlayerComponent>()->hasComponent<SuperMarioComponent>()) {
+            if (world->findFirst<PlayerComponent>()->getComponent<PlayerComponent>()->playerState !=
+                PlayerState::SMALL_MARIO) {
                Entity* fireFlower(world->create());
 
                auto* position = originalBlock->getComponent<PositionComponent>();

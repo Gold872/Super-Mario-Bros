@@ -66,6 +66,12 @@ class PlayerSystem : public System {
    }
 
   private:
+   bool isSmallMario();
+
+   bool isSuperMario();
+
+   bool isFireMario();
+
    void onGameOver(World* world, bool outOfBounds = false);
 
    void setState(Animation_State newState);

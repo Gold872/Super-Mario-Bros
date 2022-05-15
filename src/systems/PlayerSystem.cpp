@@ -36,6 +36,18 @@ PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
 }
 
+bool PlayerSystem::isSmallMario() {
+   return mario->getComponent<PlayerComponent>()->playerState == PlayerState::SMALL_MARIO;
+}
+
+bool PlayerSystem::isSuperMario() {
+   return mario->getComponent<PlayerComponent>()->playerState == PlayerState::SUPER_MARIO;
+}
+
+bool PlayerSystem::isFireMario() {
+   return mario->getComponent<PlayerComponent>()->playerState == PlayerState::FIRE_MARIO;
+}
+
 Entity* PlayerSystem::createFireball(World* world) {
    holdFireballTexture = true;
 
@@ -116,16 +128,15 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    auto* position = mario->getComponent<PositionComponent>();
    auto* texture = mario->getComponent<TextureComponent>();
 
-   if (outOfBounds && mario->hasComponent<SuperMarioComponent>()) {
+   if (outOfBounds && isSuperMario()) {
       position->scale.y = position->hitbox.h = SCALED_CUBE_SIZE;
       texture->setEntityHeight(ORIGINAL_CUBE_SIZE);
       texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
-      mario->remove<SuperMarioComponent>();
-      mario->remove<FireMarioComponent>();
+      mario->getComponent<PlayerComponent>()->playerState = PlayerState::SMALL_MARIO;
    }
 
-   if (!outOfBounds && mario->hasAny<SuperMarioComponent, FireMarioComponent>()) {
+   if (!outOfBounds && (isSuperMario() || isFireMario())) {
       shrink(world);
       return;
    }
@@ -168,9 +179,9 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(225));
-         } else if (mario->hasComponent<SuperMarioComponent>()) {
+         } else if (isSuperMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(25));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
@@ -182,9 +193,9 @@ void PlayerSystem::setState(Animation_State newState) {
          std::vector<int> superFrameIDS = {27, 28, 29};
          std::vector<int> normalFrameIDS = {2, 3, 4};
          if (!mario->hasComponent<AnimationComponent>()) {
-            if (mario->hasComponent<FireMarioComponent>()) {
+            if (isFireMario()) {
                mario->addComponent<AnimationComponent>(fireFrameIDS, 8, Map::PlayerIDCoordinates);
-            } else if (mario->hasComponent<SuperMarioComponent>()) {
+            } else if (isSuperMario()) {
                mario->addComponent<AnimationComponent>(superFrameIDS, 8, Map::PlayerIDCoordinates);
             } else {
                mario->addComponent<AnimationComponent>(normalFrameIDS, 8, Map::PlayerIDCoordinates);
@@ -197,10 +208,10 @@ void PlayerSystem::setState(Animation_State newState) {
             // If the player already has an animation but it is not the correct one
             auto* animation = mario->getComponent<AnimationComponent>();
 
-            if (mario->hasComponent<FireMarioComponent>()) {
+            if (isFireMario()) {
                animation->frameIDS = fireFrameIDS;
                animation->frameCount = 3;
-            } else if (mario->hasComponent<SuperMarioComponent>()) {
+            } else if (isSuperMario()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 3;
             } else {
@@ -219,9 +230,9 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(230));
-         } else if (mario->hasComponent<SuperMarioComponent>()) {
+         } else if (isSuperMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(30));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(5));
@@ -232,9 +243,9 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(231));
-         } else if (mario->hasComponent<SuperMarioComponent>()) {
+         } else if (isSuperMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(31));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(6));
@@ -245,7 +256,7 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(226));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
@@ -266,9 +277,9 @@ void PlayerSystem::setState(Animation_State newState) {
          std::vector<int> superFrameIDS = {38, 39};
          std::vector<int> normalFrameIDS = {13, 14};
          if (!mario->hasComponent<AnimationComponent>()) {
-            if (mario->hasComponent<FireMarioComponent>()) {
+            if (isFireMario()) {
                mario->addComponent<AnimationComponent>(fireFrameIDS, 8, Map::PlayerIDCoordinates);
-            } else if (mario->hasComponent<SuperMarioComponent>()) {
+            } else if (isSuperMario()) {
                mario->addComponent<AnimationComponent>(superFrameIDS, 8, Map::PlayerIDCoordinates);
             } else {
                mario->addComponent<AnimationComponent>(normalFrameIDS, 8, Map::PlayerIDCoordinates);
@@ -278,10 +289,10 @@ void PlayerSystem::setState(Animation_State newState) {
                     mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
             // If the player already has an animation but it is not the correct one
             auto* animation = mario->getComponent<AnimationComponent>();
-            if (mario->hasComponent<FireMarioComponent>()) {
+            if (isFireMario()) {
                animation->frameIDS = fireFrameIDS;
                animation->frameCount = 2;
-            } else if (mario->hasComponent<SuperMarioComponent>()) {
+            } else if (isSuperMario()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 2;
             } else {
@@ -294,9 +305,9 @@ void PlayerSystem::setState(Animation_State newState) {
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(238));
-         } else if (mario->hasComponent<SuperMarioComponent>()) {
+         } else if (isSuperMario()) {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(38));
          } else {
             texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(13));
@@ -351,7 +362,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          Entity* powerUpSound(world->create());
          powerUpSound->addComponent<SoundComponent>(SoundID::POWER_UP_COLLECT);
 
-         if (mario->hasComponent<SuperMarioComponent>()) {
+         if (isSuperMario() || isFireMario()) {
             return;
          }
 
@@ -373,13 +384,13 @@ void PlayerSystem::grow(World* world, GrowType growType) {
 
          mario->addComponent<CallbackComponent>(
              [&](Entity* mario) {
-                mario->addComponent<SuperMarioComponent>();
+                mario->getComponent<PlayerComponent>()->playerState = PlayerState::SUPER_MARIO;
                 mario->remove<FrozenComponent>();
              },
              45);
       } break;
       case GrowType::FIRE_FLOWER: {
-         if (!mario->hasComponent<SuperMarioComponent>()) {
+         if (!isSuperMario()) {
             grow(world, GrowType::MUSHROOM);
             return;
          }
@@ -393,7 +404,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          Entity* powerUpSound(world->create());
          powerUpSound->addComponent<SoundComponent>(SoundID::POWER_UP_COLLECT);
 
-         if (mario->hasComponent<FireMarioComponent>()) {
+         if (isFireMario()) {
             return;
          }
 
@@ -405,7 +416,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
 
          mario->addComponent<CallbackComponent>(
              [&](Entity* mario) {
-                mario->addComponent<FireMarioComponent>();
+                mario->getComponent<PlayerComponent>()->playerState = PlayerState::FIRE_MARIO;
                 mario->remove<FrozenComponent>();
              },
              60);
@@ -416,7 +427,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
 }
 
 void PlayerSystem::shrink(World* world) {
-   mario->remove<FireMarioComponent, SuperMarioComponent>();
+   mario->getComponent<PlayerComponent>()->playerState = PlayerState::SMALL_MARIO;
 
    Entity* shrinkSound(world->create());
    shrinkSound->addComponent<SoundComponent>(SoundID::PIPE);
@@ -625,7 +636,7 @@ void PlayerSystem::updateGroundVelocity(World* world) {
       Entity* jumpSound(world->create());
       jumpSound->addComponent<SoundComponent>(SoundID::JUMP);
    }
-   if (duck && mario->hasComponent<SuperMarioComponent>()) {
+   if (duck && isSuperMario()) {
       currentState = DUCKING;
       move->accelerationX = 0;
       // Slows the player down
@@ -676,7 +687,7 @@ void PlayerSystem::updateAirVelocity() {
    } else {
       move->accelerationY = 0;
    }
-   if (duck && mario->hasComponent<SuperMarioComponent>()) {
+   if (duck && isSuperMario()) {
       currentState = DUCKING;
    } else {
       currentState = JUMPING;
@@ -926,7 +937,7 @@ void PlayerSystem::tick(World* world) {
    });
 
    // Launch fireballs
-   if (mario->hasComponent<FireMarioComponent>() && launchFireball) {
+   if (isFireMario() && launchFireball) {
       createFireball(world);
       launchFireball = false;
 
@@ -957,7 +968,7 @@ void PlayerSystem::tick(World* world) {
          return;
       }
       // Destroy the block if the player is Super Mario
-      if (mario->hasComponent<SuperMarioComponent>()) {
+      if (!isSmallMario()) {
          if (!breakable->hasComponent<MysteryBoxComponent>() &&
              breakable->hasComponent<DestructibleComponent>() &&
              AABBCollision(breakable->getComponent<PositionComponent>(), position)) {
