@@ -181,14 +181,11 @@ void PlayerSystem::setState(Animation_State newState) {
          std::vector<int> normalFrameIDS = {2, 3, 4};
          if (!mario->hasComponent<AnimationComponent>()) {
             if (mario->hasComponent<FireMarioComponent>()) {
-               mario->addComponent<AnimationComponent>(fireFrameIDS, 3, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 8, Map::PlayerIDCoordinates);
             } else if (mario->hasComponent<SuperMarioComponent>()) {
-               mario->addComponent<AnimationComponent>(superFrameIDS, 3, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(superFrameIDS, 8, Map::PlayerIDCoordinates);
             } else {
-               mario->addComponent<AnimationComponent>(normalFrameIDS, 3, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 8, Map::PlayerIDCoordinates);
             }
             return;
          }
@@ -268,14 +265,11 @@ void PlayerSystem::setState(Animation_State newState) {
          std::vector<int> normalFrameIDS = {13, 14};
          if (!mario->hasComponent<AnimationComponent>()) {
             if (mario->hasComponent<FireMarioComponent>()) {
-               mario->addComponent<AnimationComponent>(fireFrameIDS, 2, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 8, Map::PlayerIDCoordinates);
             } else if (mario->hasComponent<SuperMarioComponent>()) {
-               mario->addComponent<AnimationComponent>(superFrameIDS, 2, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(superFrameIDS, 8, Map::PlayerIDCoordinates);
             } else {
-               mario->addComponent<AnimationComponent>(normalFrameIDS, 2, 8,
-                                                       Map::PlayerIDCoordinates);
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 8, Map::PlayerIDCoordinates);
             }
          } else if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
                     mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
@@ -370,7 +364,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          texture->setEntityHeight(ORIGINAL_CUBE_SIZE * 2);
 
          mario->addComponent<AnimationComponent>(
-             std::vector<int>{46, 45, 25, 46, 45, 25, 46, 45, 25}, 9, 12, Map::PlayerIDCoordinates,
+             std::vector<int>{46, 45, 25, 46, 45, 25, 46, 45, 25}, 12, Map::PlayerIDCoordinates,
              false);
 
          mario->addComponent<FrozenComponent>();
@@ -402,7 +396,7 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          }
 
          mario->addComponent<AnimationComponent>(
-             std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12, 12,
+             std::vector<int>{350, 351, 352, 353, 350, 351, 352, 353, 350, 351, 352, 353}, 12,
              Map::PlayerIDCoordinates, false);
 
          mario->addComponent<FrozenComponent>();
@@ -425,8 +419,8 @@ void PlayerSystem::shrink(World* world) {
    Entity* shrinkSound(world->create());
    shrinkSound->addComponent<SoundComponent>(SoundID::PIPE);
 
-   mario->addComponent<AnimationComponent>(std::vector<int>{25, 45, 46, 25, 45, 46, 25, 45, 46}, 9,
-                                           12, Map::PlayerIDCoordinates, false);
+   mario->addComponent<AnimationComponent>(std::vector<int>{25, 45, 46, 25, 45, 46, 25, 45, 46}, 12,
+                                           Map::PlayerIDCoordinates, false);
 
    mario->addComponent<FrozenComponent>();
 

@@ -64,7 +64,7 @@ void ScoreSystem::onAddedToWorld(World* world) {
           scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
           ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(754), false, false);
 
-      coinIcon->addComponent<AnimationComponent>(std::vector<int>{754, 755, 756, 757}, 4, 8,
+      coinIcon->addComponent<AnimationComponent>(std::vector<int>{754, 755, 756, 757}, 8,
                                                  Map::BlockIDCoordinates);
 
       coinIcon->addComponent<PausedAnimationComponent>(0, 25);

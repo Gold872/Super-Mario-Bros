@@ -28,62 +28,38 @@ void AnimationSystem::tick(World* world) {
 
    // Non-Paused animations
    world->find<AnimationComponent, TextureComponent>([&](Entity* entity) {
-      if (!entity->hasComponent<PositionComponent>()) {
+      if ((!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
+           !entity->hasComponent<IconComponent>()) ||
+          entity->hasComponent<PausedAnimationComponent>()) {
          return;
       }
-      if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
-          !entity->hasComponent<IconComponent>()) {
-         return;
-      }
-      if (!entity->hasComponent<PausedAnimationComponent>()) {
-         auto* animation = entity->getComponent<AnimationComponent>();
-         auto* texture = entity->getComponent<TextureComponent>();
 
-         animation->frameTimer--;
+      auto* animation = entity->getComponent<AnimationComponent>();
+      auto* texture = entity->getComponent<TextureComponent>();
 
-         if (animation->frameTimer <= 0 && animation->playing) {
-            animation->frameTimer = animation->frameDelay;
+      animation->frameTimer--;
 
-            animation->currentFrame++;
-            if (animation->currentFrame == animation->frameCount) {
-               if (animation->repeated) {
-                  animation->currentFrame = 0;
-               } else {
-                  //               	animation->currentFrame = 0;
-                  //
-                  //                  int animationFrameID =
-                  //                  animation->frameIDS[animation->currentFrame];
-                  //
-                  //                  Vector2i frameCoordinates;
-                  //
-                  //                  if (entity->hasComponent<ForegroundComponent>()) {
-                  //                     frameCoordinates =
-                  //                     Map::BlockIDCoordinates.at(animationFrameID);
-                  //                  } else if (entity->hasComponent<PlayerComponent>()) {
-                  //                     frameCoordinates =
-                  //                     Map::PlayerIDCoordinates.at(animationFrameID);
-                  //                  } else if (entity->hasComponent<EnemyComponent>()) {
-                  //                     frameCoordinates =
-                  //                     Map::EnemyIDCoordinates.at(animationFrameID);
-                  //                  }
-                  //
-                  //                  // Sets the texture sprite sheets coordinates to the animation
-                  //                  frame coordinates
-                  //                  texture->setSpritesheetCoordinates(frameCoordinates);
-                  entity->remove<AnimationComponent>();
-                  return;
-               }
+      if (animation->frameTimer <= 0 && animation->playing) {
+         animation->frameTimer = animation->frameDelay;
+
+         animation->currentFrame++;
+         if (animation->currentFrame == animation->frameCount) {
+            if (animation->repeated) {
+               animation->currentFrame = 0;
+            } else {
+               entity->remove<AnimationComponent>();
+               return;
             }
-
-            int animationFrameID = animation->frameIDS[animation->currentFrame];
-
-            Vector2i frameCoordinates;
-
-            frameCoordinates = animation->coordinateSupplier.at(animationFrameID);
-
-            // Sets the texture sprite sheets coordinates to the animation frame coordinates
-            texture->setSpritesheetCoordinates(frameCoordinates);
          }
+
+         int animationFrameID = animation->frameIDS[animation->currentFrame];
+
+         Vector2i frameCoordinates;
+
+         frameCoordinates = animation->coordinateSupplier.at(animationFrameID);
+
+         // Sets the texture sprite sheets coordinates to the animation frame coordinates
+         texture->setSpritesheetCoordinates(frameCoordinates);
       }
    });
 

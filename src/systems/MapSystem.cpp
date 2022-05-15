@@ -301,7 +301,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(flowerID));
 
                fireFlower->addComponent<AnimationComponent>(
-                   std::vector<int>{flowerID, flowerID + 1, flowerID + 2, flowerID + 3}, 4, 8,
+                   std::vector<int>{flowerID, flowerID + 1, flowerID + 2, flowerID + 3}, 8,
                    Map::BlockIDCoordinates);
 
                fireFlower->addComponent<CollectibleComponent>(CollectibleType::FIRE_FLOWER);
@@ -379,7 +379,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             coin->addComponent<ForegroundComponent>();
 
-            coin->addComponent<AnimationComponent>(std::vector<int>{656, 657, 658, 659}, 4, 8,
+            coin->addComponent<AnimationComponent>(std::vector<int>{656, 657, 658, 659}, 8,
                                                    Map::BlockIDCoordinates);
 
             coin->addComponent<MovingComponent>(0, -10.00, 0, 0.3);
@@ -413,7 +413,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(starID));
 
             star->addComponent<AnimationComponent>(
-                std::vector<int>{starID, starID + 1, starID + 2, starID + 3}, 4, 8,
+                std::vector<int>{starID, starID + 1, starID + 2, starID + 3}, 8,
                 Map::BlockIDCoordinates);
 
             star->addComponent<CollectibleComponent>(CollectibleType::SUPER_STAR);
@@ -455,7 +455,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                                                 Map::BlockIDCoordinates.at(entityID), false, false);
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 4, 8,
+             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 8,
              Map::BlockIDCoordinates);
 
          entity->addComponent<PausedAnimationComponent>(0, 25);
@@ -508,7 +508,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          Entity* entity = createBlockEntity(world, coordinateX, coordinateY, entityID);
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 4, 8,
+             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 8,
              Map::BlockIDCoordinates);
 
          entity->addComponent<PausedAnimationComponent>(0, 25);
@@ -537,7 +537,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                                                 Map::BlockIDCoordinates.at(entityID), false, false);
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 4, 8,
+             std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 8,
              Map::BlockIDCoordinates);
 
          entity->addComponent<PausedAnimationComponent>(0, 25);
@@ -648,8 +648,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 2, 6,
-             Map::EnemyIDCoordinates);
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
          entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
@@ -692,8 +691,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          int firstAnimationID = entityID - 1;
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 2, 6,
-             Map::EnemyIDCoordinates);
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
          entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
@@ -733,7 +731,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
 
-         pirhanna->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 2, 4,
+         pirhanna->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 4,
                                                     Map::EnemyIDCoordinates);
 
          pirhanna->addComponent<MovingComponent>(0, 0, 0, 0);
@@ -818,7 +816,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          std::vector<int> mouthOpenAnimation = {mouthOpenID, mouthOpenID + 2};
          std::vector<int> mouthClosedAnimation = {mouthClosedID, mouthClosedID + 2};
 
-         auto* animation = bowser->addComponent<AnimationComponent>(mouthOpenAnimation, 2, 2,
+         auto* animation = bowser->addComponent<AnimationComponent>(mouthOpenAnimation, 2,
                                                                     Map::EnemyIDCoordinates);
 
          std::vector<std::function<void(Entity*)>> bowserMovements = {
@@ -870,8 +868,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                            ORIGINAL_CUBE_SIZE / 2, 1, 1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
                            Map::EnemyIDCoordinates.at(470));
 
-                       fireBlast->addComponent<AnimationComponent>(std::vector<int>{470, 505}, 2,
-                                                                   16, Map::EnemyIDCoordinates);
+                       fireBlast->addComponent<AnimationComponent>(std::vector<int>{470, 505}, 16,
+                                                                   Map::EnemyIDCoordinates);
 
                        auto* blastMove = fireBlast->addComponent<MovingComponent>(0, 0, 0, 0);
                        fireBlast->addComponent<FrictionExemptComponent>();
@@ -955,8 +953,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 2, 6,
-             Map::EnemyIDCoordinates);
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
          entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
@@ -991,8 +988,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          int firstAnimationID = entityID - 1;
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 2, 6,
-             Map::EnemyIDCoordinates);
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
          entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
@@ -1024,8 +1020,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
-             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 2, 6,
-             Map::EnemyIDCoordinates);
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
          entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
@@ -1096,9 +1091,29 @@ void MapSystem::createFireBarEntities(World* world) {
                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(611), false,
                    false);
 
+               barElement->addComponent<AnimationComponent>(std::vector<int>{611, 612, 613, 614},
+                                                            12, Map::BlockIDCoordinates);
+
                barElement->addComponent<FireBarComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
                                                           bar * ORIGINAL_CUBE_SIZE, startAngle,
                                                           rotationDirection);
+
+               barElement->addComponent<TimerComponent>(
+                   [&](Entity* entity) {
+                      auto* barComponent = entity->getComponent<FireBarComponent>();
+
+                      switch (barComponent->direction) {
+                         case RotationDirection::CLOCKWISE:
+                            barComponent->barAngle -= 10;
+                            break;
+                         case RotationDirection::COUNTER_CLOCKWISE:
+                            barComponent->barAngle += 10;
+                            break;
+                         default:
+                            break;
+                      }
+                   },
+                   10);
 
                if (bar != barLength - 1) {
                   barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);

@@ -2,7 +2,6 @@
 
 #include "Constants.h"
 #include "ECS.h"
-//#include "Level.h"
 #include "Map.h"
 #include "Math.h"
 #include "SoundManager.h"
@@ -15,6 +14,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+
 struct PositionComponent : public Component {
    PositionComponent(Vector2f position, Vector2i scale) : position{position}, scale{scale} {
       hitbox = {0, 0, scale.x, scale.y};
@@ -222,10 +222,10 @@ struct MusicComponent : public Component {
 
 /* ANIMATION COMPONENTS */
 struct AnimationComponent : public Component {
-   AnimationComponent(std::vector<int> frameIDS, int frameCount, int framesPerSecond,
+   AnimationComponent(std::vector<int> frameIDS, int framesPerSecond,
                       std::unordered_map<int, Vector2i>& coordinateSupplier, bool repeated = true)
        : frameIDS{frameIDS},
-         frameCount{frameCount},
+         frameCount{(int)frameIDS.size()},
          framesPerSecond{framesPerSecond},
          coordinateSupplier{coordinateSupplier},
          repeated{repeated} {
