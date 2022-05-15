@@ -791,7 +791,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                    piranha->inPipe = true;
                 }
              },
-             5 * MAX_FPS);
+             3 * MAX_FPS);
       } break;
       case 61: {  // BOWSER
          Entity* bowser(world->create());
