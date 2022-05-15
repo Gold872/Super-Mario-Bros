@@ -63,7 +63,7 @@ Entity* PlayerSystem::createFireball(World* world) {
        playerTexture, ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1, 9, 0, ORIGINAL_CUBE_SIZE,
        ORIGINAL_CUBE_SIZE, Map::PlayerIDCoordinates.at(246), false, false);
 
-   auto* move = fireball->addComponent<MovingComponent>(0, 3, 0, 0);
+   auto* move = fireball->addComponent<MovingComponent>(0, 5, 0, 0);
 
    fireball->addComponent<FrictionExemptComponent>();
 

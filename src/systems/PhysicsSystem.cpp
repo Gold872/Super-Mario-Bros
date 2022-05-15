@@ -117,33 +117,6 @@ void PhysicsSystem::updateFireBars(World* world) {
           fireBar->calculateXPosition(fireBar->barAngle) + fireBar->pointOfRotation.x;
       position->position.y =
           fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
-
-      //      switch (fireBar->direction) {
-      //         case RotationDirection::CLOCKWISE:
-      //            fireBar->barAngle += 2.0;
-      //            if (fireBar->barAngle > 360) {
-      //               fireBar->barAngle -= 360;
-      //            }
-      //
-      //            position->position.x =
-      //                fireBar->calculateXPosition(fireBar->barAngle) + fireBar->pointOfRotation.x;
-      //            position->position.y =
-      //                fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
-      //            break;
-      //         case RotationDirection::COUNTER_CLOCKWISE:
-      //            fireBar->barAngle -= 2.0;
-      //            if (fireBar->barAngle < 0) {
-      //               fireBar->barAngle += 360;
-      //            }
-      //
-      //            position->position.x =
-      //                fireBar->calculateXPosition(fireBar->barAngle) + fireBar->pointOfRotation.x;
-      //            position->position.y =
-      //                fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
-      //            break;
-      //         default:
-      //            break;
-      //      }
    });
 }
 
