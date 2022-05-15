@@ -1,10 +1,11 @@
+#include "systems/EnemySystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
-#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -126,6 +127,8 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
          move->velocityY = -ENEMY_BOUNCE;
          enemy->addComponent<ParticleComponent>();
          enemy->addComponent<DeadComponent>();
+         enemy->addComponent<DestroyOutsideCameraComponent>();
+
          enemy->getComponent<TextureComponent>()->setVerticalFlipped(true);
          enemy->remove<EnemyDestroyedComponent>();
          enemy->remove<AnimationComponent>();
