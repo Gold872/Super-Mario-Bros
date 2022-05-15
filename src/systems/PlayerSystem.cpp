@@ -1,3 +1,5 @@
+#include "systems/PlayerSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -8,7 +10,6 @@
 #include "SoundManager.h"
 #include "TextureManager.h"
 #include "systems/FlagSystem.h"
-#include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>
@@ -316,8 +317,8 @@ void PlayerSystem::setState(Animation_State newState) {
    }
 
    if (newState == DUCKING) {
-      position->hitbox.h = 48;
-      position->hitbox.y = 16;
+      position->hitbox.h = 32;
+      position->hitbox.y = 32;
    } else {
       position->hitbox.h = position->scale.y;
       position->hitbox.y = 0;
@@ -644,7 +645,7 @@ void PlayerSystem::updateGroundVelocity(World* world) {
 
 void PlayerSystem::updateAirVelocity() {
    auto* move = mario->getComponent<MovingComponent>();
-   // If the player is in the air
+
    move->accelerationX = (float)xDir * MARIO_ACCELERATION_X;
    if (running) {
       if ((move->accelerationX >= 0 && move->velocityX >= 0) ||
@@ -671,7 +672,11 @@ void PlayerSystem::updateAirVelocity() {
    } else {
       move->accelerationY = 0;
    }
-   currentState = JUMPING;
+   if (duck && mario->hasComponent<SuperMarioComponent>()) {
+      currentState = DUCKING;
+   } else {
+      currentState = JUMPING;
+   }
 }
 
 void PlayerSystem::updateWaterVelocity(World* world) {
