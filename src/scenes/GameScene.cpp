@@ -251,6 +251,7 @@ void GameScene::loadLevel(int level, int subLevel) {
    std::string undergroundPath = mapDataPath + "_Underground.csv";
    std::string enemiesPath = mapDataPath + "_Enemies.csv";
    std::string aboveForegroundPath = mapDataPath + "_Above_Foreground.csv";
+   std::string collectiblesPath = mapDataPath + "_Collectibles.csv";
 
    // Loads the special level properties
    std::ifstream properties(mapDataPath + ".levelproperties");
@@ -272,6 +273,7 @@ void GameScene::loadLevel(int level, int subLevel) {
    undergroundMap.loadMap(undergroundPath.c_str());
    enemiesMap.loadMap(enemiesPath.c_str());
    aboveForegroundMap.loadMap(aboveForegroundPath.c_str());
+   collectiblesMap.loadMap(collectiblesPath.c_str());
 }
 
 void GameScene::setUnderwater(bool val) {

@@ -517,11 +517,29 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          entity->addComponent<BumpableComponent>();
 
-         auto enumCoordinate = getDataCoordinate<MysteryBoxType>(
-             scene->getLevelData().questionBlockLocations, Vector2i(coordinateX, coordinateY));
+         MysteryBoxType collectibleType = MysteryBoxType::NONE;
 
-         if (std::get<1>(enumCoordinate) != MysteryBoxType::NONE) {
-            entity->addComponent<MysteryBoxComponent>(std::get<1>(enumCoordinate));
+         int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
+         if (collectibleID != -1) {
+            int referenceCollectibleID = getReferenceBlockID(collectibleID);
+            switch (referenceCollectibleID) {
+               case 52:  // One-up
+                  collectibleType = MysteryBoxType::ONE_UP;
+                  break;
+               case 96:  // Super Star
+                  collectibleType = MysteryBoxType::SUPER_STAR;
+                  break;
+               case 144:  // Coin
+                  collectibleType = MysteryBoxType::COINS;
+                  break;
+               case 608:  // Mushroom
+                  collectibleType = MysteryBoxType::MUSHROOM;
+                  break;
+            }
+         }
+
+         if (collectibleType != MysteryBoxType::NONE) {
+            entity->addComponent<MysteryBoxComponent>(collectibleType);
 
             addItemDispenser(world, entity, entityID, referenceID);
          }
@@ -559,11 +577,29 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          entity->addComponent<BumpableComponent>();
 
-         auto enumCoordinate = getDataCoordinate<MysteryBoxType>(
-             scene->getLevelData().mysteryBrickLocations, Vector2i(coordinateX, coordinateY));
+         MysteryBoxType collectibleType = MysteryBoxType::NONE;
 
-         if (std::get<1>(enumCoordinate) != MysteryBoxType::NONE) {
-            entity->addComponent<MysteryBoxComponent>(std::get<1>(enumCoordinate));
+         int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
+         if (collectibleID != -1) {
+            int referenceCollectibleID = getReferenceBlockID(collectibleID);
+            switch (referenceCollectibleID) {
+               case 52:  // One-up
+                  collectibleType = MysteryBoxType::ONE_UP;
+                  break;
+               case 96:  // Super Star
+                  collectibleType = MysteryBoxType::SUPER_STAR;
+                  break;
+               case 144:  // Coin
+                  collectibleType = MysteryBoxType::COINS;
+                  break;
+               case 608:  // Mushroom
+                  collectibleType = MysteryBoxType::MUSHROOM;
+                  break;
+            }
+         }
+
+         if (collectibleType != MysteryBoxType::NONE) {
+            entity->addComponent<MysteryBoxComponent>(collectibleType);
 
             addItemDispenser(world, entity, entityID, referenceID);
          }
@@ -584,8 +620,6 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
              createBlockEntity(world, coordinateX, coordinateY + 1, entityID + 48));
 
          trampolineBottom->remove<TileComponent>();
-         //         trampolineBottom->getComponent<PositionComponent>()->hitbox =
-         //             SDL_Rect{0, 16, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE / 2};
 
          trampolineTop->addComponent<TrampolineComponent>(
              trampolineBottom, (int[3]){entityID, entityID + 1, entityID + 2},

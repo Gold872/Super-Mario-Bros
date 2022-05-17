@@ -81,6 +81,7 @@ class GameScene : public Scene {
    Map undergroundMap;
    Map backgroundMap;
    Map aboveForegroundMap;
+   Map collectiblesMap;
 
    std::vector<std::function<void(void)>> commandQueue;
 };

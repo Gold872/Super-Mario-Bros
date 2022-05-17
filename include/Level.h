@@ -336,13 +336,13 @@ class Level {
       data.warpPipeLocations =
           loadWarpPipeLocation("WARP_PIPE" + DefaultArrayPattern, levelProperties, warpPipePattern);
 
-      data.questionBlockLocations = loadEnumCoordinateArray<MysteryBoxType>(
-          "MYSTERY_BOX" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
-          mysteryBoxTypeString);
+      //      data.questionBlockLocations = loadEnumCoordinateArray<MysteryBoxType>(
+      //          "MYSTERY_BOX" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
+      //          mysteryBoxTypeString);
 
-      data.mysteryBrickLocations = loadEnumCoordinateArray<MysteryBoxType>(
-          "MYSTERY_BRICK" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
-          mysteryBoxTypeString);
+      //      data.mysteryBrickLocations = loadEnumCoordinateArray<MysteryBoxType>(
+      //          "MYSTERY_BRICK" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
+      //          mysteryBoxTypeString);
 
       data.movingPlatformDirections = loadMovingPlatform("MOVING_PLATFORM" + DefaultArrayPattern,
                                                          levelProperties, platformPattern);
@@ -358,8 +358,6 @@ class Level {
       data.nextLevel = Vector2i(0, 0);
       data.cameraMax = 0;
       data.warpPipeLocations.clear();
-      data.questionBlockLocations.clear();
-      data.mysteryBrickLocations.clear();
       data.movingPlatformDirections.clear();
       data.fireBarLocations.clear();
    }
