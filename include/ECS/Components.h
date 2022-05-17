@@ -475,6 +475,7 @@ enum class MysteryBoxType
    MUSHROOM,
    COINS,
    SUPER_STAR,
+   ONE_UP,
    RANDOM
 };
 
@@ -559,9 +560,8 @@ enum class PlayerState
 
 struct PlayerComponent : public Component {
    PlayerState playerState = PlayerState::SMALL_MARIO;
+   bool superStar = false;
 };
-
-struct SuperStarComponent : public Component {};
 
 struct FrozenComponent : public Component {};
 

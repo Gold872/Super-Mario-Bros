@@ -319,9 +319,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                    [&](Entity* entity) {
                       entity->addComponent<GravityComponent>();
                       entity->getComponent<MovingComponent>()->velocityY = 0;
-                      entity->remove<WaitUntilComponent>();
-                      entity->remove<MysteryBoxComponent>();
                       entity->remove<CollisionExemptComponent>();
+                      entity->remove<WaitUntilComponent>();
                    });
             } else {
                Entity* mushroom(world->create());
@@ -349,9 +348,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                    [&](Entity* entity) {
                       entity->addComponent<GravityComponent>();
                       entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
-                      entity->remove<WaitUntilComponent>();
-                      entity->remove<MysteryBoxComponent>();
                       entity->remove<CollisionExemptComponent>();
+                      entity->remove<WaitUntilComponent>();
                    });
             }
          };
@@ -421,6 +419,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             star->addComponent<MovingComponent>(0, -1.0f);
 
+            star->addComponent<CollisionExemptComponent>();
+
             star->addComponent<WaitUntilComponent>(
                 [=](Entity* entity) {
                    return position->getTop() >
@@ -429,8 +429,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 [&](Entity* entity) {
                    entity->addComponent<GravityComponent>();
                    entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                   entity->remove<CollisionExemptComponent>();
                    entity->remove<WaitUntilComponent>();
-                   entity->remove<MysteryBoxComponent>();
                 });
          };
       } break;

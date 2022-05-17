@@ -40,6 +40,8 @@ struct LevelData {
    Vector2i playerStart;
    LevelType levelType;
 
+   Vector2i cameraStart;
+
    BackgroundColor levelBackgroundColor;
 
    int cameraMax;
@@ -90,9 +92,8 @@ class Level {
    };
 
    std::unordered_map<string, MysteryBoxType> mysteryBoxTypeString = {
-       {"MUSHROOM", MysteryBoxType::MUSHROOM},
-       {"COINS", MysteryBoxType::COINS},
-       {"SUPER_STAR", MysteryBoxType::SUPER_STAR},
+       {"MUSHROOM", MysteryBoxType::MUSHROOM},     {"COINS", MysteryBoxType::COINS},
+       {"SUPER_STAR", MysteryBoxType::SUPER_STAR}, {"ONE_UP", MysteryBoxType::ONE_UP},
        {"RANDOM", MysteryBoxType::RANDOM},
    };
 
@@ -326,6 +327,9 @@ class Level {
 
       data.nextLevel =
           loadCoordinate("NEXT_LEVEL(?:\\s)?=(?:\\s)?" + DefaultPairPattern, levelProperties);
+
+      data.cameraStart =
+          loadCoordinate("CAMERA_START(?:\\s)?=(?:\\s)?" + DefaultPairPattern, levelProperties);
 
       data.cameraMax = loadIntData("CAMERA_MAX" + DefaultRegexPattern, levelProperties);
 

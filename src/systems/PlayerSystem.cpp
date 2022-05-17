@@ -48,6 +48,10 @@ bool PlayerSystem::isFireMario() {
    return mario->getComponent<PlayerComponent>()->playerState == PlayerState::FIRE_MARIO;
 }
 
+bool PlayerSystem::isSuperStar() {
+   return mario->getComponent<PlayerComponent>()->superStar;
+}
+
 Entity* PlayerSystem::createFireball(World* world) {
    holdFireballTexture = true;
 
@@ -339,12 +343,12 @@ void PlayerSystem::grow(World* world, GrowType growType) {
          floatingText->addComponent<CreateFloatingTextComponent>(mario, "ONE-UP");
       } break;
       case GrowType::SUPER_STAR: {
-         mario->addComponent<SuperStarComponent>();
+         mario->getComponent<PlayerComponent>()->superStar = true;
 
          mario->addComponent<EndingBlinkComponent>(5, 600);
          mario->addComponent<CallbackComponent>(
              [=](Entity* entity) {
-                entity->remove<SuperStarComponent>();
+                entity->getComponent<PlayerComponent>()->superStar = false;
                 scene->resumeLastPlayedMusic();
              },
              600);
@@ -557,6 +561,8 @@ void PlayerSystem::onAddedToWorld(World* world) {
    mario->addComponent<MovingComponent>(0, 0, 0, 0);
 
    mario->addComponent<PlayerComponent>();
+
+   mario->addComponent<FrozenComponent>();
 }
 
 void PlayerSystem::reset() {
@@ -571,11 +577,16 @@ void PlayerSystem::reset() {
            ? (startCoordinates.y - 1) * SCALED_CUBE_SIZE
            : startCoordinates.y * SCALED_CUBE_SIZE;
 
+   Camera::Get().setCameraX(scene->getLevelData().cameraStart.x * SCALED_CUBE_SIZE);
+   Camera::Get().setCameraY(scene->getLevelData().cameraStart.y * SCALED_CUBE_SIZE);
+
    move->velocityY = move->accelerationY = 0;
    move->velocityX = move->accelerationX = 0;
 
    mario->getComponent<TextureComponent>()->setVisible(true);
    mario->getComponent<TextureComponent>()->setHorizontalFlipped(false);
+
+   mario->remove<FrozenComponent>();
 
    if (scene->getLevelData().levelType != LevelType::START_UNDERGROUND) {
       mario->addComponent<GravityComponent>();
@@ -584,14 +595,10 @@ void PlayerSystem::reset() {
       mario->remove<CollisionExemptComponent>();
 
       Camera::Get().setCameraFrozen(false);
-      Camera::Get().setCameraX(0);
-      Camera::Get().setCameraY(0);
 
       PlayerSystem::enableInput(true);
    } else {
       Camera::Get().setCameraFrozen(true);
-      Camera::Get().setCameraX(0);
-      Camera::Get().setCameraY(0);
 
       PlayerSystem::setGameStart(true);
       PlayerSystem::enableInput(false);
@@ -739,7 +746,7 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
 
       switch (enemy->getComponent<EnemyComponent>()->enemyType) {
          case EnemyType::KOOPA_SHELL:
-            if (mario->hasComponent<SuperStarComponent>()) {
+            if (isSuperStar()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
@@ -770,7 +777,7 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             break;
          case EnemyType::KOOPA:
          case EnemyType::FLYING_KOOPA:
-            if (mario->hasComponent<SuperStarComponent>()) {
+            if (isSuperStar()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
@@ -802,7 +809,7 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             }
             break;
          case EnemyType::GOOMBA:
-            if (mario->hasComponent<SuperStarComponent>()) {
+            if (isSuperStar()) {
                enemy->getComponent<MovingComponent>()->velocityX = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
@@ -834,12 +841,12 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             }
             break;
          case EnemyType::FIRE_BAR:
-            if (!mario->hasAny<SuperStarComponent, EndingBlinkComponent>()) {
+            if (!isSuperStar() && !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver(world);
             }
             break;
          case EnemyType::PIRANHA_PLANT: {
-            if (mario->hasComponent<SuperStarComponent>()) {
+            if (isSuperStar()) {
                enemy->addComponent<EnemyDestroyedComponent>();
 
                Entity* score(world->create());
@@ -913,7 +920,8 @@ void PlayerSystem::tick(World* world) {
    }
 
    if (position->position.y >=
-       Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE)) {
+           Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE) &&
+       !mario->hasComponent<FrozenComponent>()) {
       onGameOver(world, true);
       return;
    }
@@ -951,8 +959,8 @@ void PlayerSystem::tick(World* world) {
    // Projectile Collision
    world->find<ProjectileComponent, PositionComponent>([&](Entity* projectile) {
       auto* projectilePosition = projectile->getComponent<PositionComponent>();
-      if (!AABBTotalCollision(position, projectilePosition) ||
-          mario->hasAny<SuperStarComponent, EndingBlinkComponent, FrozenComponent>()) {
+      if (!AABBTotalCollision(position, projectilePosition) || isSuperStar() ||
+          mario->hasAny<EndingBlinkComponent, FrozenComponent>()) {
          return;
       }
       if (projectile->getComponent<ProjectileComponent>()->projectileType !=

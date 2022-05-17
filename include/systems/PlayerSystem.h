@@ -72,6 +72,8 @@ class PlayerSystem : public System {
 
    bool isFireMario();
 
+   bool isSuperStar();
+
    void onGameOver(World* world, bool outOfBounds = false);
 
    void setState(Animation_State newState);
