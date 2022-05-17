@@ -108,6 +108,7 @@ void GameScene::switchLevel(int level, int subLevel) {
       undergroundMap.reset();
       backgroundMap.reset();
       aboveForegroundMap.reset();
+      collectiblesMap.reset();
 
       gameLevel->clearLevelData();
 
@@ -148,6 +149,7 @@ void GameScene::restartLevel() {
       undergroundMap.reset();
       backgroundMap.reset();
       aboveForegroundMap.reset();
+      collectiblesMap.reset();
 
       gameLevel->clearLevelData();
 

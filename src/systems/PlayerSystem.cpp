@@ -766,7 +766,7 @@ void PlayerSystem::updateAirVelocity() {
    // will go)
    if (jump && move->velocityY < 0.0) {
       if (running && std::abs(move->velocityX) > 3.5) {
-         move->accelerationY = -0.420;
+         move->accelerationY = -0.414;
       } else {
          move->accelerationY = -0.412;
       }
