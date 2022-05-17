@@ -94,6 +94,8 @@ class PlayerSystem : public System {
 
    void checkEnemyCollisions(World* world);
 
+   void checkTrampolineCollisions(World* world);
+
    Entity* createFireball(World* world);
 
    int xDir = 0;
@@ -105,6 +107,8 @@ class PlayerSystem : public System {
 
    int holdFireballTexture = 0;
    int jumpHeldTime = 0;
+
+   bool trampolineCollided = false;
 
    static bool inputEnabled;
    static bool inGameStart;

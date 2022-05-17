@@ -443,6 +443,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                                          int entityID, int referenceID) {
    switch (referenceID) {
       case -1:
+      case 394:
          break;
       case 144: {  // COIN
          Entity* entity(world->create());
@@ -575,6 +576,20 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          } else {
             createBlockEntity(world, coordinateX, coordinateY, entityID);
          }
+      } break;
+      /* ****************************************************************** */
+      case 346: {  // TRAMPOLINE
+         Entity* trampolineTop(createBlockEntity(world, coordinateX, coordinateY, entityID));
+         Entity* trampolineBottom(
+             createBlockEntity(world, coordinateX, coordinateY + 1, entityID + 48));
+
+         trampolineBottom->remove<TileComponent>();
+         //         trampolineBottom->getComponent<PositionComponent>()->hitbox =
+         //             SDL_Rect{0, 16, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE / 2};
+
+         trampolineTop->addComponent<TrampolineComponent>(
+             trampolineBottom, (int[3]){entityID, entityID + 1, entityID + 2},
+             (int[3]){entityID + 48, entityID + 1 + 48, entityID + 2 + 48});
       } break;
       /* ****************************************************************** */
       case 392: {  // BRIDGE

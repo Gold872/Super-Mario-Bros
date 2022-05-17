@@ -66,6 +66,10 @@ struct PositionComponent : public Component {
    void setRight(float value) {
       position.x = value - scale.x;
    }
+
+   void setCenterY(float value) {
+      position.y = value - scale.y / 2.0f;
+   }
 };
 
 struct TextureComponent : public Component {
@@ -310,6 +314,26 @@ struct WaitUntilComponent : public Component {
    std::function<void(Entity*)> doAfter;
 };
 
+// The first element of the delays is the delay before starting the sequence, the rest is the delay
+// between the steps
+struct SequenceComponent : public Component {
+   SequenceComponent(std::vector<std::function<void(Entity*)>> commands, std::vector<int> delays,
+                     bool repeated = false)
+       : commands{commands}, delays{delays}, repeated{repeated} {
+      sequenceLength = (int)commands.size();
+   }
+
+   std::vector<std::function<void(Entity*)>> commands;
+   std::vector<int> delays;
+
+   bool repeated;
+
+   int currentDelay = 0;
+
+   int currentSequenceIndex = -1;
+   int sequenceLength;
+};
+
 /* UNCATEGORiZED */
 struct BlockBumpComponent : public Component {
    BlockBumpComponent() = default;
@@ -320,7 +344,6 @@ struct BlockBumpComponent : public Component {
 };
 
 /* TEXTURE CLASSIFICATION COMPONENTS */
-
 struct AboveForegroundComponent : public Component {
 };  // For warp pipes and things that have to hide the player
 
@@ -460,6 +483,31 @@ struct BridgeComponent : public Component {
 };
 
 struct BridgeChainComponent : public Component {};
+
+struct TrampolineComponent : public Component {
+   TrampolineComponent(Entity* bottomEntity, int topIDS[], int bottomIDS[])
+       : bottomEntity{bottomEntity} {
+      topExtendedID = topIDS[0];
+      topMediumRetractedID = topIDS[1];
+      topRetractedID = topIDS[2];
+
+      bottomExtendedID = bottomIDS[0];
+      bottomMediumRetractedID = bottomIDS[1];
+      bottomRetractedID = bottomIDS[2];
+   }
+
+   Entity* bottomEntity;
+
+   int currentSequenceIndex = 0;
+
+   int topExtendedID;
+   int topMediumRetractedID;
+   int topRetractedID;
+
+   int bottomExtendedID;
+   int bottomMediumRetractedID;
+   int bottomRetractedID;
+};
 
 struct FlagComponent : public Component {};
 

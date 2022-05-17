@@ -614,6 +614,85 @@ void PlayerSystem::reset() {
    currentState = STANDING;
 }
 
+void PlayerSystem::checkTrampolineCollisions(World* world) {
+   auto* position = mario->getComponent<PositionComponent>();
+   auto* move = mario->getComponent<MovingComponent>();
+
+   world->find<TrampolineComponent>([&](Entity* entity) {
+      auto* trampoline = entity->getComponent<TrampolineComponent>();
+      auto* trampolinePosition = entity->getComponent<PositionComponent>();
+      auto* trampolineTexture = entity->getComponent<TextureComponent>();
+
+      Entity* bottomEntity = trampoline->bottomEntity;
+      auto* bottomTexture = bottomEntity->getComponent<TextureComponent>();
+
+      if (!AABBCollision(position, trampolinePosition) ||
+          !Camera::Get().inCameraRange(trampolinePosition)) {
+         trampoline->currentSequenceIndex = 0;
+
+         trampolineCollided = false;
+         return;
+      }
+
+      if (trampoline->currentSequenceIndex > 20) {
+         return;
+      }
+
+      trampolineCollided = true;
+
+      entity->remove<TileComponent>();
+
+      switch (trampoline->currentSequenceIndex) {
+         case 0:  // Currently extended, set to half retracted
+            trampolineTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->topMediumRetractedID));
+
+            bottomTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->bottomMediumRetractedID));
+
+            trampolinePosition->hitbox = SDL_Rect{0, 16, SCALED_CUBE_SIZE, 16};
+            break;
+         case 1:  // Currently half retracted, set to retracted
+            trampolineTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->topRetractedID));
+
+            bottomTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->bottomRetractedID));
+
+            trampolinePosition->hitbox = SDL_Rect{0, 32, SCALED_CUBE_SIZE, 0};
+            break;
+         case 2:  // Currently retracted, set to half retracted and launch the player
+            trampolineTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->topMediumRetractedID));
+
+            bottomTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->bottomMediumRetractedID));
+
+            trampolinePosition->hitbox = SDL_Rect{0, 16, SCALED_CUBE_SIZE, 16};
+
+            move->velocityY = -11.0;
+            break;
+         case 3:  // Currently half retracted, set to extended
+            trampolineTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->topExtendedID));
+
+            bottomTexture->setSpritesheetCoordinates(
+                Map::BlockIDCoordinates.at(trampoline->bottomExtendedID));
+
+            trampolinePosition->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
+            break;
+         default:
+            break;
+      }
+
+      trampoline->currentSequenceIndex++;
+
+      if (position->getCenterY() > trampolinePosition->getBottom()) {
+         position->setCenterY(trampolinePosition->getBottom());
+      }
+   });
+}
+
 // Updates the velocity and acceleration for when mario is on the ground
 void PlayerSystem::updateGroundVelocity(World* world) {
    auto* texture = mario->getComponent<TextureComponent>();
@@ -636,7 +715,7 @@ void PlayerSystem::updateGroundVelocity(World* world) {
       move->accelerationX *= 0.7978723404255319148936f;
    }
 
-   if (jump && !jumpHeld) {
+   if (jump && !jumpHeld && !trampolineCollided) {
       jumpHeld = true;
       move->velocityY = -7.3;
 
@@ -687,9 +766,9 @@ void PlayerSystem::updateAirVelocity() {
    // will go)
    if (jump && move->velocityY < 0.0) {
       if (running && std::abs(move->velocityX) > 3.5) {
-         move->accelerationY = -0.370;
+         move->accelerationY = -0.420;
       } else {
-         move->accelerationY = -0.359;
+         move->accelerationY = -0.412;
       }
    } else {
       move->accelerationY = 0;
@@ -943,6 +1022,8 @@ void PlayerSystem::tick(World* world) {
 
       platformMoved = true;
    });
+
+   checkTrampolineCollisions(world);
 
    // Launch fireballs
    if (isFireMario() && launchFireball) {
