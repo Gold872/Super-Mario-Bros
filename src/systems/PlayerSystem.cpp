@@ -923,6 +923,9 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
    auto* move = mario->getComponent<MovingComponent>();
 
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
+      if (!Camera::Get().inCameraRange(enemy->getComponent<PositionComponent>())) {
+         return;
+      }
       if (!AABBTotalCollision(enemy->getComponent<PositionComponent>(), position) ||
           mario->hasComponent<FrozenComponent>() ||
           enemy->hasAny<ParticleComponent, DeadComponent>() || currentState == GAMEOVER) {
@@ -1148,6 +1151,9 @@ void PlayerSystem::tick(World* world) {
    // Projectile Collision
    world->find<ProjectileComponent, PositionComponent>([&](Entity* projectile) {
       auto* projectilePosition = projectile->getComponent<PositionComponent>();
+      if (!Camera::Get().inCameraRange(projectilePosition)) {
+         return;
+      }
       if (!AABBTotalCollision(position, projectilePosition) || isSuperStar() ||
           mario->hasAny<EndingBlinkComponent, FrozenComponent>()) {
          return;
@@ -1161,6 +1167,9 @@ void PlayerSystem::tick(World* world) {
    // Break blocks
    world->find<BumpableComponent, PositionComponent, BottomCollisionComponent>([&](Entity*
                                                                                        breakable) {
+      if (Camera::Get().inCameraRange(breakable->getComponent<PositionComponent>())) {
+         return;
+      }
       if (move->velocityY > 0) {
          return;
       }
@@ -1205,7 +1214,10 @@ void PlayerSystem::tick(World* world) {
    });
 
    // Collect Power-Ups
-   world->find<CollectibleComponent>([&](Entity* collectible) {
+   world->find<CollectibleComponent, PositionComponent>([&](Entity* collectible) {
+      if (!Camera::Get().inCameraRange(collectible->getComponent<PositionComponent>())) {
+         return;
+      }
       if (!AABBTotalCollision(collectible->getComponent<PositionComponent>(), position)) {
          return;
       }
