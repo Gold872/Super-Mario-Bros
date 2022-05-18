@@ -1,43 +1,34 @@
+### STARTING POSITIONS
+# The starting position of the player
 PLAYER_START = (2, 12)
 
-NEXT_LEVEL = (1, 2)
-
+# The starting position of the camera
 CAMERA_START = (0, 0)
 
-LEVEL_TYPE = OVERWORLD
-
-BACKGROUND_COLOR = BLUE
-
+# The maximum point the camera can reach
 CAMERA_MAX = 223
 
-TEST_LOCATIONS=\
-	(2, 3),\
-	(4, 2),\
-	(3, 6),\
-	(5, 12),\
-	(16, 14),\
-	(19, 27)
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = OVERWORLD
 
-# (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (New Level (0, 0) if none)
+# The level to go to next
+NEXT_LEVEL = (1, 2)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLUE
+
+### ELEMENT POSITIONS
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
 WARP_PIPE=\
 	(57, 9) (2, 20) (0, 18) DOWN NONE TRUE BLACK UNDERGROUND (0, 0),\
 	(13, 30) (163, 11) (159, 0) RIGHT UP FALSE BLUE OVERWORLD (0, 0)
 
-MYSTERY_BOX=\
-	(22, 5) COINS,\
-	(94, 5) COINS,\
-	(109, 5) MUSHROOM,\
-	(129, 5) COINS,\
-	(130, 5) COINS,\
-	(16, 9) COINS,\
-	(21, 9) MUSHROOM,\
-	(23, 9) COINS,\
-	(78, 9) MUSHROOM,\
-	(106, 9) COINS,\
-	(109, 9) COINS,\
-	(112, 9) COINS,\
-	(170, 9) COINS
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length)
+MOVING_PLATFORM=\
 
-MYSTERY_BRICK=\
-	(94, 9) COINS,\
-	(101, 9) SUPER_STAR
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\

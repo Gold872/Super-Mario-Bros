@@ -1,21 +1,36 @@
+### STARTING POSITIONS
+# The starting position of the player
 PLAYER_START = (2, 12)
 
-NEXT_LEVEL = (1, 4)
-
+# The starting position of the camera
 CAMERA_START = (0, 0)
 
-LEVEL_TYPE = OVERWORLD
-
-BACKGROUND_COLOR = BLUE
-
+# The maximum point the camera can reach
 CAMERA_MAX = 176
 
-MYSTERY_BOX=\
-	(59, 10) MUSHROOM
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = OVERWORLD
 
-# (Location) (Motion Type) (Direction) (Min, Max) (Length)
+# The level to go to next
+NEXT_LEVEL = (1, 4)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLUE
+
+### ELEMENT POSITIONS
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
+WARP_PIPE=\
+
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length)
 MOVING_PLATFORM=\
 	(55, 6) BACK_AND_FORTH DOWN (15, 6) 3,\
 	(86, 8) BACK_AND_FORTH LEFT (83, 87) 3,\
 	(94, 9) BACK_AND_FORTH LEFT (91, 95) 3,\
 	(131, 6) BACK_AND_FORTH LEFT (128, 135) 3
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\

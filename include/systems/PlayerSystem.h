@@ -17,6 +17,7 @@ class PlayerSystem : public System {
       DUCKING,
       JUMPING,
       SWIMMING,
+      SWIMMING_JUMP,
       LAUNCH_FIREBALL,
       CLIMBING,  // Climbing a vine
       SLIDING,   // Sliding down a flag

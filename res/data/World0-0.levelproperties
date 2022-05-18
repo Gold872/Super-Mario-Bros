@@ -1,22 +1,22 @@
 ### STARTING POSITIONS
 # The starting position of the player
-PLAYER_START = (2, 12)
+PLAYER_START = (0, 0)
 
 # The starting position of the camera
 CAMERA_START = (0, 0)
 
 # The maximum point the camera can reach
-CAMERA_MAX = 176
+CAMERA_MAX = 0
 
 ### LEVEL CLASSIFICATIONS
 # The type of Level
 LEVEL_TYPE = OVERWORLD
 
 # The level to go to next
-NEXT_LEVEL = (1, 4)
+NEXT_LEVEL = (0, 0)
 
 # The color to set the background to for the level
-BACKGROUND_COLOR = BLUE
+BACKGROUND_COLOR = BLACK
 
 ### ELEMENT POSITIONS
 # The locations for the Warp pipes
@@ -26,10 +26,6 @@ WARP_PIPE=\
 # The positions and directions for moving platforms
 # Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length)
 MOVING_PLATFORM=\
-	(55, 6) BACK_AND_FORTH DOWN (15, 6) 3,\
-	(86, 8) BACK_AND_FORTH LEFT (83, 87) 3,\
-	(94, 9) BACK_AND_FORTH LEFT (91, 95) 3,\
-	(131, 6) BACK_AND_FORTH LEFT (128, 135) 3
 
 # The positions and directions for fire bars
 # Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)

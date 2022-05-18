@@ -31,6 +31,7 @@ bool gameOver = false;
 bool underwater = false;
 
 PIDController accelerationControllerY(0.60, 0, 0.02, 60);
+PIDController underwaterController(0.20, 0, 0.02, 60);
 
 PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
@@ -229,6 +230,77 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->getComponent<AnimationComponent>()->setFramesPerSecond(8);
          }
 
+      } break;
+      case SWIMMING: {
+         std::vector<int> fireFrameIDS = {232, 233};
+         std::vector<int> superFrameIDS = {32, 33};
+         std::vector<int> normalFrameIDS = {7, 8};
+         if (!mario->hasComponent<AnimationComponent>()) {
+            if (isFireMario()) {
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 16, Map::PlayerIDCoordinates);
+            } else if (isSuperMario()) {
+               mario->addComponent<AnimationComponent>(superFrameIDS, 16, Map::PlayerIDCoordinates);
+            } else {
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 16,
+                                                       Map::PlayerIDCoordinates);
+            }
+         } else if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
+                    mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
+                    mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
+            // If the player already has an animation but it is not the correct one
+            auto* animation = mario->getComponent<AnimationComponent>();
+            if (isFireMario()) {
+               animation->frameIDS = fireFrameIDS;
+               animation->frameCount = 2;
+               animation->framesPerSecond = 16;
+            } else if (isSuperMario()) {
+               animation->frameIDS = superFrameIDS;
+               animation->frameCount = 2;
+               animation->framesPerSecond = 16;
+            } else {
+               animation->frameIDS = normalFrameIDS;
+               animation->frameCount = 2;
+               animation->framesPerSecond = 16;
+            }
+         }
+      } break;
+      case SWIMMING_JUMP: {
+         std::vector<int> fireFrameIDS = {232, 233, 234, 235, 236, 237};
+         std::vector<int> superFrameIDS = {32, 33, 34, 35, 36, 37};
+         std::vector<int> normalFrameIDS = {7, 8, 9, 10, 11, 11};
+         if (!mario->hasComponent<AnimationComponent>()) {
+            if (isFireMario()) {
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 16, Map::PlayerIDCoordinates,
+                                                       false);
+            } else if (isSuperMario()) {
+               mario->addComponent<AnimationComponent>(superFrameIDS, 16, Map::PlayerIDCoordinates,
+                                                       false);
+            } else {
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 16, Map::PlayerIDCoordinates,
+                                                       false);
+            }
+         } else if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
+                    mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
+                    mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
+            // If the player already has an animation but it is not the correct one
+            auto* animation = mario->getComponent<AnimationComponent>();
+            if (isFireMario()) {
+               animation->frameIDS = fireFrameIDS;
+               animation->frameCount = 6;
+               animation->framesPerSecond = 16;
+               animation->repeated = false;
+            } else if (isSuperMario()) {
+               animation->frameIDS = superFrameIDS;
+               animation->frameCount = 6;
+               animation->framesPerSecond = 16;
+               animation->repeated = false;
+            } else {
+               animation->frameIDS = normalFrameIDS;
+               animation->frameCount = 6;
+               animation->framesPerSecond = 16;
+               animation->repeated = false;
+            }
+         }
       } break;
       case DRIFTING:
          if (mario->hasComponent<AnimationComponent>()) {
@@ -785,11 +857,43 @@ void PlayerSystem::updateAirVelocity() {
 }
 
 void PlayerSystem::updateWaterVelocity(World* world) {
+   auto* move = mario->getComponent<MovingComponent>();
+   auto* texture = mario->getComponent<TextureComponent>();
+
    if (!mario->hasComponent<FrictionExemptComponent>()) {
       mario->addComponent<FrictionExemptComponent>();
    }
-   if (!mario->hasComponent<BottomCollisionComponent>()) {
+   if (!mario->hasComponent<BottomCollisionComponent>() &&
+       !mario->hasComponent<WaitUntilComponent>()) {
       currentState = SWIMMING;
+   }
+
+   if (left) {
+      move->velocityX += underwaterController.calculate(move->velocityX, -3.0);
+      texture->setHorizontalFlipped(true);
+   } else if (right) {
+      move->velocityX += underwaterController.calculate(move->velocityX, 3.0);
+      texture->setHorizontalFlipped(false);
+   } else {
+      move->velocityX += underwaterController.calculate(move->velocityX, 0.0);
+   }
+
+   move->accelerationY = -0.453f;
+
+   if (jump && !jumpHeld) {
+      move->velocityY = -3.53;
+      jumpHeld = true;
+
+      currentState = SWIMMING_JUMP;
+
+      mario->addComponent<WaitUntilComponent>(
+          [](Entity* entity) {
+             return !entity->hasComponent<AnimationComponent>();
+          },
+          [&](Entity* entity) {
+             currentState = SWIMMING;
+             entity->remove<WaitUntilComponent>();
+          });
    }
 }
 

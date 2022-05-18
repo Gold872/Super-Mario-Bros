@@ -43,8 +43,8 @@ GameScene::GameScene(int level, int subLevel) {
 
    mapSystem = world->registerSystem<MapSystem>(this);
    world->registerSystem<PhysicsSystem>();
-   world->registerSystem<AnimationSystem>();
    playerSystem = world->registerSystem<PlayerSystem>(this);
+   world->registerSystem<AnimationSystem>();
    world->registerSystem<EnemySystem>();
    world->registerSystem<CollectibleSystem>();
    world->registerSystem<WarpSystem>(this);
