@@ -193,6 +193,14 @@ void ScoreSystem::tick(World* world) {
       world->destroy(entity);
    });
 
+   world->find<AddLivesComponent>([&](Entity* entity) {
+      auto* livesComponent = entity->getComponent<AddLivesComponent>();
+
+      lives += livesComponent->livesNumber;
+
+      world->destroy(entity);
+   });
+
    if (timerRunning) {
       time -= 2;
       if (time % MAX_FPS == 0) {

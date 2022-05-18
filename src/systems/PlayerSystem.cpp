@@ -339,8 +339,12 @@ void PlayerSystem::setState(Animation_State newState) {
 void PlayerSystem::grow(World* world, GrowType growType) {
    switch (growType) {
       case GrowType::ONEUP: {
+         Entity* addLives(world->create());
+         addLives->addComponent<AddLivesComponent>();
+
          Entity* floatingText(world->create());
-         floatingText->addComponent<CreateFloatingTextComponent>(mario, "ONE-UP");
+         floatingText->addComponent<CreateFloatingTextComponent>(mario, "1-UP");
+
       } break;
       case GrowType::SUPER_STAR: {
          mario->getComponent<PlayerComponent>()->superStar = true;
@@ -1125,6 +1129,14 @@ void PlayerSystem::tick(World* world) {
 
             Entity* coinSound(world->create());
             coinSound->addComponent<SoundComponent>(SoundID::COIN);
+
+            world->destroy(collectible);
+         } break;
+         case CollectibleType::ONE_UP: {
+            grow(world, GrowType::ONEUP);
+
+            Entity* oneUpSound(world->create());
+            oneUpSound->addComponent<SoundComponent>(SoundID::ONE_UP);
 
             world->destroy(collectible);
          } break;

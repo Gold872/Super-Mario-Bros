@@ -33,7 +33,7 @@ class MapSystem : public System {
    void addItemDispenser(World* world, Entity* entity, int entityID, int referenceID);
 
    void createForegroundEntities(World* world, int coordinateX, int coordinateY, int entityID,
-                                 int referenceID);
+                                 int referenceID, bool createInvisibleBlocks = false);
 
    void createEnemyEntities(World* world, int coordinateX, int coordinateY, int entityID,
                             int referenceID);

@@ -399,6 +399,9 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
          break;
       case MysteryBoxType::SUPER_STAR: {
          mysteryBox->whenDispensed = [=](Entity* originalBlock) {
+            Entity* dispenseSound(world->create());
+            dispenseSound->addComponent<SoundComponent>(SoundID::POWER_UP_APPEAR);
+
             Entity* star(world->create());
 
             auto* position = originalBlock->getComponent<PositionComponent>();
@@ -434,15 +437,87 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 });
          };
       } break;
+      case MysteryBoxType::ONE_UP: {
+         mysteryBox->whenDispensed = [=](Entity* originalBlock) {
+            Entity* dispenseSound(world->create());
+            dispenseSound->addComponent<SoundComponent>(SoundID::POWER_UP_APPEAR);
+
+            Entity* oneup(world->create());
+
+            auto* position = originalBlock->getComponent<PositionComponent>();
+
+            oneup->addComponent<PositionComponent>(position->position, Vector2i(SCALED_CUBE_SIZE));
+
+            int oneupID = getReferenceBlockIDAsEntity(entityID, 52);
+
+            oneup->addComponent<TextureComponent>(
+                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(oneupID));
+
+            oneup->addComponent<CollectibleComponent>(CollectibleType::ONE_UP);
+
+            oneup->addComponent<MovingComponent>(0, -1.0f);
+
+            oneup->addComponent<CollisionExemptComponent>();
+
+            oneup->addComponent<WaitUntilComponent>(
+                [=](Entity* entity) {
+                   return position->getTop() >
+                          entity->getComponent<PositionComponent>()->getBottom();
+                },
+                [&](Entity* entity) {
+                   entity->addComponent<GravityComponent>();
+                   entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                   entity->remove<CollisionExemptComponent>();
+                   entity->remove<WaitUntilComponent>();
+                });
+         };
+      } break;
       default:
          break;
    }
 }
 
 void MapSystem::createForegroundEntities(World* world, int coordinateX, int coordinateY,
-                                         int entityID, int referenceID) {
+                                         int entityID, int referenceID,
+                                         bool createInvisibleBlocks) {
    switch (referenceID) {
       case -1:
+         if (createInvisibleBlocks &&
+             scene->collectiblesMap.getLevelData()[coordinateY][coordinateX] != -1) {
+            Entity* entity(createBlockEntity(world, coordinateX, coordinateY, 53));
+
+            entity->addComponent<BumpableComponent>();
+
+            MysteryBoxType collectibleType = MysteryBoxType::NONE;
+
+            int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
+            int referenceCollectibleID = getReferenceBlockID(collectibleID);
+
+            switch (referenceCollectibleID) {
+               case 52:  // One-up
+                  collectibleType = MysteryBoxType::ONE_UP;
+                  break;
+               case 96:  // Super Star
+                  collectibleType = MysteryBoxType::SUPER_STAR;
+                  break;
+               case 144:  // Coin
+                  collectibleType = MysteryBoxType::COINS;
+                  break;
+               case 608:  // Mushroom
+                  collectibleType = MysteryBoxType::MUSHROOM;
+                  break;
+               default:
+                  break;
+            }
+
+            if (collectibleType != MysteryBoxType::NONE) {
+               entity->addComponent<MysteryBoxComponent>(collectibleType);
+
+               addItemDispenser(world, entity, 53, 53);
+            }
+         }
+         break;
       case 394:
          break;
       case 144: {  // COIN
@@ -1221,7 +1296,7 @@ void MapSystem::loadEntities(World* world) {
          int entityID = scene->foregroundMap.getLevelData()[i][j];
          int referenceID = getReferenceBlockID(entityID);
 
-         createForegroundEntities(world, j, i, entityID, referenceID);
+         createForegroundEntities(world, j, i, entityID, referenceID, true);
       }
    }
 

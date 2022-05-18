@@ -547,6 +547,7 @@ enum class CollectibleType
    SUPER_STAR,
    FIRE_FLOWER,
    COIN,
+   ONE_UP
 };
 
 struct CollectibleComponent : public Component {
@@ -689,6 +690,12 @@ struct AddScoreComponent : public Component {
 
    int score;
    bool addCoin;
+};
+
+struct AddLivesComponent : public Component {
+   AddLivesComponent(int livesNumber = 1) : livesNumber{livesNumber} {}
+
+   int livesNumber;
 };
 
 struct CreateFloatingTextComponent : public Component {
