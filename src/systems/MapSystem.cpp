@@ -927,7 +927,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          auto* position = blooper->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
+             SDL_Rect{0, SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
          blooper->addComponent<TextureComponent>(
              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
@@ -935,8 +936,6 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          blooper->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 2,
                                                    Map::EnemyIDCoordinates);
-
-         //         blooper->addComponent<PausedAnimationComponent>(0, MAX_FPS * 1.0);
 
          auto* move = blooper->addComponent<MovingComponent>(0, 0, 0, -0.47480f);
 

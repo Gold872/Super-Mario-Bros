@@ -1092,27 +1092,15 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                onGameOver(world);
             }
             break;
-         case EnemyType::PIRANHA_PLANT: {
-            if (isSuperStar()) {
-               enemy->addComponent<EnemyDestroyedComponent>();
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
-               onGameOver(world);
-            }
-         } break;
-         case EnemyType::CHEEP_CHEEP:
-            if (isSuperStar()) {
-               enemy->addComponent<EnemyDestroyedComponent>();
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
-               onGameOver(world);
-            }
-            break;
          default:
+            if (isSuperStar()) {
+               enemy->addComponent<EnemyDestroyedComponent>();
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
+               onGameOver(world);
+            }
             break;
       }
    });
