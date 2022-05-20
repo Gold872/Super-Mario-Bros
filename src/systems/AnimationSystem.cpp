@@ -43,7 +43,7 @@ void AnimationSystem::tick(World* world) {
          animation->frameTimer = animation->frameDelay;
 
          animation->currentFrame++;
-         if (animation->currentFrame == animation->frameCount) {
+         if (animation->currentFrame >= animation->frameCount) {
             if (animation->repeated) {
                animation->currentFrame = 0;
             } else {
@@ -84,7 +84,7 @@ void AnimationSystem::tick(World* world) {
 
             animation->currentFrame++;
 
-            if (animation->currentFrame == animation->frameCount) {
+            if (animation->currentFrame >= animation->frameCount) {
                if (animation->repeated) {
                   animation->currentFrame = 0;
 

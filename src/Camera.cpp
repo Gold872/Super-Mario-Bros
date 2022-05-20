@@ -18,11 +18,11 @@ void Camera::increaseCameraX(float value) {
 }
 
 void Camera::updateCameraMin() {
-   cameraMinX = m_cameraX;
+   m_cameraMinX = m_cameraX;
 }
 
 void Camera::setCameraMin(float x) {
-   cameraMinX = x;
+   m_cameraMinX = x;
 }
 
 void Camera::setCameraMax(float x) {
@@ -41,12 +41,16 @@ float Camera::getCameraY() {
    return m_cameraY;
 }
 
-float Camera::getCameraCenter() {
+float Camera::getCameraCenterX() {
    return getCameraX() + (SCREEN_WIDTH / 2);
 }
 
+float Camera::getCameraCenterY() {
+   return getCameraY() + (SCREEN_HEIGHT / 2);
+}
+
 float Camera::getCameraMinX() {
-   return cameraMinX;
+   return m_cameraMinX;
 }
 
 float Camera::getCameraMaxX() {
@@ -63,7 +67,7 @@ bool Camera::inCameraRange(PositionComponent* position) {
 
 bool Camera::inCameraXRange(PositionComponent* position) {
    return position->position.x + position->scale.x >= getCameraX() &&
-          position->position.x <= Camera::getCameraX() + SCREEN_WIDTH;
+          position->position.x <= getCameraX() + SCREEN_WIDTH;
 }
 
 bool Camera::inCameraYRange(PositionComponent* position) {

@@ -758,6 +758,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
    switch (referenceID) {
       case -1:
          break;
+         /* ****************************************************************** */
       case 38: {  // KOOPA
          Entity* entity(world->create());
 
@@ -800,6 +801,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<EnemyComponent>(EnemyType::KOOPA);
       } break;
+      /* ****************************************************************** */
       case 39: {  // KOOPA (shifted to the right)
          Entity* entity(world->create());
 
@@ -844,6 +846,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<EnemyComponent>(EnemyType::KOOPA);
 
       } break;
+      /* ****************************************************************** */
       case 44: {  // PIRHANNA PLANT
          Entity* pirhanna(world->create());
 
@@ -918,6 +921,63 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
              },
              3 * MAX_FPS);
       } break;
+      /* ****************************************************************** */
+      case 48: {  // BLOOPER
+         Entity* blooper(world->create());
+
+         auto* position = blooper->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+
+         blooper->addComponent<TextureComponent>(
+             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+
+         blooper->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 2,
+                                                   Map::EnemyIDCoordinates);
+
+         //         blooper->addComponent<PausedAnimationComponent>(0, MAX_FPS * 1.0);
+
+         auto* move = blooper->addComponent<MovingComponent>(0, 0, 0, -0.47480f);
+
+         blooper->addComponent<GravityComponent>();
+
+         blooper->addComponent<FrictionExemptComponent>();
+
+         blooper->addComponent<CollisionExemptComponent>();
+
+         blooper->addComponent<TimerComponent>(
+             [=](Entity* entity) {
+                if (!Camera::Get().inCameraRange(position)) {
+                   return;
+                }
+
+                entity->remove<GravityComponent>();
+
+                move->accelerationY = 0;
+
+                auto* playerPosition =
+                    world->findFirst<PlayerComponent>()->getComponent<PositionComponent>();
+
+                move->velocityX = (playerPosition->position.x > position->position.x) ? 3.0 : -3.0;
+
+                move->velocityY =
+                    (position->position.y < Camera::Get().getCameraCenterY()) ? 3.0 : -3.0;
+
+                entity->addComponent<CallbackComponent>(
+                    [=](Entity* entity) {
+                       entity->addComponent<GravityComponent>();
+
+                       move->velocityX = move->velocityY = 0;
+                       move->accelerationY = -0.47480f;
+                    },
+                    MAX_FPS / 2);
+             },
+             MAX_FPS);
+
+         blooper->addComponent<EnemyComponent>(EnemyType::BLOOPER);
+      } break;
+      /* ****************************************************************** */
       case 61: {  // BOWSER
          Entity* bowser(world->create());
 
@@ -1071,6 +1131,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          bowser->addComponent<EnemyComponent>(EnemyType::BOWSER);
       } break;
+      /* ****************************************************************** */
       case 70: {  // GOOMBA
          Entity* entity(world->create());
 
@@ -1137,6 +1198,29 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<EnemyComponent>(EnemyType::GOOMBA);
       } break;
+      /* ****************************************************************** */
+      case 81: {  // CHEEP CHEEP
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+
+         entity->addComponent<TextureComponent>(
+             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+
+         entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
+                                                  Map::EnemyIDCoordinates);
+
+         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+
+         entity->addComponent<CollisionExemptComponent>();
+
+         entity->addComponent<FrictionExemptComponent>();
+
+         entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
+      } break;
+      /* ****************************************************************** */
       case 455: {  // NORMAL KOOPA (RED)
          Entity* entity(world->create());
 
@@ -1179,6 +1263,27 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<EnemyComponent>(EnemyType::KOOPA);
       } break;
       /* ****************************************************************** */
+      case 498: {  // CHEEP CHEEP (RED)
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+
+         entity->addComponent<TextureComponent>(
+             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+
+         entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
+                                                  Map::EnemyIDCoordinates);
+
+         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+
+         entity->addComponent<CollisionExemptComponent>();
+
+         entity->addComponent<FrictionExemptComponent>();
+
+         entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
+      } break;
       default: {
          //         Entity* entity(world->create());
          //

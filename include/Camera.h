@@ -18,7 +18,8 @@ class Camera {
 
    float getCameraX();
    float getCameraY();
-   float getCameraCenter();
+   float getCameraCenterX();
+   float getCameraCenterY();
    float getCameraMinX();
    float getCameraMaxX();
 
@@ -35,6 +36,6 @@ class Camera {
    static Camera m_instance;
 
    float m_cameraX = 0.0, m_cameraY = 0.0;
-   float cameraMinX = 0.0, m_cameraMaxX = 1.0;
+   float m_cameraMinX = 0.0, m_cameraMaxX = 1.0;
    bool m_frozen = false;
 };

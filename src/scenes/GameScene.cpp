@@ -201,6 +201,10 @@ void GameScene::setLevelMusic(LevelType levelType) {
          Entity* castleMusic(world->create());
          castleMusic->addComponent<MusicComponent>(currentMusicID = MusicID::CASTLE);
       } break;
+      case LevelType::UNDERWATER: {
+         Entity* underwaterMusic(world->create());
+         underwaterMusic->addComponent<MusicComponent>(currentMusicID = MusicID::UNDERWATER);
+      } break;
       default:
          break;
    }

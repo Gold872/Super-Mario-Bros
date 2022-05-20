@@ -31,7 +31,7 @@ bool gameOver = false;
 bool underwater = false;
 
 PIDController accelerationControllerY(0.60, 0, 0.02, 60);
-PIDController underwaterController(0.20, 0, 0.02, 60);
+PIDController underwaterControllerX(0.20, 0, 0.02, 60);
 
 PlayerSystem::PlayerSystem(GameScene* scene) {
    this->scene = scene;
@@ -252,22 +252,22 @@ void PlayerSystem::setState(Animation_State newState) {
             if (isFireMario()) {
                animation->frameIDS = fireFrameIDS;
                animation->frameCount = 2;
-               animation->framesPerSecond = 16;
+               animation->setFramesPerSecond(16);
             } else if (isSuperMario()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 2;
-               animation->framesPerSecond = 16;
+               animation->setFramesPerSecond(16);
             } else {
                animation->frameIDS = normalFrameIDS;
                animation->frameCount = 2;
-               animation->framesPerSecond = 16;
+               animation->setFramesPerSecond(16);
             }
          }
       } break;
       case SWIMMING_JUMP: {
          std::vector<int> fireFrameIDS = {232, 233, 234, 235, 236, 237};
          std::vector<int> superFrameIDS = {32, 33, 34, 35, 36, 37};
-         std::vector<int> normalFrameIDS = {7, 8, 9, 10, 11, 11};
+         std::vector<int> normalFrameIDS = {7, 8, 9, 10, 11};
          if (!mario->hasComponent<AnimationComponent>()) {
             if (isFireMario()) {
                mario->addComponent<AnimationComponent>(fireFrameIDS, 16, Map::PlayerIDCoordinates,
@@ -287,18 +287,53 @@ void PlayerSystem::setState(Animation_State newState) {
             if (isFireMario()) {
                animation->frameIDS = fireFrameIDS;
                animation->frameCount = 6;
-               animation->framesPerSecond = 16;
+               animation->setFramesPerSecond(16);
                animation->repeated = false;
             } else if (isSuperMario()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 6;
-               animation->framesPerSecond = 16;
+               animation->setFramesPerSecond(16);
                animation->repeated = false;
             } else {
                animation->frameIDS = normalFrameIDS;
-               animation->frameCount = 6;
-               animation->framesPerSecond = 16;
+               animation->frameCount = 5;
+               animation->setFramesPerSecond(16);
                animation->repeated = false;
+            }
+         }
+      } break;
+      case SWIMMING_WALK: {
+         std::vector<int> fireFrameIDS = {227, 228, 229};
+         std::vector<int> superFrameIDS = {27, 28, 29};
+         std::vector<int> normalFrameIDS = {2, 3, 4};
+         if (!mario->hasComponent<AnimationComponent>()) {
+            if (isFireMario()) {
+               mario->addComponent<AnimationComponent>(fireFrameIDS, 4, Map::PlayerIDCoordinates);
+            } else if (isSuperMario()) {
+               mario->addComponent<AnimationComponent>(superFrameIDS, 4, Map::PlayerIDCoordinates);
+            } else {
+               mario->addComponent<AnimationComponent>(normalFrameIDS, 4, Map::PlayerIDCoordinates);
+            }
+            return;
+         }
+         if (mario->getComponent<AnimationComponent>()->frameIDS != superFrameIDS &&
+             mario->getComponent<AnimationComponent>()->frameIDS != normalFrameIDS &&
+             mario->getComponent<AnimationComponent>()->frameIDS != fireFrameIDS) {
+            // If the player already has an animation but it is not the correct one
+            auto* animation = mario->getComponent<AnimationComponent>();
+
+            if (isFireMario()) {
+               animation->frameIDS = fireFrameIDS;
+               animation->frameCount = 3;
+               animation->setFramesPerSecond(4);
+            } else if (isSuperMario()) {
+               animation->frameIDS = superFrameIDS;
+               animation->frameCount = 3;
+               animation->setFramesPerSecond(4);
+            } else {
+               animation->frameIDS = normalFrameIDS;
+               animation->frameCount = 3;
+               animation->setFramesPerSecond(4);
             }
          }
       } break;
@@ -866,23 +901,48 @@ void PlayerSystem::updateWaterVelocity(World* world) {
    if (!mario->hasComponent<BottomCollisionComponent>() &&
        !mario->hasComponent<WaitUntilComponent>()) {
       currentState = SWIMMING;
+   } else if (mario->hasComponent<BottomCollisionComponent>()) {
+      if (move->velocityX != 0) {
+         currentState = SWIMMING_WALK;
+      } else {
+         currentState = STANDING;
+      }
    }
 
-   if (left) {
-      move->velocityX += underwaterController.calculate(move->velocityX, -3.0);
-      texture->setHorizontalFlipped(true);
-   } else if (right) {
-      move->velocityX += underwaterController.calculate(move->velocityX, 3.0);
-      texture->setHorizontalFlipped(false);
+   if (currentState == SWIMMING || currentState == SWIMMING_JUMP) {
+      if (left) {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, -3.0);
+         texture->setHorizontalFlipped(true);
+      } else if (right) {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, 3.0);
+         texture->setHorizontalFlipped(false);
+      } else {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, 0.0);
+      }
    } else {
-      move->velocityX += underwaterController.calculate(move->velocityX, 0.0);
+      if (left) {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, -1.0);
+         texture->setHorizontalFlipped(true);
+      } else if (right) {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, 1.0);
+         texture->setHorizontalFlipped(false);
+      } else {
+         move->velocityX += underwaterControllerX.calculate(move->velocityX, 0.0);
+      }
    }
 
-   move->accelerationY = -0.453f;
+   move->accelerationY = -0.45480f;
+
+   if (move->velocityY > MAX_UNDERWATER_Y) {
+      move->velocityY = MAX_UNDERWATER_Y;
+   }
 
    if (jump && !jumpHeld) {
       move->velocityY = -3.53;
       jumpHeld = true;
+
+      Entity* jumpSound(world->create());
+      jumpSound->addComponent<SoundComponent>(SoundID::STOMP);
 
       currentState = SWIMMING_JUMP;
 
@@ -903,7 +963,7 @@ void PlayerSystem::updateCamera() {
 
    if (!Camera::Get().isFrozen()) {
       Camera::Get().updateCameraMin();
-      if (position->position.x + 16 > Camera::Get().getCameraCenter() && move->velocityX > 0.0) {
+      if (position->position.x + 16 > Camera::Get().getCameraCenterX() && move->velocityX > 0.0) {
          Camera::Get().increaseCameraX(move->velocityX);
       }
       if (position->position.x <= Camera::Get().getCameraMinX()) {
@@ -923,9 +983,6 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
    auto* move = mario->getComponent<MovingComponent>();
 
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
-      if (!Camera::Get().inCameraRange(enemy->getComponent<PositionComponent>())) {
-         return;
-      }
       if (!AABBTotalCollision(enemy->getComponent<PositionComponent>(), position) ||
           mario->hasComponent<FrozenComponent>() ||
           enemy->hasAny<ParticleComponent, DeadComponent>() || currentState == GAMEOVER) {
@@ -1045,6 +1102,16 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                onGameOver(world);
             }
          } break;
+         case EnemyType::CHEEP_CHEEP:
+            if (isSuperStar()) {
+               enemy->addComponent<EnemyDestroyedComponent>();
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
+               onGameOver(world);
+            }
+            break;
          default:
             break;
       }
@@ -1126,7 +1193,7 @@ void PlayerSystem::tick(World* world) {
       auto* platformMove = entity->getComponent<MovingComponent>();
       position->position.x += platformMove->velocityX;
 
-      if (position->position.x + 16 > Camera::Get().getCameraCenter() &&
+      if (position->position.x + 16 > Camera::Get().getCameraCenterX() &&
           platformMove->velocityX > 0) {
          Camera::Get().increaseCameraX(platformMove->velocityX);
       }
@@ -1167,9 +1234,6 @@ void PlayerSystem::tick(World* world) {
    // Break blocks
    world->find<BumpableComponent, PositionComponent, BottomCollisionComponent>([&](Entity*
                                                                                        breakable) {
-      if (Camera::Get().inCameraRange(breakable->getComponent<PositionComponent>())) {
-         return;
-      }
       if (move->velocityY > 0) {
          return;
       }

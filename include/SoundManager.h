@@ -32,6 +32,7 @@ enum class MusicID
    OVERWORLD,
    UNDERGROUND,
    CASTLE,
+   UNDERWATER,
    SUPER_STAR
 };
 

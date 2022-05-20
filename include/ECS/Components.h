@@ -559,8 +559,8 @@ struct CollectibleComponent : public Component {
 
 /* PHYSICS COMPONENTS */
 struct MovingComponent : public Component {
-   MovingComponent(float velocityX, float velocityY, float accelerationX = 0.000,
-                   float accelerationY = 0.000)
+   MovingComponent(float velocityX, float velocityY, float accelerationX = 0.00000,
+                   float accelerationY = 0.00000)
        : velocityX{velocityX},
          velocityY{velocityY},
          accelerationX{accelerationX},
@@ -623,6 +623,8 @@ enum class EnemyType
    FLYING_KOOPA,
    KOOPA_SHELL,
    PIRANHA_PLANT,
+   CHEEP_CHEEP,
+   BLOOPER,
    BOWSER,
    FIRE_BAR,
 };

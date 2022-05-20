@@ -249,7 +249,9 @@ void EnemySystem::tick(World* world) {
          }
       }
 
-      if (enemyComponent->enemyType != EnemyType::PIRANHA_PLANT) {
+      if (enemyComponent->enemyType != EnemyType::PIRANHA_PLANT &&
+          enemyComponent->enemyType != EnemyType::CHEEP_CHEEP &&
+          enemyComponent->enemyType != EnemyType::BLOOPER) {
          // Reverses the direction of the enemy when it hits a wall or another enemy
          if (enemy->hasComponent<LeftCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {

@@ -30,11 +30,11 @@ WARP_PIPE=\
 # The positions and directions for moving platforms
 # Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length)
 MOVING_PLATFORM=\
-
-# The positions and directions for fire bars
-# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
-FIRE_BAR=\
 	(140, 24) ONE_DIRECTION_REPEATED DOWN (33, 18) 3,\
 	(140, 31) ONE_DIRECTION_REPEATED DOWN (33, 18) 3,\
 	(155, 23) ONE_DIRECTION_REPEATED UP (33, 18) 3,\
 	(155, 30) ONE_DIRECTION_REPEATED UP (33, 18) 3
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\
