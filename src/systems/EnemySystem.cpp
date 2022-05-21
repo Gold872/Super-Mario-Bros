@@ -13,7 +13,8 @@
 #include <time.h>
 
 void EnemySystem::performBowserActions(World* world, Entity* entity) {
-   if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+   if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) ||
+       entity->hasComponent<FrozenComponent>()) {
       return;
    }
 

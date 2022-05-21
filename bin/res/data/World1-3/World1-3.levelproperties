@@ -24,12 +24,12 @@ BACKGROUND_COLOR = BLUE
 WARP_PIPE=\
 
 # The positions and directions for moving platforms
-# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length)
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length) (Shift to the right by half a pixel)
 MOVING_PLATFORM=\
-	(55, 6) BACK_AND_FORTH DOWN (15, 6) 3,\
-	(86, 8) BACK_AND_FORTH LEFT (83, 87) 3,\
-	(94, 9) BACK_AND_FORTH LEFT (91, 95) 3,\
-	(131, 6) BACK_AND_FORTH LEFT (128, 135) 3
+	(55, 6) BACK_AND_FORTH DOWN (14, 6) 3 FALSE,\
+	(86, 8) BACK_AND_FORTH LEFT (83, 88) 3 FALSE,\
+	(94, 9) BACK_AND_FORTH LEFT (91, 96) 3 FALSE,\
+	(131, 6) BACK_AND_FORTH LEFT (128, 136) 3 FALSE
 
 # The positions and directions for fire bars
 # Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)

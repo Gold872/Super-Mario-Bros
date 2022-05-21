@@ -24,17 +24,17 @@ std::tuple<Vector2i, T> getDataCoordinate(std::vector<std::tuple<Vector2i, T>> l
 }
 
 auto getPlatformCoordinate(
-    std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int>> levelData,
+    std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>> levelData,
     Vector2i coordinate) {
    for (auto tupledData : levelData) {
       if (std::get<0>(tupledData) == coordinate) {
-         return std::tuple<PlatformMotionType, Direction, Vector2i, int>(
+         return std::tuple<PlatformMotionType, Direction, Vector2i, int, bool>(
              std::get<1>(tupledData), std::get<2>(tupledData), std::get<3>(tupledData),
-             std::get<4>(tupledData));
+             std::get<4>(tupledData), std::get<5>(tupledData));
       }
    }
-   return std::tuple<PlatformMotionType, Direction, Vector2i, int>(
-       PlatformMotionType::NONE, Direction::NONE, Vector2i(0, 0), 0);
+   return std::tuple<PlatformMotionType, Direction, Vector2i, int, bool>(
+       PlatformMotionType::NONE, Direction::NONE, Vector2i(0, 0), 0, false);
 }
 
 auto getPipeCoordinate(std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction,
@@ -69,6 +69,10 @@ auto getFireBarCoordinate(std::vector<std::tuple<Vector2i, int, RotationDirectio
 
 MapSystem::MapSystem(GameScene* scene) {
    this->scene = scene;
+}
+
+float MapSystem::generateRandomNumber(float min, float max) {
+   return ((float)rand() / (float)RAND_MAX) * ((max - min) + 1) + min;
 }
 
 // Gets the Block ID that is equivalent to its ID in the Overworld
@@ -201,8 +205,12 @@ Entity* MapSystem::createBlockEntity(World* world, int coordinateX, int coordina
 
 Entity* MapSystem::createPlatformEntity(
     World* world, int coordinateX, int coordinateY, int entityID,
-    std::tuple<PlatformMotionType, Direction, Vector2i, int> platformCoordinate) {
+    std::tuple<PlatformMotionType, Direction, Vector2i, int, bool> platformCoordinate) {
    Entity* platform(createBlockEntity(world, coordinateX, coordinateY, entityID));
+
+   if (std::get<4>(platformCoordinate)) {
+      platform->getComponent<PositionComponent>()->position.x += SCALED_CUBE_SIZE / 2;
+   }
 
    platform->addComponent<FrictionExemptComponent>();
 
@@ -214,9 +222,10 @@ Entity* MapSystem::createPlatformEntity(
       case PlatformMotionType::ONE_DIRECTION_REPEATED: {
          Direction movingDirection = std::get<1>(platformCoordinate);
          Vector2i minMax = std::get<2>(platformCoordinate) * SCALED_CUBE_SIZE;
+         int platformLength = std::get<3>(platformCoordinate);
 
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::ONE_DIRECTION_REPEATED,
-                                                         movingDirection, minMax);
+                                                         movingDirection, minMax, platformLength);
 
          switch (movingDirection) {
             case Direction::LEFT:
@@ -237,9 +246,11 @@ Entity* MapSystem::createPlatformEntity(
       } break;
       case PlatformMotionType::ONE_DIRECTION_CONTINUOUS: {
          Direction movingDirection = std::get<1>(platformCoordinate);
+         int platformLength = std::get<3>(platformCoordinate);
 
          platform->addComponent<MovingPlatformComponent>(
-             PlatformMotionType::ONE_DIRECTION_CONTINUOUS, movingDirection);
+             PlatformMotionType::ONE_DIRECTION_CONTINUOUS, movingDirection, Vector2i(0, 0),
+             platformLength);
 
          switch (movingDirection) {
             case Direction::LEFT:
@@ -260,10 +271,20 @@ Entity* MapSystem::createPlatformEntity(
       } break;
       case PlatformMotionType::BACK_AND_FORTH: {
          Direction movingDirection = std::get<1>(platformCoordinate);
-         Vector2i minMax = std::get<2>(platformCoordinate) * SCALED_CUBE_SIZE;
+         Vector2i minMax = std::get<2>(platformCoordinate);
+         int platformLength = std::get<3>(platformCoordinate);
+
+         if (movingDirection == Direction::UP || movingDirection == Direction::DOWN) {
+            minMax += Vector2i(1, 0);
+         } else if (movingDirection == Direction::LEFT || movingDirection == Direction::RIGHT) {
+            minMax -= Vector2i(0, std::get<3>(platformCoordinate) - 1);
+            minMax += Vector2i(0, 1);
+         }
+
+         minMax *= SCALED_CUBE_SIZE;
 
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::BACK_AND_FORTH,
-                                                         movingDirection, minMax);
+                                                         movingDirection, minMax, platformLength);
       } break;
       default:
          break;
@@ -592,7 +613,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          entity->addComponent<BumpableComponent>();
 
-         MysteryBoxType collectibleType = MysteryBoxType::NONE;
+         MysteryBoxType collectibleType = MysteryBoxType::COINS;
 
          int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
          if (collectibleID != -1) {
@@ -609,6 +630,8 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                   break;
                case 608:  // Mushroom
                   collectibleType = MysteryBoxType::MUSHROOM;
+                  break;
+               default:
                   break;
             }
          }
@@ -1263,25 +1286,76 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
       } break;
       /* ****************************************************************** */
       case 498: {  // CHEEP CHEEP (RED)
-         Entity* entity(world->create());
+         if (scene->backgroundMap.getLevelData()[coordinateY][coordinateX] ==
+             186) {  // If underwater
+            Entity* entity(world->create());
 
-         entity->addComponent<PositionComponent>(
-             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+            entity->addComponent<PositionComponent>(
+                Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+            entity->addComponent<TextureComponent>(
+                scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
 
-         entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
-                                                  Map::EnemyIDCoordinates);
+            entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
+                                                     Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+            entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
 
-         entity->addComponent<CollisionExemptComponent>();
+            entity->addComponent<CollisionExemptComponent>();
 
-         entity->addComponent<FrictionExemptComponent>();
+            entity->addComponent<FrictionExemptComponent>();
 
-         entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
+            entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
+         } else {  // If in those flying patches of them idk what they're called
+            Entity* entity(world->create());
+
+            auto* position = entity->addComponent<PositionComponent>(
+                Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+
+            entity->addComponent<TextureComponent>(
+                scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID), true);
+
+            entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
+                                                     Map::EnemyIDCoordinates);
+
+            auto* move = entity->addComponent<MovingComponent>(0, 0, 0, 0);
+
+            entity->addComponent<MoveOutsideCameraComponent>();
+
+            entity->addComponent<GravityComponent>();
+
+            entity->addComponent<CollisionExemptComponent>();
+
+            entity->addComponent<FrictionExemptComponent>();
+
+            entity->addComponent<TimerComponent>(
+                [=](Entity* entity) {
+                   entity->addComponent<CallbackComponent>(
+                       [&](Entity* entity) {
+                          if (Camera::Get().inCameraYRange(position)) {
+                             return;
+                          }
+                          position->position =
+                              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE;
+
+                          if (!Camera::Get().inCameraXRange(position)) {
+                             return;
+                          }
+
+                          move->velocityX = generateRandomNumber(2.0f, 4.0f);
+
+                          move->velocityY = -10.0;
+
+                          move->accelerationY = -0.4542;
+                       },
+                       MAX_FPS * generateRandomNumber(0.5, 1.5));
+                },
+                MAX_FPS * 2.5);
+
+            entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
+         }
       } break;
       default: {
          //         Entity* entity(world->create());

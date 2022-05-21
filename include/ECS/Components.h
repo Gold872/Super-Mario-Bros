@@ -382,7 +382,7 @@ enum class Direction
 enum class PlatformMotionType
 {
    NONE,
-   ONE_DIRECTION_REPEATED,
+   ONE_DIRECTION_REPEATED,    // Moves in one direction, but goes to min point when it reaches max
    ONE_DIRECTION_CONTINUOUS,  // Continuously moving in one direction
    BACK_AND_FORTH,            // Moves back and forth
    GRAVITY                    // Affected by Gravity when mario stands on it
@@ -420,17 +420,20 @@ struct WarpPipeComponent : public Component {
 
 struct MovingPlatformComponent : public Component {
    MovingPlatformComponent(PlatformMotionType motionType, Direction movingDirection,
-                           Vector2i minMax = Vector2i(0, 0))
+                           Vector2i minMax = Vector2i(0, 0), int platformLength = 0)
        : motionType{motionType},
          movingDirection{movingDirection},
          minPoint{(float)minMax.x},
-         maxPoint{(float)minMax.y} {}
+         maxPoint{(float)minMax.y},
+         platformLength{platformLength} {}
 
    PlatformMotionType motionType;
    Direction movingDirection;
 
    float minPoint;
    float maxPoint;
+
+   int platformLength;
 
    std::function<float(float position, float distanceTravel)> calculateVelocity =
        [](float position, float distanceTravel) {

@@ -116,7 +116,7 @@ void PhysicsSystem::updateFireBars(World* world) {
       position->position.x =
           fireBar->calculateXPosition(fireBar->barAngle) + fireBar->pointOfRotation.x;
       position->position.y =
-          fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
+          -fireBar->calculateYPosition(fireBar->barAngle) + fireBar->pointOfRotation.y;
    });
 }
 
@@ -126,7 +126,7 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
       auto* platformMove = entity->getComponent<MovingComponent>();
       auto* position = entity->getComponent<PositionComponent>();
 
-      if (platform->connectedParts.empty()) {
+      if (platform->connectedParts.empty() && platform->platformLength != 1) {
          return;
       }
 
@@ -167,15 +167,15 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
                   break;
                case Direction::UP:
                case Direction::DOWN:
-                  if (position->getTop() > platform->minPoint) {
-                     position->setBottom(platform->maxPoint);
+                  if (position->position.y > platform->minPoint) {
+                     position->position.y = platform->maxPoint;
 
                      for (auto* connectedPart : platform->connectedParts) {
                         connectedPart->getComponent<PositionComponent>()->position.y =
                             platform->maxPoint;
                      }
-                  } else if (position->getBottom() < platform->maxPoint) {
-                     position->setTop(platform->minPoint);
+                  } else if (position->position.y < platform->maxPoint) {
+                     position->position.y = platform->minPoint;
 
                      for (auto* connectedPart : platform->connectedParts) {
                         connectedPart->getComponent<PositionComponent>()->position.y =

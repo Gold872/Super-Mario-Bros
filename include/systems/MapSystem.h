@@ -22,7 +22,9 @@ class MapSystem : public System {
    Entity* createBlockEntity(World* world, int coordinateX, int coordinateY, int entityID);
    Entity* createPlatformEntity(
        World* world, int coordinateX, int coordinateY, int entityID,
-       std::tuple<PlatformMotionType, Direction, Vector2i, int> platformCoordinate);
+       std::tuple<PlatformMotionType, Direction, Vector2i, int, bool> platformCoordinate);
+
+   float generateRandomNumber(float min, float max);
 
    int getReferenceBlockID(int entityID);
    int getReferenceBlockIDAsEntity(int entityID, int referenceID);

@@ -60,6 +60,12 @@ void operator-=(Vector2<T>& left, const Vector2<T>& right) {
    left.y -= right.y;
 }
 
+template <typename T>
+void operator*=(Vector2<T>& A, int B) {
+   A.x *= B;
+   A.y *= B;
+}
+
 typedef Vector2<int> Vector2i;
 typedef Vector2<unsigned int> Vector2u;
 typedef Vector2<float> Vector2f;

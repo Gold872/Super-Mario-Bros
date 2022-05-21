@@ -53,7 +53,7 @@ struct LevelData {
        warpPipeLocations;
    std::vector<std::tuple<Vector2i, MysteryBoxType>> questionBlockLocations;
    std::vector<std::tuple<Vector2i, MysteryBoxType>> mysteryBrickLocations;
-   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int>>
+   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
        movingPlatformDirections;
    std::vector<std::tuple<Vector2i, int, RotationDirection, int>> fireBarLocations;
 };
@@ -192,12 +192,12 @@ class Level {
       return 0;
    }
 
-   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int>>
+   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
    loadMovingPlatform(string arrayPattern, string stringToSearch, string enumSearch) {
       std::regex arrayRegex(arrayPattern);
       std::regex enumPairRegex(enumSearch);
 
-      std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int>>
+      std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
           platformLocations;
 
       std::smatch arrayMatch;
@@ -209,17 +209,18 @@ class Level {
 
          while (getline(iss, s)) {
             if (std::regex_search(s, pairMatch, enumPairRegex)) {
-               for (unsigned int i = 1; i < pairMatch.size(); i += 7) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 8) {
                   Vector2i platformLocation(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
                   PlatformMotionType motionType = motionTypeString.at(pairMatch[i + 2]);
                   Direction movingDirection(directionString.at(pairMatch[i + 3]));
                   Vector2i platformMinMax(std::stoi(pairMatch[i + 4]), std::stoi(pairMatch[i + 5]));
                   int platformLength = std::stoi(pairMatch[i + 6]);
+                  bool rightShift = pairMatch[i + 7] == "TRUE";
 
                   platformLocations.push_back(
-                      std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int>(
+                      std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>(
                           platformLocation, motionType, movingDirection, platformMinMax,
-                          platformLength));
+                          platformLength, rightShift));
                }
             }
          }
@@ -336,14 +337,6 @@ class Level {
       data.warpPipeLocations =
           loadWarpPipeLocation("WARP_PIPE" + DefaultArrayPattern, levelProperties, warpPipePattern);
 
-      //      data.questionBlockLocations = loadEnumCoordinateArray<MysteryBoxType>(
-      //          "MYSTERY_BOX" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
-      //          mysteryBoxTypeString);
-
-      //      data.mysteryBrickLocations = loadEnumCoordinateArray<MysteryBoxType>(
-      //          "MYSTERY_BRICK" + DefaultArrayPattern, levelProperties, CoordinateEnumPattern,
-      //          mysteryBoxTypeString);
-
       data.movingPlatformDirections = loadMovingPlatform("MOVING_PLATFORM" + DefaultArrayPattern,
                                                          levelProperties, platformPattern);
 
@@ -384,7 +377,7 @@ class Level {
        "(\\d+)\\)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)";
 
    string platformPattern =
-       "\\((\\d+), (\\d+)\\)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)";
+       "\\((\\d+), (\\d+)\\)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)";
 
    string fireBarPattern = "\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)\\s(\\d+)";
 };
