@@ -81,6 +81,10 @@ int MapSystem::getReferenceBlockID(int entityID) {
       return -1;
    }
 
+   if (Map::IrregularBlockReferences.find(entityID) != Map::IrregularBlockReferences.end()) {
+      return Map::IrregularBlockReferences.at(entityID);
+   }
+
    Vector2i blockCoordinates = Map::BlockIDCoordinates.at(entityID);
 
    int coordinateX = blockCoordinates.x;
@@ -508,6 +512,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
              scene->collectiblesMap.getLevelData()[coordinateY][coordinateX] != -1) {
             Entity* entity(createBlockEntity(world, coordinateX, coordinateY, 53));
 
+            entity->addComponent<InvisibleBlockComponent>();
             entity->addComponent<BumpableComponent>();
 
             MysteryBoxType collectibleType = MysteryBoxType::NONE;

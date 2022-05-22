@@ -361,6 +361,8 @@ struct FloatingTextComponent : public Component {};
 
 struct TileComponent : public Component {};
 
+struct InvisibleBlockComponent : public Component {};
+
 struct DestructibleComponent : public Component {
    DestructibleComponent() = default;
    DestructibleComponent(Vector2i debrisCoordinates) : debrisCoordinates{debrisCoordinates} {}

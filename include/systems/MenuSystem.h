@@ -20,7 +20,7 @@ class MenuSystem : public System {
 
    int selectedLevel = 1;
    int selectedSublevel = 1;
-   int maxLevel = 2;
+   int maxLevel = 3;
    int maxSublevel = 4;
 
    int currentFocus = 0;  // 0 is level, 1 is sublevel

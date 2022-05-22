@@ -1257,6 +1257,11 @@ void PlayerSystem::tick(World* world) {
       if (breakable->hasComponent<MysteryBoxComponent>()) {
          auto mysteryBox = breakable->getComponent<MysteryBoxComponent>();
 
+         if (breakable->hasComponent<InvisibleBlockComponent>()) {
+            breakable->remove<InvisibleBlockComponent>();
+            move->velocityY = move->accelerationY = 0;
+         }
+
          breakable->getComponent<MysteryBoxComponent>()->whenDispensed(breakable);
          breakable->remove<AnimationComponent>();
          breakable->getComponent<TextureComponent>()->setSpritesheetCoordinates(

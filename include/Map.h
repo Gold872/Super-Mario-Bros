@@ -26,6 +26,7 @@ class Map {
    static void loadBlockIDS();
    static void loadPlayerIDS();
    static void loadEnemyIDS();
+   static void loadIrregularBlockReferences();
 
    vector<vector<int>> getLevelData();
 
@@ -33,6 +34,7 @@ class Map {
    static std::unordered_map<int, Vector2i> PlayerIDCoordinates;
    static std::unordered_map<int, Vector2i> EnemyIDCoordinates;
    static std::unordered_map<int, int> DeadEnemyIDCoordinates;
+   static std::unordered_map<int, int> IrregularBlockReferences;
 
   private:
    vector<vector<int>> levelData;

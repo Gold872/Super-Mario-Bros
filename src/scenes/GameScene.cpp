@@ -26,6 +26,7 @@ GameScene::GameScene(int level, int subLevel) {
    Map::loadBlockIDS();
    Map::loadEnemyIDS();
    Map::loadPlayerIDS();
+   Map::loadIrregularBlockReferences();
 
    blockTexture = TextureManager::Get().LoadSharedTexture("res/sprites/blocks/BlockTileSheet.png");
    enemyTexture =

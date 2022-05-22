@@ -1,6 +1,8 @@
 #include "Map.h"
 
 #include <fstream>
+#include <iostream>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -9,8 +11,7 @@
 std::unordered_map<int, Vector2i> Map::BlockIDCoordinates;
 std::unordered_map<int, Vector2i> Map::PlayerIDCoordinates;
 std::unordered_map<int, Vector2i> Map::EnemyIDCoordinates;
-// std::unordered_map<int, int> Map::DeadEnemyIDCoordinates{{70, 2}, {175, 2}, {280, 2}, {385, 2},
-//                                                         {38, 6}, {143, 6}, {248, 6}, {353, 6}};
+std::unordered_map<int, int> Map::IrregularBlockReferences;
 
 Map::Map() {}
 
@@ -66,6 +67,25 @@ void Map::loadEnemyIDS() {
          EnemyIDCoordinates.insert({enemyID, Vector2i(j, i)});
          enemyID++;
       }
+   }
+}
+
+void Map::loadIrregularBlockReferences() {
+   std::string line;
+
+   std::ifstream idsFile("res/sprites/blocks/IrregularReferences.blockmap");
+
+   std::regex pairRegex("(\\d+),\\s(\\d+)");
+
+   std::smatch pairMatch;
+   while (getline(idsFile, line)) {
+      int blockID = 0, referenceID = 0;
+
+      if (std::regex_search(line, pairMatch, pairRegex)) {
+         blockID = std::stoi(pairMatch[1]);
+         referenceID = std::stoi(pairMatch[2]);
+      }
+      IrregularBlockReferences.insert({blockID, referenceID});
    }
 }
 

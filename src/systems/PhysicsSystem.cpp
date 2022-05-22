@@ -407,7 +407,8 @@ void PhysicsSystem::tick(World* world) {
          CollisionDirection collidedDirectionVertical;
          CollisionDirection collidedDirectionHorizontal;
 
-         if (entity->hasComponent<CollisionExemptComponent>()) {
+         if (entity->hasComponent<CollisionExemptComponent>() ||
+             other->hasComponent<InvisibleBlockComponent>()) {
             collidedDirectionVertical = checkCollisionY(other, position, move, false);
             collidedDirectionHorizontal = checkCollisionX(other, position, move, false);
          } else {
