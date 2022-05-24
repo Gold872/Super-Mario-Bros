@@ -11,6 +11,8 @@
 #include <iostream>
 
 bool WarpSystem::warping = false;
+bool WarpSystem::climbing = false;
+bool WarpSystem::climbed = false;
 
 Vector2i toVector2i(Vector2f vector) {
    return Vector2i((int)vector.x, (int)vector.y);
@@ -213,6 +215,85 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
        });
 }
 
+void WarpSystem::climb(World* world, Entity* vine, Entity* player) {
+   auto* vineComponent = vine->getComponent<VineComponent>();
+
+   auto* playerMove = player->getComponent<MovingComponent>();
+   auto* playerPosition = player->getComponent<PositionComponent>();
+
+   playerMove->velocityY = -1.5;
+
+   teleportLevelY = vineComponent->resetYValue * SCALED_CUBE_SIZE;
+
+   teleportPlayerCoordinates = vineComponent->resetTeleportLocation * SCALED_CUBE_SIZE;
+
+   teleportCameraCoordinates =
+       vineComponent->resetTeleportLocation * SCALED_CUBE_SIZE - Vector2i(2, 1) * SCALED_CUBE_SIZE;
+
+   std::vector<Entity*>& vineParts = vineComponent->vineParts;
+
+   // Wait until the player is out of camera range, then change the camera location
+   player->addComponent<WaitUntilComponent>(
+       [=](Entity* entity) {
+          return !Camera::Get().inCameraRange(playerPosition);
+       },
+       [=, &vineParts](Entity* entity) {
+          auto* waitUntil = player->getComponent<WaitUntilComponent>();
+
+          Camera::Get().setCameraX(vineComponent->cameraCoordinates.x * SCALED_CUBE_SIZE);
+          Camera::Get().setCameraY(vineComponent->cameraCoordinates.y * SCALED_CUBE_SIZE);
+
+          // Moves the vines upwards
+          for (Entity* vinePiece : vineParts) {
+             vinePiece->getComponent<MovingComponent>()->velocityY = -1.0;
+          }
+
+          // Sets mario's position to be at the bottom of the vine
+          playerPosition->setTop(vineParts.back()->getComponent<PositionComponent>()->getTop());
+
+          playerPosition->setLeft(vineParts.back()->getComponent<PositionComponent>()->getRight() -
+                                  SCALED_CUBE_SIZE / 2);
+
+          // Wait until the vine has fully moved up, and then stop the vines from growing more
+          waitUntil->condition = [=](Entity* entity) {
+             return vineParts.front()->getComponent<PositionComponent>()->getTop() <=
+                    (vineComponent->teleportCoordinates.y * SCALED_CUBE_SIZE) -
+                        (SCALED_CUBE_SIZE * 4);
+          };
+
+          waitUntil->doAfter = [=, &vineParts](Entity* entity) {
+             for (Entity* vinePiece : vineParts) {
+                vinePiece->getComponent<MovingComponent>()->velocityY = 0.0;
+                vinePiece->remove<VineComponent>();
+             }
+
+             // Wait until the player has climbed to the top of the vine, then end the sequence
+             waitUntil->condition = [=](Entity* entity) {
+                return playerPosition->getBottom() <=
+                       vineParts[1]->getComponent<PositionComponent>()->getBottom();
+             };
+
+             waitUntil->doAfter = [=](Entity* entity) {
+                // Moves the player away from the vine
+                playerPosition->setLeft(
+                    vineParts.front()->getComponent<PositionComponent>()->getRight());
+
+                player->getComponent<TextureComponent>()->setHorizontalFlipped(false);
+                player->addComponent<GravityComponent>();
+                player->remove<FrictionExemptComponent>();
+                player->remove<CollisionExemptComponent>();
+
+                PlayerSystem::enableInput(true);
+                WarpSystem::setClimbing(false);
+
+                WarpSystem::setClimbed(true);
+
+                player->remove<WaitUntilComponent>();
+             };
+          };
+       });
+}
+
 WarpSystem::WarpSystem(GameScene* scene) {
    this->scene = scene;
 }
@@ -222,7 +303,8 @@ void WarpSystem::onAddedToWorld(World* world) {
 }
 
 void WarpSystem::tick(World* world) {
-   world->find<WarpPipeComponent>([&](Entity* entity) {
+   // Warp pipe checking
+   world->find<WarpPipeComponent, PositionComponent>([&](Entity* entity) {
       auto* warpPipe = entity->getComponent<WarpPipeComponent>();
 
       Entity* player = world->findFirst<PlayerComponent>();
@@ -261,6 +343,70 @@ void WarpSystem::tick(World* world) {
             break;
       }
    });
+   // Vine checking
+   world->find<VineComponent, PositionComponent>([&](Entity* entity) {
+      Entity* player = world->findFirst<PlayerComponent>();
+
+      auto* playerPosition = player->getComponent<PositionComponent>();
+
+      auto* playerMove = player->getComponent<MovingComponent>();
+
+      if (!AABBTotalCollision(playerPosition, entity->getComponent<PositionComponent>()) ||
+          (WarpSystem::isClimbing() && playerMove->velocityY != 0)) {
+         return;
+      }
+
+      player->addComponent<CollisionExemptComponent>();
+      player->addComponent<FrictionExemptComponent>();
+      player->remove<GravityComponent>();
+
+      player->getComponent<TextureComponent>()->setHorizontalFlipped(true);
+      playerPosition->setLeft(entity->getComponent<PositionComponent>()->getRight() -
+                              SCALED_CUBE_SIZE / 2);
+
+      WarpSystem::setClimbing(true);
+      PlayerSystem::enableInput(false);
+
+      playerMove->velocityX = playerMove->accelerationX = playerMove->accelerationY =
+          playerMove->velocityY = 0;
+
+      if (up) {
+         climb(world, entity, player);
+      }
+   });
+
+   // If the player is below the Y level where it gets teleported
+   if (climbed) {
+      Entity* player = world->findFirst<PlayerComponent, PositionComponent, MovingComponent>();
+      auto* playerPosition = player->getComponent<PositionComponent>();
+      auto* playerMove = player->getComponent<MovingComponent>();
+
+      if (playerPosition->getTop() > teleportLevelY + SCALED_CUBE_SIZE * 3) {
+         player->addComponent<FrozenComponent>();
+
+         WarpSystem::setClimbed(false);
+
+         Entity* tempCallback(world->create());
+         tempCallback->addComponent<CallbackComponent>(
+             [=](Entity* entity) {
+                player->remove<FrozenComponent>();
+
+                playerMove->velocityX = playerMove->accelerationX = playerMove->velocityY =
+                    playerMove->accelerationY = 0;
+
+                Camera::Get().setCameraX(teleportCameraCoordinates.x);
+                Camera::Get().setCameraY(teleportCameraCoordinates.y);
+
+                playerPosition->position = teleportPlayerCoordinates.convertTo<float>();
+
+                teleportPlayerCoordinates = Vector2i(0, 0);
+                teleportLevelY = 0;
+
+                world->destroy(entity);
+             },
+             MAX_FPS * 2);
+      }
+   }
 }
 
 void WarpSystem::handleEvent(SDL_Event& event) {

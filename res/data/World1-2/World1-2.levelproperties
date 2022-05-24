@@ -38,3 +38,7 @@ MOVING_PLATFORM=\
 # The positions and directions for fire bars
 # Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
 FIRE_BAR=\
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location)
+VINE=\

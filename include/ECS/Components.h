@@ -518,6 +518,24 @@ struct FlagComponent : public Component {};
 
 struct FlagPoleComponent : public Component {};
 
+struct VineComponent : public Component {
+   VineComponent(Vector2i coordinates, Vector2i teleport, Vector2i camera, int resetValue,
+                 Vector2i resetLocation, std::vector<Entity*>& vineParts)
+       : coordinates{coordinates},
+         teleportCoordinates{teleport},
+         cameraCoordinates{camera},
+         resetYValue{resetValue},
+         resetTeleportLocation{resetLocation},
+         vineParts{vineParts} {}
+
+   Vector2i coordinates;
+   Vector2i teleportCoordinates;
+   Vector2i cameraCoordinates;
+   int resetYValue;
+   Vector2i resetTeleportLocation;
+   std::vector<Entity*>& vineParts;
+};
+
 struct AxeComponent : public Component {};
 
 struct ParticleComponent : public Component {};
@@ -529,7 +547,7 @@ enum class MysteryBoxType
    COINS,
    SUPER_STAR,
    ONE_UP,
-   RANDOM
+   VINES
 };
 
 struct MysteryBoxComponent : public Component {

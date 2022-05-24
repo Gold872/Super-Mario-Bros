@@ -51,11 +51,10 @@ struct LevelData {
    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
                           LevelType, Vector2i>>
        warpPipeLocations;
-   std::vector<std::tuple<Vector2i, MysteryBoxType>> questionBlockLocations;
-   std::vector<std::tuple<Vector2i, MysteryBoxType>> mysteryBrickLocations;
    std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
        movingPlatformDirections;
    std::vector<std::tuple<Vector2i, int, RotationDirection, int>> fireBarLocations;
+   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> vineLocations;
 };
 
 class Level {
@@ -92,9 +91,10 @@ class Level {
    };
 
    std::unordered_map<string, MysteryBoxType> mysteryBoxTypeString = {
-       {"MUSHROOM", MysteryBoxType::MUSHROOM},     {"COINS", MysteryBoxType::COINS},
-       {"SUPER_STAR", MysteryBoxType::SUPER_STAR}, {"ONE_UP", MysteryBoxType::ONE_UP},
-       {"RANDOM", MysteryBoxType::RANDOM},
+       {"MUSHROOM", MysteryBoxType::MUSHROOM},
+       {"COINS", MysteryBoxType::COINS},
+       {"SUPER_STAR", MysteryBoxType::SUPER_STAR},
+       {"ONE_UP", MysteryBoxType::ONE_UP},
    };
 
    std::unordered_map<string, BackgroundColor> backgroundColorString = {
@@ -316,32 +316,73 @@ class Level {
       return barLocations;
    }
 
+   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> loadVines(
+       string regexPattern, string stringToSearch, string searchVines) {
+      std::regex arrayRegex(regexPattern);
+      std::regex vineRegex(searchVines);
+
+      std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> vineLocations;
+
+      std::smatch arrayMatch;
+
+      if (std::regex_search(stringToSearch, arrayMatch, arrayRegex)) {
+         std::istringstream iss(arrayMatch[1]);
+
+         std::smatch pairMatch;
+
+         string s;
+
+         while (getline(iss, s)) {
+            if (std::regex_search(s, pairMatch, vineRegex)) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 9) {
+                  Vector2i blockLocation =
+                      Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
+                  Vector2i teleportLocation =
+                      Vector2i(std::stoi(pairMatch[i + 2]), std::stoi(pairMatch[i + 3]));
+                  Vector2i cameraCoordinates =
+                      Vector2i(std::stoi(pairMatch[i + 4]), std::stoi(pairMatch[i + 5]));
+                  int resetYValue = std::stoi(pairMatch[i + 6]);
+                  Vector2i resetTeleportLocation =
+                      Vector2i(std::stoi(pairMatch[i + 7]), std::stoi(pairMatch[i + 8]));
+
+                  vineLocations.push_back(std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>(
+                      blockLocation, teleportLocation, cameraCoordinates, resetYValue,
+                      resetTeleportLocation));
+               }
+            }
+         }
+      }
+
+      return vineLocations;
+   }
+
    void loadLevelData(string levelProperties) {
-      data.levelType = loadEnumData<LevelType>("LEVEL_TYPE" + DefaultRegexPattern, levelProperties,
+      data.levelType = loadEnumData<LevelType>("LEVEL_TYPE" + normalRegexPattern, levelProperties,
                                                levelTypeString);
 
       data.levelBackgroundColor = loadEnumData<BackgroundColor>(
-          "BACKGROUND_COLOR" + DefaultRegexPattern, levelProperties, backgroundColorString);
+          "BACKGROUND_COLOR" + normalRegexPattern, levelProperties, backgroundColorString);
 
       data.playerStart =
-          loadCoordinate("PLAYER_START(?:\\s)?=(?:\\s)?" + DefaultPairPattern, levelProperties);
+          loadCoordinate("PLAYER_START(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
 
-      data.nextLevel =
-          loadCoordinate("NEXT_LEVEL(?:\\s)?=(?:\\s)?" + DefaultPairPattern, levelProperties);
+      data.nextLevel = loadCoordinate("NEXT_LEVEL(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
 
       data.cameraStart =
-          loadCoordinate("CAMERA_START(?:\\s)?=(?:\\s)?" + DefaultPairPattern, levelProperties);
+          loadCoordinate("CAMERA_START(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
 
-      data.cameraMax = loadIntData("CAMERA_MAX" + DefaultRegexPattern, levelProperties);
+      data.cameraMax = loadIntData("CAMERA_MAX" + normalRegexPattern, levelProperties);
 
       data.warpPipeLocations =
-          loadWarpPipeLocation("WARP_PIPE" + DefaultArrayPattern, levelProperties, warpPipePattern);
+          loadWarpPipeLocation("WARP_PIPE" + arrayPattern, levelProperties, warpPipePattern);
 
-      data.movingPlatformDirections = loadMovingPlatform("MOVING_PLATFORM" + DefaultArrayPattern,
-                                                         levelProperties, platformPattern);
+      data.movingPlatformDirections =
+          loadMovingPlatform("MOVING_PLATFORM" + arrayPattern, levelProperties, platformPattern);
 
       data.fireBarLocations =
-          loadFireBar("FIRE_BAR" + DefaultArrayPattern, levelProperties, fireBarPattern);
+          loadFireBar("FIRE_BAR" + arrayPattern, levelProperties, fireBarPattern);
+
+      data.vineLocations = loadVines("VINE" + arrayPattern, levelProperties, vinePattern);
    }
 
    void clearLevelData() {
@@ -353,6 +394,7 @@ class Level {
       data.warpPipeLocations.clear();
       data.movingPlatformDirections.clear();
       data.fireBarLocations.clear();
+      data.vineLocations.clear();
    }
 
    LevelData& getData() {
@@ -362,15 +404,14 @@ class Level {
   private:
    LevelData data;
 
-   string DefaultRegexPattern = /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
-   //   		":\\s(\\w+|[+-]*\\d+)";
+   string normalRegexPattern = /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
 
-   string DefaultArrayPattern =
+   string arrayPattern =
        /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s\\w,\\\\\\n]+)";
 
-   string DefaultPairPattern = "\\((\\d+), (\\d+)\\)";
+   string pairPattern = "\\((\\d+), (\\d+)\\)";
 
-   string CoordinateEnumPattern = "\\((\\d+), (\\d+)\\)\\s(\\w+)";
+   string coordinateEnumPattern = "\\((\\d+), (\\d+)\\)\\s(\\w+)";
 
    string warpPipePattern =
        "\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s\\((\\d+), "
@@ -380,4 +421,8 @@ class Level {
        "\\((\\d+), (\\d+)\\)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)";
 
    string fireBarPattern = "\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)\\s(\\d+)";
+
+   string vinePattern =
+       "\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)\\s\\((\\d+), "
+       "(\\d+)\\)";
 };

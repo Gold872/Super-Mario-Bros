@@ -19,12 +19,30 @@ class WarpSystem : public System {
 
    void warp(World* world, Entity* pipe, Entity* player);
 
+   void climb(World* world, Entity* vine, Entity* player);
+
    static bool isWarping() {
       return warping;
    }
 
+   static bool isClimbing() {
+      return climbing;
+   }
+
+   static bool hasClimbed() {
+      return climbed;
+   }
+
    static void setWarping(bool val) {
       warping = val;
+   }
+
+   static void setClimbing(bool val) {
+      climbing = val;
+   }
+
+   static void setClimbed(bool val) {
+      climbed = val;
    }
 
    int up = 0;
@@ -34,6 +52,12 @@ class WarpSystem : public System {
 
   private:
    static bool warping;
+   static bool climbing;
+   static bool climbed;
 
    GameScene* scene;
+
+   int teleportLevelY;
+   Vector2i teleportPlayerCoordinates;
+   Vector2i teleportCameraCoordinates;
 };

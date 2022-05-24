@@ -6,7 +6,6 @@
  * The Vector2 stores an x and a y value. This is used for the position of all Entities
  * on the screen, and may also be used for image scaling.
  * */
-
 template <typename T>
 class Vector2 {
   public:
@@ -21,6 +20,11 @@ class Vector2 {
 
    T x;
    T y;
+
+   template <typename OTHER>
+   Vector2<OTHER> convertTo() {
+      return Vector2<OTHER>((OTHER)x, (OTHER)y);
+   };
 };
 
 template <typename T>
@@ -46,6 +50,11 @@ Vector2<T> operator-(const Vector2<T>& left, const Vector2<T>& right) {
 template <typename T>
 Vector2<T> operator*(const Vector2<T>& A, int B) {
    return Vector2<T>(A.x * B, A.y * B);
+}
+
+template <typename T>
+Vector2<T> operator/(const Vector2<T>& A, int B) {
+   return Vector2<T>(A.x / B, A.y / B);
 }
 
 template <typename T>

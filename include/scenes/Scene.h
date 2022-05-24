@@ -4,8 +4,6 @@
 
 #include <SDL2/SDL.h>
 
-#include <memory>
-
 class Scene {
   protected:
    World* world = new World();

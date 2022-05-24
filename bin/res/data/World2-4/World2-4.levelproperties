@@ -41,3 +41,7 @@ FIRE_BAR=\
 	(73, 9) 330 COUNTER_CLOCKWISE 6,\
 	(82, 6) 210 COUNTER_CLOCKWISE 6,\
 	(92, 10) 150 CLOCKWISE 6
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location)
+VINE=\

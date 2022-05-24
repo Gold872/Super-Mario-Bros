@@ -7,6 +7,7 @@
 #include "Map.h"
 #include "SoundManager.h"
 
+#include <functional>
 #include <iostream>
 #include <time.h>
 #include <tuple>
@@ -65,6 +66,19 @@ auto getFireBarCoordinate(std::vector<std::tuple<Vector2i, int, RotationDirectio
    }
    return std::tuple<Vector2i, int, RotationDirection, int>(Vector2i(0, 0), 0.0,
                                                             RotationDirection::NONE, 0);
+}
+
+auto getVineCoordinate(
+    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> levelData,
+    Vector2i coordinate) {
+   for (auto tupledData : levelData) {
+      if (std::get<0>(tupledData) == coordinate) {
+         return tupledData;
+      }
+   }
+
+   return std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>(Vector2i(0), Vector2i(0),
+                                                                  Vector2i(0), 0, Vector2i(0));
 }
 
 MapSystem::MapSystem(GameScene* scene) {
@@ -498,6 +512,109 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 });
          };
       } break;
+      case MysteryBoxType::VINES: {
+         Vector2f blockPosition =
+             entity->getComponent<PositionComponent>()->position / SCALED_CUBE_SIZE;
+
+         auto vineData =
+             getVineCoordinate(scene->getLevelData().vineLocations, blockPosition.convertTo<int>());
+
+         if (std::get<0>(vineData) == Vector2i(0, 0)) {
+            break;
+         }
+
+         std::vector<Entity*> vineParts;
+
+         int vineLength = 0;
+
+         int vineTopID = getReferenceBlockIDAsEntity(entityID, 100);
+         int vineBodyID = getReferenceBlockIDAsEntity(entityID, 148);
+
+         mysteryBox->whenDispensed = [=](Entity* originalBlock) mutable {
+            Entity* dispenseSound(world->create());
+            dispenseSound->addComponent<SoundComponent>(SoundID::POWER_UP_APPEAR);
+
+            originalBlock->addComponent<AboveForegroundComponent>();
+
+            Entity* vineTop(world->create());
+
+            auto* position = originalBlock->getComponent<PositionComponent>();
+
+            vineTop->addComponent<PositionComponent>(position->position,
+                                                     Vector2i(SCALED_CUBE_SIZE));
+            vineTop->addComponent<TextureComponent>(
+                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(vineTopID));
+
+            vineTop->addComponent<MovingComponent>(0, -1.0, 0, 0);
+
+            vineTop->addComponent<MoveOutsideCameraComponent>();
+
+            vineTop->addComponent<FrictionExemptComponent>();
+
+            vineTop->addComponent<CollisionExemptComponent>();
+
+            vineTop->addComponent<VineComponent>(std::get<0>(vineData), std::get<1>(vineData),
+                                                 std::get<2>(vineData), std::get<3>(vineData),
+                                                 std::get<4>(vineData), vineParts);
+
+            vineTop->addComponent<ForegroundComponent>();
+
+            vineParts.push_back(vineTop);
+
+            vineLength++;
+
+            Entity* vineGrowController(world->create());
+
+            vineGrowController->addComponent<WaitUntilComponent>(
+                [=, &vineParts](Entity* entity) {
+                   auto* position = originalBlock->getComponent<PositionComponent>();
+
+                   return vineParts.back()->getComponent<PositionComponent>()->getBottom() <=
+                          position->getTop();
+                },
+                [=, &blockTexture, &vineParts, &vineLength](Entity* entity) {
+                   auto* position = originalBlock->getComponent<PositionComponent>();
+
+                   if (vineLength < 6) {
+                      Entity* vinePiece(world->create());
+
+                      vinePiece->addComponent<PositionComponent>(position->position,
+                                                                 Vector2i(SCALED_CUBE_SIZE));
+
+                      vinePiece->addComponent<TextureComponent>(
+                          blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                          ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                          Map::BlockIDCoordinates.at(vineBodyID));
+
+                      vinePiece->addComponent<MovingComponent>(0, -1.0, 0, 0);
+
+                      vinePiece->addComponent<MoveOutsideCameraComponent>();
+
+                      vinePiece->addComponent<FrictionExemptComponent>();
+
+                      vinePiece->addComponent<CollisionExemptComponent>();
+
+                      vinePiece->addComponent<VineComponent>(
+                          std::get<0>(vineData), std::get<1>(vineData), std::get<2>(vineData),
+                          std::get<3>(vineData), std::get<4>(vineData), vineParts);
+
+                      vinePiece->addComponent<ForegroundComponent>();
+
+                      vineParts.push_back(vinePiece);
+                      vineLength++;
+                   } else if (vineParts.back()->getComponent<PositionComponent>()->getBottom() <=
+                              position->getTop()) {
+                      for (Entity* e : vineParts) {
+                         e->getComponent<MovingComponent>()->velocityY = 0;
+                      }
+                      vineGrowController->remove<WaitUntilComponent>();
+
+                      world->destroy(vineGrowController);
+                   }
+                });
+         };
+      } break;
       default:
          break;
    }
@@ -680,29 +797,32 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          entity->addComponent<BumpableComponent>();
 
-         MysteryBoxType collectibleType = MysteryBoxType::NONE;
+         MysteryBoxType boxType = MysteryBoxType::NONE;
 
          int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
          if (collectibleID != -1) {
             int referenceCollectibleID = getReferenceBlockID(collectibleID);
             switch (referenceCollectibleID) {
                case 52:  // One-up
-                  collectibleType = MysteryBoxType::ONE_UP;
+                  boxType = MysteryBoxType::ONE_UP;
                   break;
                case 96:  // Super Star
-                  collectibleType = MysteryBoxType::SUPER_STAR;
+                  boxType = MysteryBoxType::SUPER_STAR;
                   break;
                case 144:  // Coin
-                  collectibleType = MysteryBoxType::COINS;
+                  boxType = MysteryBoxType::COINS;
+                  break;
+               case 148:  // VINES
+                  boxType = MysteryBoxType::VINES;
                   break;
                case 608:  // Mushroom
-                  collectibleType = MysteryBoxType::MUSHROOM;
+                  boxType = MysteryBoxType::MUSHROOM;
                   break;
             }
          }
 
-         if (collectibleType != MysteryBoxType::NONE) {
-            entity->addComponent<MysteryBoxComponent>(collectibleType);
+         if (boxType != MysteryBoxType::NONE) {
+            entity->addComponent<MysteryBoxComponent>(boxType);
 
             addItemDispenser(world, entity, entityID, referenceID);
          }

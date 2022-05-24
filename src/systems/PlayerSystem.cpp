@@ -403,12 +403,15 @@ void PlayerSystem::setState(Animation_State newState) {
             if (isFireMario()) {
                animation->frameIDS = fireFrameIDS;
                animation->frameCount = 2;
+               animation->setFramesPerSecond(8);
             } else if (isSuperMario()) {
                animation->frameIDS = superFrameIDS;
                animation->frameCount = 2;
+               animation->setFramesPerSecond(8);
             } else {
                animation->frameIDS = normalFrameIDS;
                animation->frameCount = 2;
+               animation->setFramesPerSecond(8);
             }
          }
       } break;
@@ -1127,6 +1130,12 @@ void PlayerSystem::tick(World* world) {
       updateCamera();
       return;
    }
+   if (WarpSystem::isClimbing()) {
+      currentState = (move->velocityY != 0) ? CLIMBING : SLIDING;
+      setState(currentState);
+      updateCamera();
+      return;
+   }
    if (!PlayerSystem::isInputEnabled()) {
       if (scene->getLevelData().levelType == LevelType::START_UNDERGROUND &&
           PlayerSystem::isGameStart()) {
@@ -1166,7 +1175,7 @@ void PlayerSystem::tick(World* world) {
 
    if (position->position.y >=
            Camera::Get().getCameraY() + SCREEN_HEIGHT + (1 * SCALED_CUBE_SIZE) &&
-       !mario->hasComponent<FrozenComponent>()) {
+       !mario->hasComponent<FrozenComponent>() && !WarpSystem::hasClimbed()) {
       onGameOver(world, true);
       return;
    }
