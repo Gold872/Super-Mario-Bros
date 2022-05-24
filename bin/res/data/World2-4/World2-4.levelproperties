@@ -13,7 +13,7 @@ CAMERA_MAX = 162
 LEVEL_TYPE = CASTLE
 
 # The level to go to next
-NEXT_LEVEL = (1, 1)
+NEXT_LEVEL = (3, 1)
 
 # The color to set the background to for the level
 BACKGROUND_COLOR = BLACK
