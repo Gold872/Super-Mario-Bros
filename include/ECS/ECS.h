@@ -292,7 +292,7 @@ class World {
       }
    }
 
-   std::vector<Entity*> getEntities() {
+   std::vector<Entity*>& getEntities() {
       return entities;
    }
 

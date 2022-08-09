@@ -9,6 +9,8 @@
 #include "Math.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
+#include "command/CommandScheduler.h"
+#include "command/Commands.h"
 #include "systems/FlagSystem.h"
 #include "systems/WarpSystem.h"
 
@@ -30,7 +32,6 @@ bool gameOver = false;
 
 bool underwater = false;
 
-PIDController accelerationControllerY(0.60, 0, 0.02, 60);
 PIDController underwaterControllerX(0.20, 0, 0.02, 60);
 
 PlayerSystem::PlayerSystem(GameScene* scene) {
@@ -72,15 +73,17 @@ Entity* PlayerSystem::createFireball(World* world) {
    Entity* fireball(world->create());
 
    auto* position = fireball->addComponent<PositionComponent>(
-       Vector2f(), Vector2i(SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2), (SDL_Rect){0, 0, 16, 16});
+       Vector2f(), Vector2i(SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2), SDL_Rect{0, 0, 16, 16});
 
    auto playerTexture = mario->getComponent<TextureComponent>()->getTexture();
 
-   fireball->addComponent<TextureComponent>(
-       playerTexture, ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1, 9, 0, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, Map::PlayerIDCoordinates.at(246), false, false);
+   fireball->addComponent<TextureComponent>(playerTexture, false, false);
 
-   auto* move = fireball->addComponent<MovingComponent>(0, 5, 0, 0);
+   fireball->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1,
+                                                9, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                Map::PlayerIDCoordinates.at(246));
+
+   auto* move = fireball->addComponent<MovingComponent>(Vector2f(0, 5), Vector2f(0, 0));
 
    fireball->addComponent<FrictionExemptComponent>();
 
@@ -92,10 +95,10 @@ Entity* PlayerSystem::createFireball(World* world) {
 
    if (marioTexture->isHorizontalFlipped()) {
       position->setRight(mario->getComponent<PositionComponent>()->getLeft());
-      move->velocityX = -PROJECTILE_SPEED;
+      move->velocity.x = -PROJECTILE_SPEED;
    } else {
       position->setLeft(mario->getComponent<PositionComponent>()->getRight());
-      move->velocityX = PROJECTILE_SPEED;
+      move->velocity.x = PROJECTILE_SPEED;
    }
 
    position->setTop(mario->getComponent<PositionComponent>()->getTop() + 4);
@@ -108,7 +111,7 @@ Entity* PlayerSystem::createFireball(World* world) {
        [=](Entity* entity) {
           entity->remove<WaitUntilComponent>();
           if (entity->hasAny<LeftCollisionComponent, RightCollisionComponent>()) {
-             entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+             entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                  Map::PlayerIDCoordinates.at(247));
              entity->addComponent<DestroyDelayedComponent>(4);
              entity->remove<MovingComponent, GravityComponent, FrictionExemptComponent>();
@@ -131,12 +134,12 @@ void PlayerSystem::setUnderwater(bool val) {
 
 void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    auto* position = mario->getComponent<PositionComponent>();
-   auto* texture = mario->getComponent<TextureComponent>();
+   auto* spritesheet = mario->getComponent<SpritesheetComponent>();
 
    if (outOfBounds && isSuperMario()) {
       position->scale.y = position->hitbox.h = SCALED_CUBE_SIZE;
-      texture->setEntityHeight(ORIGINAL_CUBE_SIZE);
-      texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
+      spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE);
+      spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
       mario->getComponent<PlayerComponent>()->playerState = PlayerState::SMALL_MARIO;
    }
@@ -148,20 +151,37 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
 
    auto* move = mario->getComponent<MovingComponent>();
 
-   move->velocityX = move->accelerationX = 0;
-   move->accelerationY = 0;
-   move->velocityY = -10.0f;
-
-   texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
+   move->velocity.x = move->acceleration.x = 0;
+   move->acceleration.y = 0;
+   move->velocity.y = -12.5f;
 
    mario->addComponent<ParticleComponent>();
+
+   // Freezes every non-player entity
+   world->find<MovingComponent>([](Entity* entity) {
+      if (entity->hasComponent<PlayerComponent>()) {
+         return;
+      }
+
+      entity->getComponent<MovingComponent>()->velocity = Vector2f(0, 0);
+      entity->getComponent<MovingComponent>()->acceleration = Vector2f(0, 0);
+   });
+
+   world->find<AnimationComponent>([](Entity* entity) {
+      if (entity->hasComponent<IconComponent>()) {
+         return;
+      }
+
+      entity->getComponent<AnimationComponent>()->setPlaying(false);
+
+      if (entity->hasComponent<PausedAnimationComponent>()) {
+         entity->remove<PausedAnimationComponent>();
+      }
+   });
+
+   spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
+
    currentState = GAMEOVER;
-
-   scene->stopTimer();
-   scene->stopMusic();
-
-   Entity* deathSound(world->create());
-   deathSound->addComponent<SoundComponent>(SoundID::DEATH);
 
    mario->addComponent<CallbackComponent>(
        [=](Entity* entity) {
@@ -169,10 +189,16 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
           scene->restartLevel();
        },
        180);
+
+   scene->stopTimer();
+   scene->stopMusic();
+
+   Entity* deathSound(world->create());
+   deathSound->addComponent<SoundComponent>(SoundID::DEATH);
 }
 
 void PlayerSystem::setState(Animation_State newState) {
-   auto* texture = mario->getComponent<TextureComponent>();
+   auto* spritesheet = mario->getComponent<SpritesheetComponent>();
    auto* position = mario->getComponent<PositionComponent>();
 
    if (mario->hasComponent<FrozenComponent>()) {
@@ -185,11 +211,11 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (isFireMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(225));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(225));
          } else if (isSuperMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(25));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(25));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
          }
 
          break;
@@ -342,11 +368,11 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (isFireMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(230));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(230));
          } else if (isSuperMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(30));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(30));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(5));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(5));
          }
 
          break;
@@ -355,11 +381,11 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (isFireMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(231));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(231));
          } else if (isSuperMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(31));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(31));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(6));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(6));
          }
 
          break;
@@ -368,9 +394,9 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (isFireMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(226));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(226));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
          }
          break;
       case LAUNCH_FIREBALL: {
@@ -378,9 +404,9 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (mario->hasComponent<BottomCollisionComponent>()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(240));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(240));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(243));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(243));
          }
       } break;
       case CLIMBING: {
@@ -420,18 +446,18 @@ void PlayerSystem::setState(Animation_State newState) {
             mario->remove<AnimationComponent>();
          }
          if (isFireMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(238));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(238));
          } else if (isSuperMario()) {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(38));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(38));
          } else {
-            texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(13));
+            spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(13));
          }
          break;
       case GAMEOVER:
          if (mario->hasComponent<AnimationComponent>()) {
             mario->remove<AnimationComponent>();
          }
-         texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
+         spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
          break;
       default:
          break;
@@ -484,15 +510,14 @@ void PlayerSystem::grow(World* world, GrowType growType) {
             return;
          }
 
-         auto position = mario->getComponent<PositionComponent>();
-
-         auto texture = mario->getComponent<TextureComponent>();
+         auto* position = mario->getComponent<PositionComponent>();
+         auto* spritesheet = mario->getComponent<SpritesheetComponent>();
 
          position->setTop(position->getTop() - position->scale.y);  // Makes the player taller
 
          position->scale.y = position->hitbox.h = SCALED_CUBE_SIZE * 2;
 
-         texture->setEntityHeight(ORIGINAL_CUBE_SIZE * 2);
+         spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE * 2);
 
          mario->addComponent<AnimationComponent>(
              std::vector<int>{46, 45, 25, 46, 45, 25, 46, 45, 25}, 12, Map::PlayerIDCoordinates,
@@ -558,12 +583,12 @@ void PlayerSystem::shrink(World* world) {
    mario->addComponent<CallbackComponent>(
        [&](Entity* mario) {
           auto* position = mario->getComponent<PositionComponent>();
-          auto* texture = mario->getComponent<TextureComponent>();
+          auto* spritesheet = mario->getComponent<SpritesheetComponent>();
 
           // Shortens the player
           position->scale.y = position->hitbox.h = SCALED_CUBE_SIZE;
-          texture->setEntityHeight(ORIGINAL_CUBE_SIZE);
-          texture->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
+          spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE);
+          spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(0));
           mario->remove<FrozenComponent>();
           mario->addComponent<EndingBlinkComponent>(10, 150);
        },
@@ -585,11 +610,13 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
 
    debris1->addComponent<GravityComponent>();
 
-   debris1->addComponent<MovingComponent>(-8.0f, -2.0f);
+   debris1->addComponent<MovingComponent>(Vector2f(-8.0f, -2.0f), Vector2f(0, 0));
 
-   debris1->addComponent<TextureComponent>(
-       debrisTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates, true);
+   debris1->addComponent<TextureComponent>(debrisTexture, true);
+
+   debris1->addComponent<SpritesheetComponent>(
+       ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+       block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris1->addComponent<ParticleComponent>();
 
@@ -603,11 +630,13 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
 
    debris2->addComponent<GravityComponent>();
 
-   debris2->addComponent<MovingComponent>(8.0f, -2.0f);
+   debris2->addComponent<MovingComponent>(Vector2f(8.0f, -2.0f), Vector2f(0, 0));
 
-   debris2->addComponent<TextureComponent>(
-       debrisTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates);
+   debris2->addComponent<TextureComponent>(debrisTexture);
+
+   debris2->addComponent<SpritesheetComponent>(
+       ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+       block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris2->addComponent<ParticleComponent>();
 
@@ -621,11 +650,13 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
 
    debris3->addComponent<GravityComponent>();
 
-   debris3->addComponent<MovingComponent>(-8.0f, -2.0f);
+   debris3->addComponent<MovingComponent>(Vector2f(-8.0f, -2.0f), Vector2f(0, 0));
 
-   debris3->addComponent<TextureComponent>(
-       debrisTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates, true);
+   debris3->addComponent<TextureComponent>(debrisTexture, true);
+
+   debris3->addComponent<SpritesheetComponent>(
+       ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+       block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris3->addComponent<ParticleComponent>();
 
@@ -639,11 +670,13 @@ void PlayerSystem::createBlockDebris(World* world, Entity* block) {
 
    debris4->addComponent<GravityComponent>();
 
-   debris4->addComponent<MovingComponent>(8.0f, -2.0f);
+   debris4->addComponent<MovingComponent>(Vector2f(8.0f, -2.0f), Vector2f(0, 0));
 
-   debris4->addComponent<TextureComponent>(
-       debrisTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, block->getComponent<DestructibleComponent>()->debrisCoordinates);
+   debris4->addComponent<TextureComponent>(debrisTexture);
+
+   debris4->addComponent<SpritesheetComponent>(
+       ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+       block->getComponent<DestructibleComponent>()->debrisCoordinates);
 
    debris4->addComponent<ParticleComponent>();
 
@@ -666,13 +699,15 @@ void PlayerSystem::onAddedToWorld(World* world) {
        Vector2f(startCoordinates.x * SCALED_CUBE_SIZE, startCoordinates.y * SCALED_CUBE_SIZE),
        Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
 
-   mario->addComponent<TextureComponent>(playerTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1,
-                                         9, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
-                                         Map::PlayerIDCoordinates.at(0), false, false);
+   mario->addComponent<TextureComponent>(playerTexture, false, false);
+
+   mario->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 9, 0,
+                                             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                             Map::PlayerIDCoordinates.at(0));
 
    mario->getComponent<TextureComponent>()->setVisible(false);
 
-   mario->addComponent<MovingComponent>(0, 0, 0, 0);
+   mario->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
    mario->addComponent<PlayerComponent>();
 
@@ -694,8 +729,8 @@ void PlayerSystem::reset() {
    Camera::Get().setCameraX(scene->getLevelData().cameraStart.x * SCALED_CUBE_SIZE);
    Camera::Get().setCameraY(scene->getLevelData().cameraStart.y * SCALED_CUBE_SIZE);
 
-   move->velocityY = move->accelerationY = 0;
-   move->velocityX = move->accelerationX = 0;
+   move->velocity.y = move->acceleration.y = 0;
+   move->velocity.x = move->acceleration.x = 0;
 
    mario->getComponent<TextureComponent>()->setVisible(true);
    mario->getComponent<TextureComponent>()->setHorizontalFlipped(false);
@@ -722,7 +757,7 @@ void PlayerSystem::reset() {
 
       mario->remove<GravityComponent>();
 
-      move->velocityX = 1.6;
+      move->velocity.x = 1.6;
    }
 
    currentState = STANDING;
@@ -735,10 +770,10 @@ void PlayerSystem::checkTrampolineCollisions(World* world) {
    world->find<TrampolineComponent>([&](Entity* entity) {
       auto* trampoline = entity->getComponent<TrampolineComponent>();
       auto* trampolinePosition = entity->getComponent<PositionComponent>();
-      auto* trampolineTexture = entity->getComponent<TextureComponent>();
+      auto* trampolineTexture = entity->getComponent<SpritesheetComponent>();
 
       Entity* bottomEntity = trampoline->bottomEntity;
-      auto* bottomTexture = bottomEntity->getComponent<TextureComponent>();
+      auto* bottomTexture = bottomEntity->getComponent<SpritesheetComponent>();
 
       if (!AABBCollision(position, trampolinePosition) ||
           !Camera::Get().inCameraRange(trampolinePosition)) {
@@ -784,7 +819,7 @@ void PlayerSystem::checkTrampolineCollisions(World* world) {
 
             trampolinePosition->hitbox = SDL_Rect{0, 16, SCALED_CUBE_SIZE, 16};
 
-            move->velocityY = -11.0;
+            move->velocity.y = -11.0;
             break;
          case 3:  // Currently half retracted, set to extended
             trampolineTexture->setSpritesheetCoordinates(
@@ -819,36 +854,38 @@ void PlayerSystem::updateGroundVelocity(World* world) {
       texture->setHorizontalFlipped(false);
    }
    // Updates the acceleration
-   move->accelerationX = (float)xDir * MARIO_ACCELERATION_X;
+   move->acceleration.x = (float)xDir * MARIO_ACCELERATION_X;
    //   if (mario->hasComponent<SuperStarComponent>()) {
-   //      move->accelerationX *= 1.5957446808510638297f;
+   //      move->acceleration.x *= 1.5957446808510638297f;
    //   } else
    if (running) {
-      move->accelerationX *= 1.3297872340425531914f;
+      // a weird number that will max the velocity at 5
+      move->acceleration.x *= 1.3297872340425531914f;
    } else {
-      move->accelerationX *= 0.7978723404255319148936f;
+      // a weird number that will max the velocity to 3
+      move->acceleration.x *= 0.7978723404255319148936f;
    }
 
    if (jump && !jumpHeld && !trampolineCollided) {
       jumpHeld = true;
-      move->velocityY = -7.3;
+      move->velocity.y = -7.3;
 
       Entity* jumpSound(world->create());
       jumpSound->addComponent<SoundComponent>(SoundID::JUMP);
    }
    if (duck && isSuperMario()) {
       currentState = DUCKING;
-      move->accelerationX = 0;
+      move->acceleration.x = 0;
       // Slows the player down
-      if (move->velocityX > 1.5) {
-         move->velocityX -= 0.5;
-      } else if (move->velocityX < -1.5) {
-         move->velocityX += 0.5;
+      if (move->velocity.x > 1.5) {
+         move->velocity.x -= 0.5;
+      } else if (move->velocity.x < -1.5) {
+         move->velocity.x += 0.5;
       }
-   } else if ((bool)std::abs(move->velocityX) || (bool)std::abs(move->accelerationX)) {
+   } else if ((bool)std::abs(move->velocity.x) || (bool)std::abs(move->acceleration.x)) {
       // If the player should be drifting
-      if ((move->velocityX > 0 && move->accelerationX < 0) ||
-          (move->velocityX < 0 && move->accelerationX > 0)) {
+      if ((move->velocity.x > 0 && move->acceleration.x < 0) ||
+          (move->velocity.x < 0 && move->acceleration.x > 0)) {
          currentState = DRIFTING;
       } else {
          currentState = WALKING;
@@ -861,31 +898,31 @@ void PlayerSystem::updateGroundVelocity(World* world) {
 void PlayerSystem::updateAirVelocity() {
    auto* move = mario->getComponent<MovingComponent>();
 
-   move->accelerationX = (float)xDir * MARIO_ACCELERATION_X;
+   move->acceleration.x = (float)xDir * MARIO_ACCELERATION_X;
    if (running) {
-      if ((move->accelerationX >= 0 && move->velocityX >= 0) ||
-          (move->accelerationX <= 0 && move->velocityX <= 0)) {
+      if ((move->acceleration.x >= 0 && move->velocity.x >= 0) ||
+          (move->acceleration.x <= 0 && move->velocity.x <= 0)) {
          // If the acceleration and velocity aren't in opposite directions
          //         if (mario->hasComponent<SuperStarComponent>()) {
-         //            move->accelerationX *= 1.5957446808510638297f;
+         //            move->acceleration.x *= 1.5957446808510638297f;
          //         } else {
-         //            move->accelerationX *= 1.3297872340425531914f;
+         //            move->acceleration.x *= 1.3297872340425531914f;
          //         }
-         move->accelerationX *= 1.3297872340425531914f;
+         move->acceleration.x *= 1.3297872340425531914f;
       } else {
-         move->accelerationX *= 0.35f;
+         move->acceleration.x *= 0.35f;
       }
    }
    // Changes mario's acceleration while in the air (the longer you jump the higher mario
    // will go)
-   if (jump && move->velocityY < 0.0) {
-      if (running && std::abs(move->velocityX) > 3.5) {
-         move->accelerationY = -0.414;
+   if (jump && move->velocity.y < -1.0) {
+      if (running && std::abs(move->velocity.x) > 3.5) {
+         move->acceleration.y = -0.414;
       } else {
-         move->accelerationY = -0.412;
+         move->acceleration.y = -0.412;
       }
    } else {
-      move->accelerationY = 0;
+      move->acceleration.y = 0;
    }
    if (duck && isSuperMario()) {
       currentState = DUCKING;
@@ -905,7 +942,7 @@ void PlayerSystem::updateWaterVelocity(World* world) {
        !mario->hasComponent<WaitUntilComponent>()) {
       currentState = SWIMMING;
    } else if (mario->hasComponent<BottomCollisionComponent>()) {
-      if (move->velocityX != 0) {
+      if (move->velocity.x != 0) {
          currentState = SWIMMING_WALK;
       } else {
          currentState = STANDING;
@@ -914,34 +951,34 @@ void PlayerSystem::updateWaterVelocity(World* world) {
 
    if (currentState == SWIMMING || currentState == SWIMMING_JUMP) {
       if (left) {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, -3.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, -3.0);
          texture->setHorizontalFlipped(true);
       } else if (right) {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, 3.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, 3.0);
          texture->setHorizontalFlipped(false);
       } else {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, 0.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, 0.0);
       }
    } else {
       if (left) {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, -1.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, -1.0);
          texture->setHorizontalFlipped(true);
       } else if (right) {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, 1.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, 1.0);
          texture->setHorizontalFlipped(false);
       } else {
-         move->velocityX += underwaterControllerX.calculate(move->velocityX, 0.0);
+         move->velocity.x += underwaterControllerX.calculate(move->velocity.x, 0.0);
       }
    }
 
-   move->accelerationY = -0.45480f;
+   move->acceleration.y = -0.45480f;
 
-   if (move->velocityY > MAX_UNDERWATER_Y) {
-      move->velocityY = MAX_UNDERWATER_Y;
+   if (move->velocity.y > MAX_UNDERWATER_Y) {
+      move->velocity.y = MAX_UNDERWATER_Y;
    }
 
    if (jump && !jumpHeld) {
-      move->velocityY = -3.53;
+      move->velocity.y = -3.53;
       jumpHeld = true;
 
       Entity* jumpSound(world->create());
@@ -966,8 +1003,8 @@ void PlayerSystem::updateCamera() {
 
    if (!Camera::Get().isFrozen()) {
       Camera::Get().updateCameraMin();
-      if (position->position.x + 16 > Camera::Get().getCameraCenterX() && move->velocityX > 0.0) {
-         Camera::Get().increaseCameraX(move->velocityX);
+      if (position->position.x + 16 > Camera::Get().getCameraCenterX() && move->velocity.x > 0.0) {
+         Camera::Get().increaseCameraX(move->velocity.x);
       }
       if (position->position.x <= Camera::Get().getCameraMinX()) {
          position->position.x = Camera::Get().getCameraMinX();
@@ -997,7 +1034,7 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
       switch (enemy->getComponent<EnemyComponent>()->enemyType) {
          case EnemyType::KOOPA_SHELL:
             if (isSuperStar()) {
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
 
@@ -1006,29 +1043,29 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                break;
             }
 
-            if (move->velocityY > 0.0) {
-               if (enemyMove->velocityX != 0) {
-                  enemyMove->velocityX = 0;
-                  move->velocityY = -ENEMY_BOUNCE;
+            if (move->velocity.y > 0.0) {
+               if (enemyMove->velocity.x != 0) {
+                  enemyMove->velocity.x = 0;
+                  move->velocity.y = -ENEMY_BOUNCE;
 
                   enemyCrushed = true;
                } else {
-                  enemyMove->velocityX = 6.0;
+                  enemyMove->velocity.x = 6.0;
                }
             } else if (position->getLeft() <= enemyPosition->getLeft() &&
                        position->getRight() < enemyPosition->getRight() &&
-                       move->velocityY <= 0.0) {  // Hit from left side
-               enemyMove->velocityX = 6.0;
+                       move->velocity.y <= 0.0) {  // Hit from left side
+               enemyMove->velocity.x = 6.0;
             } else if (position->getLeft() > enemyPosition->getLeft() &&
                        position->getRight() > enemyPosition->getRight()) {
-               enemyMove->velocityX = -6.0;
+               enemyMove->velocity.x = -6.0;
             }
 
             break;
          case EnemyType::KOOPA:
          case EnemyType::FLYING_KOOPA:
             if (isSuperStar()) {
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
 
@@ -1036,23 +1073,23 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                score->addComponent<AddScoreComponent>(100);
                return;
             }
-            if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
+            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
                enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
-               move->velocityY = -MARIO_BOUNCE;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
 
                enemyCrushed = true;
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
 
-            } else if (!enemyCrushed && move->velocityY <= 0 &&
+            } else if (!enemyCrushed && move->velocity.y <= 0 &&
                        !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
                onGameOver(world);
             } else if (enemyCrushed) {
                enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
-               move->velocityY = -MARIO_BOUNCE;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
@@ -1060,7 +1097,7 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             break;
          case EnemyType::GOOMBA:
             if (isSuperStar()) {
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
 
                enemy->addComponent<EnemyDestroyedComponent>();
 
@@ -1068,23 +1105,23 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                score->addComponent<AddScoreComponent>(100);
                return;
             }
-            if (move->velocityY > 0 && enemy->hasComponent<CrushableComponent>()) {
+            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
                enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
-               move->velocityY = -MARIO_BOUNCE;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
 
                enemyCrushed = true;
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
 
-            } else if (!enemyCrushed && move->velocityY <= 0 &&
+            } else if (!enemyCrushed && move->velocity.y <= 0 &&
                        !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
                onGameOver(world);
             } else if (enemyCrushed) {
                enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocityX = 0;
-               move->velocityY = -MARIO_BOUNCE;
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
@@ -1120,10 +1157,10 @@ void PlayerSystem::tick(World* world) {
       return;
    }
    if (WarpSystem::isWarping()) {
-      if (move->velocityX != 0) {
+      if (move->velocity.x != 0) {
          currentState = WALKING;
       }
-      if (move->velocityX == 0 || move->velocityY != 0) {
+      if (move->velocity.x == 0 || move->velocity.y != 0) {
          currentState = STANDING;
       }
       setState(currentState);
@@ -1131,7 +1168,7 @@ void PlayerSystem::tick(World* world) {
       return;
    }
    if (WarpSystem::isClimbing()) {
-      currentState = (move->velocityY != 0) ? CLIMBING : SLIDING;
+      currentState = (move->velocity.y != 0) ? CLIMBING : SLIDING;
       setState(currentState);
       updateCamera();
       return;
@@ -1139,12 +1176,12 @@ void PlayerSystem::tick(World* world) {
    if (!PlayerSystem::isInputEnabled()) {
       if (scene->getLevelData().levelType == LevelType::START_UNDERGROUND &&
           PlayerSystem::isGameStart()) {
-         move->velocityX = 1.6;
+         move->velocity.x = 1.6;
       }
 
-      if (move->velocityX != 0 && move->velocityY == 0) {
+      if (move->velocity.x != 0 && move->velocity.y == 0) {
          currentState = WALKING;
-      } else if (move->velocityY != 0) {  // If moving in the air
+      } else if (move->velocity.y != 0) {  // If moving in the air
          currentState = JUMPING;
       } else {
          currentState = STANDING;
@@ -1188,11 +1225,12 @@ void PlayerSystem::tick(World* world) {
          return;
       }
       auto* platformMove = entity->getComponent<MovingComponent>();
-      position->position.x += platformMove->velocityX;
+      position->position.x += platformMove->velocity.x;
+      position->position.y += platformMove->velocity.y;
 
       if (position->position.x + 16 > Camera::Get().getCameraCenterX() &&
-          platformMove->velocityX > 0) {
-         Camera::Get().increaseCameraX(platformMove->velocityX);
+          platformMove->velocity.x > 0) {
+         Camera::Get().increaseCameraX(platformMove->velocity.x);
       }
 
       platformMoved = true;
@@ -1231,7 +1269,7 @@ void PlayerSystem::tick(World* world) {
    // Break blocks
    world->find<BumpableComponent, PositionComponent, BottomCollisionComponent>([&](Entity*
                                                                                        breakable) {
-      if (move->velocityY > 0) {
+      if (move->velocity.y > 0) {
          return;
       }
       // Destroy the block if the player is Super Mario
@@ -1268,12 +1306,12 @@ void PlayerSystem::tick(World* world) {
 
          if (breakable->hasComponent<InvisibleBlockComponent>()) {
             breakable->remove<InvisibleBlockComponent>();
-            move->velocityY = move->accelerationY = 0;
+            move->velocity.y = move->acceleration.y = 0;
          }
 
          breakable->getComponent<MysteryBoxComponent>()->whenDispensed(breakable);
          breakable->remove<AnimationComponent>();
-         breakable->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+         breakable->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
              mysteryBox->deactivatedCoordinates);
          breakable->remove<BumpableComponent>();
       }
@@ -1421,22 +1459,23 @@ void PlayerSystem::handleEvent(const Uint8* keystates) {
       jump = jumpHeld = false;
       return;
    }
-   //   if(keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_UP]) {
-   //   	jumpHeld = jump;
-   //   	jump = true;
-   //   } else {
-   //   	jump = jumpHeld = false;
-   //   }
-
-   (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP])
-       ? jump = true
-       : jump = jumpHeld = false;
-
    if (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP]) {
+      jumpHeld = jump;
       jump = true;
-      jumpHeldTime++;
    } else {
       jump = jumpHeld = false;
-      jumpHeldTime = 0;
    }
+
+   //   (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP])
+   //       ? jump = true
+   //       : jump = jumpHeld = false;
+
+   //   if (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] ||
+   //   keystates[SDL_SCANCODE_UP]) {
+   //      jump = true;
+   //      jumpHeldTime++;
+   //   } else {
+   //      jump = jumpHeld = false;
+   //      jumpHeldTime = 0;
+   //   }
 }

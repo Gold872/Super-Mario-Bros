@@ -1,14 +1,15 @@
 #include "Game.h"
 
-#include "Camera.h"
 #include "Core.h"
 #include "TextureManager.h"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
 
 Game::Game() {}
+
+Game::Game(Core* core) {
+   this->core = core;
+}
 
 void Game::init() {
    currentScene = Scenes::MENU;

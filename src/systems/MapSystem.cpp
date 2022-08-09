@@ -25,17 +25,27 @@ std::tuple<Vector2i, T> getDataCoordinate(std::vector<std::tuple<Vector2i, T>> l
 }
 
 auto getPlatformCoordinate(
-    std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>> levelData,
+    std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, bool>> levelData,
     Vector2i coordinate) {
    for (auto tupledData : levelData) {
       if (std::get<0>(tupledData) == coordinate) {
-         return std::tuple<PlatformMotionType, Direction, Vector2i, int, bool>(
+         return std::tuple<PlatformMotionType, Direction, Vector2i, bool>(
              std::get<1>(tupledData), std::get<2>(tupledData), std::get<3>(tupledData),
-             std::get<4>(tupledData), std::get<5>(tupledData));
+             std::get<4>(tupledData));
       }
    }
-   return std::tuple<PlatformMotionType, Direction, Vector2i, int, bool>(
-       PlatformMotionType::NONE, Direction::NONE, Vector2i(0, 0), 0, false);
+   return std::tuple<PlatformMotionType, Direction, Vector2i, bool>(
+       PlatformMotionType::NONE, Direction::NONE, Vector2i(0, 0), false);
+}
+
+auto getPlatformLevelCoordinate(std::vector<std::tuple<Vector2i, Vector2i, int>> levelData,
+                                Vector2i coordinate) {
+   for (auto tupledData : levelData) {
+      if (std::get<0>(tupledData) == coordinate) {
+         return std::tuple<Vector2i, Vector2i, int>(tupledData);
+      }
+   }
+   return std::tuple<Vector2i, Vector2i, int>(Vector2i(0, 0), Vector2i(0, 0), 0);
 }
 
 auto getPipeCoordinate(std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction,
@@ -210,9 +220,11 @@ Entity* MapSystem::createBlockEntity(World* world, int coordinateX, int coordina
    entity->addComponent<PositionComponent>(Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
                                            Vector2i(SCALED_CUBE_SIZE));
 
-   entity->addComponent<TextureComponent>(
-       scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-       ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID), false, false);
+   entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+   entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                              Map::BlockIDCoordinates.at(entityID));
 
    entity->addComponent<ForegroundComponent>();
 
@@ -221,12 +233,44 @@ Entity* MapSystem::createBlockEntity(World* world, int coordinateX, int coordina
    return entity;
 }
 
-Entity* MapSystem::createPlatformEntity(
-    World* world, int coordinateX, int coordinateY, int entityID,
-    std::tuple<PlatformMotionType, Direction, Vector2i, int, bool> platformCoordinate) {
-   Entity* platform(createBlockEntity(world, coordinateX, coordinateY, entityID));
+Entity* MapSystem::createBackgroundEntity(World* world, int coordinateX, int coordinateY,
+                                          int entityID) {
+   Entity* entity(world->create());
 
-   if (std::get<4>(platformCoordinate)) {
+   entity->addComponent<PositionComponent>(Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+                                           Vector2i(SCALED_CUBE_SIZE));
+
+   entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+   entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                              Map::BlockIDCoordinates.at(entityID));
+
+   entity->addComponent<BackgroundComponent>();
+
+   return entity;
+}
+
+// Creates a moving platform entity
+Entity* MapSystem::createPlatformEntity(
+    World* world, int coordinateX, int coordinateY, int entityID, int platformLength,
+    std::tuple<PlatformMotionType, Direction, Vector2i, bool> platformData) {
+   Entity* platform(world->create());
+
+   platform->addComponent<PositionComponent>(Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+                                             Vector2i(platformLength, 1) * SCALED_CUBE_SIZE);
+
+   platform->addComponent<TextureComponent>(scene->blockTexture);
+
+   platform->addComponent<SpritesheetComponent>(
+       ORIGINAL_CUBE_SIZE * platformLength, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+       ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID));
+
+   platform->addComponent<ForegroundComponent>();
+
+   platform->addComponent<TileComponent>();
+
+   if (std::get<3>(platformData)) {
       platform->getComponent<PositionComponent>()->position.x += SCALED_CUBE_SIZE / 2;
    }
 
@@ -234,81 +278,129 @@ Entity* MapSystem::createPlatformEntity(
 
    platform->addComponent<CollisionExemptComponent>();
 
-   auto* move = platform->addComponent<MovingComponent>(0, 0, 0, 0);
+   auto* move = platform->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
-   switch (std::get<0>(platformCoordinate)) {
+   switch (std::get<0>(platformData)) {
       case PlatformMotionType::ONE_DIRECTION_REPEATED: {
-         Direction movingDirection = std::get<1>(platformCoordinate);
-         Vector2i minMax = std::get<2>(platformCoordinate) * SCALED_CUBE_SIZE;
-         int platformLength = std::get<3>(platformCoordinate);
+         Direction movingDirection = std::get<1>(platformData);
+         Vector2i minMax = std::get<2>(platformData) * SCALED_CUBE_SIZE;
 
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::ONE_DIRECTION_REPEATED,
-                                                         movingDirection, minMax, platformLength);
+                                                         movingDirection, minMax);
 
          switch (movingDirection) {
             case Direction::LEFT:
-               move->velocityX = -2.0;
+               move->velocity.x = -2.0;
                break;
             case Direction::RIGHT:
-               move->velocityX = 2.0;
+               move->velocity.x = 2.0;
                break;
             case Direction::UP:
-               move->velocityY = -2.0;
+               move->velocity.y = -2.0;
                break;
             case Direction::DOWN:
-               move->velocityY = 2.0;
+               move->velocity.y = 2.0;
                break;
             default:
                break;
          }
       } break;
       case PlatformMotionType::ONE_DIRECTION_CONTINUOUS: {
-         Direction movingDirection = std::get<1>(platformCoordinate);
-         int platformLength = std::get<3>(platformCoordinate);
+         Direction movingDirection = std::get<1>(platformData);
 
          platform->addComponent<MovingPlatformComponent>(
-             PlatformMotionType::ONE_DIRECTION_CONTINUOUS, movingDirection, Vector2i(0, 0),
-             platformLength);
+             PlatformMotionType::ONE_DIRECTION_CONTINUOUS, movingDirection, Vector2i(0, 0));
 
          switch (movingDirection) {
             case Direction::LEFT:
-               move->velocityX = -2.0;
+               move->velocity.x = -2.0;
                break;
             case Direction::RIGHT:
-               move->velocityX = 2.0;
+               move->velocity.x = 2.0;
                break;
             case Direction::UP:
-               move->velocityY = -2.0;
+               move->velocity.y = -2.0;
                break;
             case Direction::DOWN:
-               move->velocityY = 2.0;
+               move->velocity.y = 2.0;
                break;
             default:
                break;
          }
       } break;
       case PlatformMotionType::BACK_AND_FORTH: {
-         Direction movingDirection = std::get<1>(platformCoordinate);
-         Vector2i minMax = std::get<2>(platformCoordinate);
-         int platformLength = std::get<3>(platformCoordinate);
+         Direction movingDirection = std::get<1>(platformData);
+         Vector2i minMax = std::get<2>(platformData);
 
-         if (movingDirection == Direction::UP || movingDirection == Direction::DOWN) {
-            minMax += Vector2i(1, 0);
-         } else if (movingDirection == Direction::LEFT || movingDirection == Direction::RIGHT) {
-            minMax -= Vector2i(0, std::get<3>(platformCoordinate) - 1);
-            minMax += Vector2i(0, 1);
-         }
+         minMax += Vector2i(0, 1);
 
          minMax *= SCALED_CUBE_SIZE;
 
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::BACK_AND_FORTH,
-                                                         movingDirection, minMax, platformLength);
+                                                         movingDirection, minMax);
       } break;
       default:
          break;
    }
 
    return platform;
+}
+
+Entity* MapSystem::createPlatformLevelEntity(
+    World* world, std::tuple<Vector2i, Vector2i, int> platformLevelData) {
+   Vector2i leftCoordinate = std::get<0>(platformLevelData);
+   Vector2i rightCoordinate = std::get<1>(platformLevelData);
+   int pulleyHeight = std::get<2>(platformLevelData) + 1;
+
+   // The X coordinates of the pulley lines
+   int leftLineX = leftCoordinate.x + 1;
+   int rightLineX = rightCoordinate.x + 1;
+
+   Entity* leftPulleyLine = createBackgroundEntity(world, leftLineX, pulleyHeight, 391);
+   Entity* rightPulleyLine = createBackgroundEntity(world, rightLineX, pulleyHeight, 391);
+
+   Entity* leftPlatform(world->create());
+   Entity* rightPlatform(world->create());
+
+   leftPlatform->addComponent<PositionComponent>(
+       leftCoordinate.convertTo<float>() * SCALED_CUBE_SIZE, Vector2i(3, 1) * SCALED_CUBE_SIZE,
+       SDL_Rect{0, 0, 3 * SCALED_CUBE_SIZE, SCALED_CUBE_SIZE / 2});
+
+   leftPlatform->addComponent<TextureComponent>(scene->blockTexture);
+
+   leftPlatform->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE * 3, ORIGINAL_CUBE_SIZE, 1,
+                                                    1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(809));
+
+   leftPlatform->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
+
+   leftPlatform->addComponent<PlatformLevelComponent>(rightPlatform, leftPulleyLine,
+                                                      pulleyHeight * SCALED_CUBE_SIZE);
+
+   leftPlatform->addComponent<ForegroundComponent>();
+
+   leftPlatform->addComponent<TileComponent>();
+
+   rightPlatform->addComponent<PositionComponent>(
+       rightCoordinate.convertTo<float>() * SCALED_CUBE_SIZE, Vector2i(3, 1) * SCALED_CUBE_SIZE,
+       SDL_Rect{0, 0, 3 * SCALED_CUBE_SIZE, SCALED_CUBE_SIZE / 2});
+
+   rightPlatform->addComponent<TextureComponent>(scene->blockTexture);
+
+   rightPlatform->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE * 3, ORIGINAL_CUBE_SIZE, 1,
+                                                     1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                     Map::BlockIDCoordinates.at(809));
+
+   rightPlatform->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
+
+   rightPlatform->addComponent<PlatformLevelComponent>(leftPlatform, rightPulleyLine,
+                                                       pulleyHeight * SCALED_CUBE_SIZE);
+
+   rightPlatform->addComponent<ForegroundComponent>();
+
+   rightPlatform->addComponent<TileComponent>();
+
+   return leftPlatform;
 }
 
 void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int referenceID) {
@@ -336,9 +428,11 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                int flowerID = getReferenceBlockIDAsEntity(entityID, 48);
 
-               fireFlower->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(flowerID));
+               fireFlower->addComponent<TextureComponent>(blockTexture);
+
+               fireFlower->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(flowerID));
 
                fireFlower->addComponent<AnimationComponent>(
                    std::vector<int>{flowerID, flowerID + 1, flowerID + 2, flowerID + 3}, 8,
@@ -346,7 +440,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                fireFlower->addComponent<CollectibleComponent>(CollectibleType::FIRE_FLOWER);
 
-               fireFlower->addComponent<MovingComponent>(0, -1.0f);
+               fireFlower->addComponent<MovingComponent>(Vector2f(0, -1.0f), Vector2f(0, 0));
 
                fireFlower->addComponent<CollisionExemptComponent>();
 
@@ -355,9 +449,9 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                       return position->getTop() >
                              entity->getComponent<PositionComponent>()->getBottom();
                    },
-                   [&](Entity* entity) {
+                   [](Entity* entity) {
                       entity->addComponent<GravityComponent>();
-                      entity->getComponent<MovingComponent>()->velocityY = 0;
+                      entity->getComponent<MovingComponent>()->velocity.y = 0;
                       entity->remove<CollisionExemptComponent>();
                       entity->remove<WaitUntilComponent>();
                    });
@@ -369,13 +463,15 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                mushroom->addComponent<PositionComponent>(position->position,
                                                          Vector2i(SCALED_CUBE_SIZE));
 
-               mushroom->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(608));
+               mushroom->addComponent<TextureComponent>(blockTexture);
+
+               mushroom->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(608));
 
                mushroom->addComponent<CollectibleComponent>(CollectibleType::MUSHROOM);
 
-               mushroom->addComponent<MovingComponent>(0, -1.0f);
+               mushroom->addComponent<MovingComponent>(Vector2f(0, -1.0f), Vector2f(0, 0));
 
                mushroom->addComponent<CollisionExemptComponent>();
 
@@ -384,9 +480,9 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                       return position->getTop() >
                              entity->getComponent<PositionComponent>()->getBottom();
                    },
-                   [&](Entity* entity) {
+                   [](Entity* entity) {
                       entity->addComponent<GravityComponent>();
-                      entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                      entity->getComponent<MovingComponent>()->velocity.x = COLLECTIBLE_SPEED;
                       entity->remove<CollisionExemptComponent>();
                       entity->remove<WaitUntilComponent>();
                    });
@@ -411,16 +507,18 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             coin->addComponent<PositionComponent>(position->position, Vector2i(SCALED_CUBE_SIZE));
 
-            coin->addComponent<TextureComponent>(
-                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(656));
+            coin->addComponent<TextureComponent>(blockTexture);
+
+            coin->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                     1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                     Map::BlockIDCoordinates.at(656));
 
             coin->addComponent<ForegroundComponent>();
 
             coin->addComponent<AnimationComponent>(std::vector<int>{656, 657, 658, 659}, 8,
                                                    Map::BlockIDCoordinates);
 
-            coin->addComponent<MovingComponent>(0, -10.00, 0, 0.3);
+            coin->addComponent<MovingComponent>(Vector2f(0, -10.00), Vector2f(0, 0.3));
 
             coin->addComponent<GravityComponent>();
 
@@ -429,7 +527,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
             coin->addComponent<WaitUntilComponent>(
                 [=](Entity* entity) {
                    return AABBTotalCollision(position, entity->getComponent<PositionComponent>()) &&
-                          entity->getComponent<MovingComponent>()->velocityY >= 0;
+                          entity->getComponent<MovingComponent>()->velocity.y >= 0;
                 },
                 [=](Entity* entity) {
                    world->destroy(entity);
@@ -449,9 +547,11 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             int starID = getReferenceBlockIDAsEntity(entityID, 96);
 
-            star->addComponent<TextureComponent>(
-                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(starID));
+            star->addComponent<TextureComponent>(blockTexture);
+
+            star->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                     1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                     Map::BlockIDCoordinates.at(starID));
 
             star->addComponent<AnimationComponent>(
                 std::vector<int>{starID, starID + 1, starID + 2, starID + 3}, 8,
@@ -459,7 +559,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             star->addComponent<CollectibleComponent>(CollectibleType::SUPER_STAR);
 
-            star->addComponent<MovingComponent>(0, -1.0f);
+            star->addComponent<MovingComponent>(Vector2f(0, -1.0f), Vector2f(0, 0));
 
             star->addComponent<CollisionExemptComponent>();
 
@@ -470,7 +570,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 },
                 [&](Entity* entity) {
                    entity->addComponent<GravityComponent>();
-                   entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                   entity->getComponent<MovingComponent>()->velocity.x = COLLECTIBLE_SPEED;
                    entity->remove<CollisionExemptComponent>();
                    entity->remove<WaitUntilComponent>();
                 });
@@ -489,13 +589,15 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             int oneupID = getReferenceBlockIDAsEntity(entityID, 52);
 
-            oneup->addComponent<TextureComponent>(
-                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(oneupID));
+            oneup->addComponent<TextureComponent>(blockTexture);
+
+            oneup->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                      1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                      Map::BlockIDCoordinates.at(oneupID));
 
             oneup->addComponent<CollectibleComponent>(CollectibleType::ONE_UP);
 
-            oneup->addComponent<MovingComponent>(0, -1.0f);
+            oneup->addComponent<MovingComponent>(Vector2f(0, -1.0f), Vector2f(0, 0));
 
             oneup->addComponent<CollisionExemptComponent>();
 
@@ -506,7 +608,7 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 },
                 [&](Entity* entity) {
                    entity->addComponent<GravityComponent>();
-                   entity->getComponent<MovingComponent>()->velocityX = COLLECTIBLE_SPEED;
+                   entity->getComponent<MovingComponent>()->velocity.x = COLLECTIBLE_SPEED;
                    entity->remove<CollisionExemptComponent>();
                    entity->remove<WaitUntilComponent>();
                 });
@@ -542,11 +644,13 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             vineTop->addComponent<PositionComponent>(position->position,
                                                      Vector2i(SCALED_CUBE_SIZE));
-            vineTop->addComponent<TextureComponent>(
-                blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+            vineTop->addComponent<TextureComponent>(blockTexture);
+
+            vineTop->addComponent<SpritesheetComponent>(
+                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
                 ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(vineTopID));
 
-            vineTop->addComponent<MovingComponent>(0, -1.0, 0, 0);
+            vineTop->addComponent<MovingComponent>(Vector2f(0, -1.0), Vector2f(0, 0));
 
             vineTop->addComponent<MoveOutsideCameraComponent>();
 
@@ -566,6 +670,11 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             Entity* vineGrowController(world->create());
 
+            /* Periodically waits until the bottom of the vine has moved past the block, and then
+             * adds another piece to the vine.
+             *
+             * This keeps happening until the vine has fully grown
+             */
             vineGrowController->addComponent<WaitUntilComponent>(
                 [=, &vineParts](Entity* entity) {
                    auto* position = originalBlock->getComponent<PositionComponent>();
@@ -576,18 +685,20 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
                 [=, &blockTexture, &vineParts, &vineLength](Entity* entity) {
                    auto* position = originalBlock->getComponent<PositionComponent>();
 
+                   // Adds another part to the vine
                    if (vineLength < 6) {
                       Entity* vinePiece(world->create());
 
                       vinePiece->addComponent<PositionComponent>(position->position,
                                                                  Vector2i(SCALED_CUBE_SIZE));
 
-                      vinePiece->addComponent<TextureComponent>(
-                          blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                          ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
-                          Map::BlockIDCoordinates.at(vineBodyID));
+                      vinePiece->addComponent<TextureComponent>(blockTexture);
 
-                      vinePiece->addComponent<MovingComponent>(0, -1.0, 0, 0);
+                      vinePiece->addComponent<SpritesheetComponent>(
+                          ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                          ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(vineBodyID));
+
+                      vinePiece->addComponent<MovingComponent>(Vector2f(0, -1.0), Vector2f(0, 0));
 
                       vinePiece->addComponent<MoveOutsideCameraComponent>();
 
@@ -603,10 +714,11 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                       vineParts.push_back(vinePiece);
                       vineLength++;
+                      // If the vine is fully grown and the last vine is no longer in the block
                    } else if (vineParts.back()->getComponent<PositionComponent>()->getBottom() <=
                               position->getTop()) {
                       for (Entity* e : vineParts) {
-                         e->getComponent<MovingComponent>()->velocityY = 0;
+                         e->getComponent<MovingComponent>()->velocity.y = 0;
                       }
                       vineGrowController->remove<WaitUntilComponent>();
 
@@ -662,6 +774,9 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          }
          break;
       case 394:
+      case 762:
+      case 810:
+      case 811:
          break;
       case 144: {  // COIN
          Entity* entity(world->create());
@@ -669,10 +784,11 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE,
-                                                Map::BlockIDCoordinates.at(entityID), false, false);
+         entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(entityID));
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 8,
@@ -692,10 +808,11 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE,
-                                                Map::BlockIDCoordinates.at(entityID), false, false);
+         entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(entityID));
 
          entity->addComponent<ForegroundComponent>();
 
@@ -711,12 +828,13 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                       coordinateY * SCALED_CUBE_SIZE),
              Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE,
-                                                Map::BlockIDCoordinates.at(entityID), false, false);
+         entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
 
-         entity->addComponent<MovingComponent>(0, 0, 0, 0);
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(entityID));
+
+         entity->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
          entity->addComponent<ForegroundComponent>();
 
@@ -771,10 +889,11 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(scene->blockTexture, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                                                ORIGINAL_CUBE_SIZE,
-                                                Map::BlockIDCoordinates.at(entityID), false, false);
+         entity->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(entityID));
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{entityID, entityID + 1, entityID + 2, entityID + 3}, 8,
@@ -827,6 +946,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             addItemDispenser(world, entity, entityID, referenceID);
          }
       } break;
+      /* ****************************************************************** */
       case 339: {  // BRIDGE CHAIN (this is here so it gets destroyed with the bridge
          if (scene->getLevelData().levelType == LevelType::CASTLE) {
             Entity* bridgeChain(createBlockEntity(world, coordinateX, coordinateY, entityID));
@@ -875,24 +995,36 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             createBlockEntity(world, coordinateX, coordinateY, entityID);
          }
       } break;
+      /* ****************************************************************** */
       case 609: {  // MOVING PLATFORM
-         auto platformCoordinate = getPlatformCoordinate(
-             scene->getLevelData().movingPlatformDirections, Vector2i(coordinateX, coordinateY));
+         createBlockEntity(world, coordinateX, coordinateY, entityID);
+      } break;
+      /* ****************************************************************** */
+      case 761: {  // MOVING PLATFORM (2 wide)
+         auto platformData = getPlatformCoordinate(scene->getLevelData().movingPlatformDirections,
+                                                   Vector2i(coordinateX, coordinateY));
 
-         if (std::get<0>(platformCoordinate) != PlatformMotionType::NONE) {
-            Entity* originalPlatform(createPlatformEntity(world, coordinateX, coordinateY, entityID,
-                                                          platformCoordinate));
-
-            int platformLength = std::get<3>(platformCoordinate);
-
-            for (int i = coordinateX + 1; i < coordinateX + platformLength; i++) {
-               Entity* platform(
-                   createPlatformEntity(world, i, coordinateY, entityID, platformCoordinate));
-
-               originalPlatform->getComponent<MovingPlatformComponent>()->connectedParts.push_back(
-                   platform);
-            }
+         createPlatformEntity(world, coordinateX, coordinateY, entityID, 2, platformData);
+      } break;
+      /* ****************************************************************** */
+      case 809: {  // MOVING PLATFORM (3 wide)
+         auto platformData = getPlatformCoordinate(scene->getLevelData().movingPlatformDirections,
+                                                   Vector2i(coordinateX, coordinateY));
+         if (std::get<0>(platformData) != PlatformMotionType::NONE) {
+            createPlatformEntity(world, coordinateX, coordinateY, entityID, 3, platformData);
+            return;
          }
+
+         auto platformLevelData = getPlatformLevelCoordinate(
+             scene->getLevelData().platformLevelLocations, Vector2i(coordinateX, coordinateY));
+
+         if (std::get<0>(platformLevelData) != Vector2i(0, 0)) {
+            createPlatformLevelEntity(world, platformLevelData);
+            return;
+         }
+
+         //         createPlatformEntity(world, coordinateX, coordinateY, entityID, 3,
+         //         platformData);
       } break;
       /* ****************************************************************** */
       default: {
@@ -915,23 +1047,25 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
              SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                    1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
 
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<GravityComponent>();
 
          entity->addComponent<CrushableComponent>([=](Entity* entity) {
             entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA_SHELL;
-            entity->getComponent<MovingComponent>()->velocityX = 0.0;
-            entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
+            entity->getComponent<MovingComponent>()->velocity.x = 0.0;
+            entity->getComponent<SpritesheetComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
             entity->addComponent<DestroyOutsideCameraComponent>();
 
@@ -941,7 +1075,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
-            entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                 Map::EnemyIDCoordinates.at(shellCoordinate));
 
             entity->remove<AnimationComponent>();
@@ -959,23 +1093,25 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
              SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                    1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
 
          int firstAnimationID = entityID - 1;
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<GravityComponent>();
 
          entity->addComponent<CrushableComponent>([=](Entity* entity) {
             entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA_SHELL;
-            entity->getComponent<MovingComponent>()->velocityX = 0.0;
-            entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
+            entity->getComponent<MovingComponent>()->velocity.x = 0.0;
+            entity->getComponent<SpritesheetComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
             entity->addComponent<DestroyOutsideCameraComponent>();
 
@@ -985,7 +1121,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
-            entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                 Map::EnemyIDCoordinates.at(shellCoordinate));
 
             entity->remove<AnimationComponent>();
@@ -1003,14 +1139,16 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                       coordinateY * SCALED_CUBE_SIZE),
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2), SDL_Rect{24, 48, 16, 16});
 
-         pirhanna->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         pirhanna->addComponent<TextureComponent>(scene->enemyTexture);
+
+         pirhanna->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                      1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                      Map::EnemyIDCoordinates.at(entityID));
 
          pirhanna->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 4,
                                                     Map::EnemyIDCoordinates);
 
-         pirhanna->addComponent<MovingComponent>(0, 0, 0, 0);
+         pirhanna->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
          pirhanna->addComponent<MoveOutsideCameraComponent>();
 
@@ -1030,7 +1168,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                 auto* piranha = entity->getComponent<PiranhaPlantComponent>();
 
                 if (piranha->inPipe) {
-                   entity->getComponent<MovingComponent>()->velocityY = -1;
+                   entity->getComponent<MovingComponent>()->velocity.y = -1;
 
                    entity->addComponent<WaitUntilComponent>(
                        [=](Entity* entity) {
@@ -1041,14 +1179,14 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                           entity->getComponent<PositionComponent>()->setBottom(
                               piranha->pipeCoordinates.y);
 
-                          entity->getComponent<MovingComponent>()->velocityY = 0;
+                          entity->getComponent<MovingComponent>()->velocity.y = 0;
 
                           entity->remove<WaitUntilComponent>();
                        });
 
                    piranha->inPipe = false;
                 } else {
-                   entity->getComponent<MovingComponent>()->velocityY = 1;
+                   entity->getComponent<MovingComponent>()->velocity.y = 1;
 
                    entity->addComponent<WaitUntilComponent>(
                        [=](Entity* entity) {
@@ -1059,7 +1197,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                           entity->getComponent<PositionComponent>()->setTop(
                               piranha->pipeCoordinates.y);
 
-                          entity->getComponent<MovingComponent>()->velocityY = 0;
+                          entity->getComponent<MovingComponent>()->velocity.y = 0;
 
                           entity->remove<WaitUntilComponent>();
                        });
@@ -1078,14 +1216,17 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
              Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
              SDL_Rect{0, SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
-         blooper->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         blooper->addComponent<TextureComponent>(scene->enemyTexture);
+
+         blooper->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                     1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                     Map::EnemyIDCoordinates.at(entityID));
 
          blooper->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 2,
                                                    Map::EnemyIDCoordinates);
 
-         auto* move = blooper->addComponent<MovingComponent>(0, 0, 0, -0.47480f);
+         auto* move =
+             blooper->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, -0.47480f));
 
          blooper->addComponent<GravityComponent>();
 
@@ -1101,22 +1242,22 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
                 entity->remove<GravityComponent>();
 
-                move->accelerationY = 0;
+                move->acceleration.y = 0;
 
                 auto* playerPosition =
                     world->findFirst<PlayerComponent>()->getComponent<PositionComponent>();
 
-                move->velocityX = (playerPosition->position.x > position->position.x) ? 3.0 : -3.0;
+                move->velocity.x = (playerPosition->position.x > position->position.x) ? 3.0 : -3.0;
 
-                move->velocityY =
+                move->velocity.y =
                     (position->position.y < Camera::Get().getCameraCenterY()) ? 3.0 : -3.0;
 
                 entity->addComponent<CallbackComponent>(
                     [=](Entity* entity) {
                        entity->addComponent<GravityComponent>();
 
-                       move->velocityX = move->velocityY = 0;
-                       move->accelerationY = -0.47480f;
+                       move->velocity.x = move->velocity.y = 0;
+                       move->acceleration.y = -0.47480f;
                     },
                     MAX_FPS / 2);
              },
@@ -1131,11 +1272,13 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          auto* position = bowser->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE * 2));
 
-         auto* texture = bowser->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE * 2, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         auto* texture = bowser->addComponent<TextureComponent>(scene->enemyTexture);
 
-         auto* move = bowser->addComponent<MovingComponent>(0, 0, 0, -0.3);
+         bowser->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE * 2, ORIGINAL_CUBE_SIZE * 2,
+                                                    1, 1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         auto* move = bowser->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, -0.3));
 
          bowser->addComponent<GravityComponent>();
          bowser->addComponent<FrictionExemptComponent>();
@@ -1156,23 +1299,23 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                 auto* bowserComponent = entity->getComponent<BowserComponent>();
 
                 if (bowserComponent->lastMoveDirection == Direction::LEFT) {
-                   move->velocityX = 1.0;
+                   move->velocity.x = 1.0;
                    bowserComponent->lastMoveDirection = Direction::RIGHT;
                 } else {
-                   move->velocityX = 1.0;
+                   move->velocity.x = 1.0;
                    bowserComponent->lastMoveDirection = Direction::LEFT;
                 }
                 bowserComponent->lastMoveTime = 0;
              },
              [=](Entity* entity) {  // STOP
-                move->velocityX = 0;
+                move->velocity.x = 0;
                 entity->getComponent<BowserComponent>()->lastStopTime = 0;
              },
              [=](Entity* entity) {  // JUMP
                 auto* bowserComponent = entity->getComponent<BowserComponent>();
 
-                move->velocityY = -5.0;
-                move->accelerationY = -0.35;
+                move->velocity.y = -5.0;
+                move->acceleration.y = -0.35;
                 bowserComponent->lastJumpTime = 0;
              },
          };
@@ -1195,26 +1338,30 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                            Vector2f(0, position->getTop() + 4),
                            Vector2i(SCALED_CUBE_SIZE + SCALED_CUBE_SIZE / 2, SCALED_CUBE_SIZE / 2));
 
-                       auto* blastTexture = fireBlast->addComponent<TextureComponent>(
-                           scene->enemyTexture, ORIGINAL_CUBE_SIZE + ORIGINAL_CUBE_SIZE / 2,
-                           ORIGINAL_CUBE_SIZE / 2, 1, 1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                       auto* blastTexture =
+                           fireBlast->addComponent<TextureComponent>(scene->enemyTexture);
+
+                       fireBlast->addComponent<SpritesheetComponent>(
+                           ORIGINAL_CUBE_SIZE + ORIGINAL_CUBE_SIZE / 2, ORIGINAL_CUBE_SIZE / 2, 1,
+                           1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
                            Map::EnemyIDCoordinates.at(470));
 
                        fireBlast->addComponent<AnimationComponent>(std::vector<int>{470, 505}, 16,
                                                                    Map::EnemyIDCoordinates);
 
-                       auto* blastMove = fireBlast->addComponent<MovingComponent>(0, 0, 0, 0);
+                       auto* blastMove =
+                           fireBlast->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
                        fireBlast->addComponent<FrictionExemptComponent>();
 
                        fireBlast->addComponent<DestroyOutsideCameraComponent>();
 
                        if (texture->isHorizontalFlipped()) {
-                          blastMove->velocityX = 3.0;
+                          blastMove->velocity.x = 3.0;
                           blastPosition->setLeft(position->getRight());
                           blastTexture->setHorizontalFlipped(true);
                        } else {
-                          blastMove->velocityX = -3.0;
+                          blastMove->velocity.x = -3.0;
                           blastPosition->setRight(position->getLeft());
                           blastTexture->setHorizontalFlipped(false);
                        }
@@ -1241,10 +1388,11 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                              hammerPosition->setRight(position->getLeft());
                           }
 
-                          hammer->addComponent<TextureComponent>(
-                              scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-                              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
-                              Map::EnemyIDCoordinates.at(hammerID));
+                          hammer->addComponent<TextureComponent>(scene->enemyTexture);
+
+                          hammer->addComponent<SpritesheetComponent>(
+                              ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0, ORIGINAL_CUBE_SIZE,
+                              ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(hammerID));
 
                           float randomXVelocity =
                               -((float)((float)rand() / (float)RAND_MAX) + 2.25);
@@ -1255,8 +1403,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                              randomXVelocity *= -1;
                           }
 
-                          hammer->addComponent<MovingComponent>(randomXVelocity, randomYVelocity, 0,
-                                                                -0.35);
+                          hammer->addComponent<MovingComponent>(
+                              Vector2f(randomXVelocity, randomYVelocity), Vector2f(0, -0.35));
 
                           hammer->addComponent<FrictionExemptComponent>();
 
@@ -1285,21 +1433,23 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
 
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<CrushableComponent>([=](Entity* entity) {
             int deadEnemyID = getReferenceEnemyIDAsEntity(entityID, 72);
 
-            entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                 Map::EnemyIDCoordinates.at(deadEnemyID));
             entity->remove<AnimationComponent>();
             entity->remove<MovingComponent>();
@@ -1320,19 +1470,21 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                       coordinateY * SCALED_CUBE_SIZE),
              Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID - 1));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID - 1));
 
          int firstAnimationID = entityID - 1;
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<CrushableComponent>([&](Entity* entity) {
-            entity->getComponent<TextureComponent>()->setSpritesheetXCoordinate(2);
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetXCoordinate(2);
 
             entity->remove<AnimationComponent>();
 
@@ -1352,14 +1504,16 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
 
          entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
                                                   Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<CollisionExemptComponent>();
 
@@ -1373,25 +1527,28 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<PositionComponent>(
              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
-             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
+             SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
 
-         entity->addComponent<TextureComponent>(
-             scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1, 0,
-             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                    1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
 
          int firstAnimationID = entityID;
 
          entity->addComponent<AnimationComponent>(
              std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
 
-         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
          entity->addComponent<GravityComponent>();
 
          entity->addComponent<CrushableComponent>([=](Entity* entity) {
             entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA_SHELL;
-            entity->getComponent<MovingComponent>()->velocityX = 0.0;
-            entity->getComponent<TextureComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
+            entity->getComponent<MovingComponent>()->velocity.x = 0.0;
+            entity->getComponent<SpritesheetComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
 
             entity->addComponent<DestroyOutsideCameraComponent>();
 
@@ -1401,7 +1558,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = 494;
-            entity->getComponent<TextureComponent>()->setSpritesheetCoordinates(
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                 Map::EnemyIDCoordinates.at(shellCoordinate));
 
             entity->remove<AnimationComponent>();
@@ -1418,14 +1575,16 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             entity->addComponent<PositionComponent>(
                 Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-            entity->addComponent<TextureComponent>(
-                scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID));
+            entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+            entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                       0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                       Map::EnemyIDCoordinates.at(entityID));
 
             entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
                                                      Map::EnemyIDCoordinates);
 
-            entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
+            entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
             entity->addComponent<CollisionExemptComponent>();
 
@@ -1438,14 +1597,16 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             auto* position = entity->addComponent<PositionComponent>(
                 Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-            entity->addComponent<TextureComponent>(
-                scene->enemyTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
-                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(entityID), true);
+            entity->addComponent<TextureComponent>(scene->enemyTexture, true);
+
+            entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                       0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                       Map::EnemyIDCoordinates.at(entityID));
 
             entity->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 6,
                                                      Map::EnemyIDCoordinates);
 
-            auto* move = entity->addComponent<MovingComponent>(0, 0, 0, 0);
+            auto* move = entity->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
 
             entity->addComponent<MoveOutsideCameraComponent>();
 
@@ -1469,11 +1630,11 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                              return;
                           }
 
-                          move->velocityX = generateRandomNumber(2.0f, 4.0f);
+                          move->velocity.x = generateRandomNumber(2.0f, 4.0f);
 
-                          move->velocityY = -10.0;
+                          move->velocity.y = -10.0;
 
-                          move->accelerationY = -0.4542;
+                          move->acceleration.y = -0.4542;
                        },
                        MAX_FPS * generateRandomNumber(0.5, 1.5));
                 },
@@ -1482,6 +1643,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
          }
       } break;
+      /* ****************************************************************** */
       default: {
          //         Entity* entity(world->create());
          //
@@ -1520,10 +1682,11 @@ void MapSystem::createFireBarEntities(World* world) {
                    Vector2f(j, i) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE),
                    SDL_Rect{0, 0, SCALED_CUBE_SIZE / 4, SCALED_CUBE_SIZE / 4});
 
-               barElement->addComponent<TextureComponent>(
-                   scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(611), false,
-                   false);
+               barElement->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+               barElement->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(611));
 
                barElement->addComponent<AnimationComponent>(std::vector<int>{611, 612, 613, 614},
                                                             12, Map::BlockIDCoordinates);
@@ -1570,16 +1733,20 @@ void MapSystem::loadEntities(World* world) {
          switch (entityID) {
             case -1:
                break;
+            case 391:
+            case 393:
+               break;
             default: {
                Entity* entity(world->create());
 
                entity->addComponent<PositionComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
                                                        Vector2i(SCALED_CUBE_SIZE));
 
-               entity->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID),
-                   false, false);
+               entity->addComponent<TextureComponent>(blockTexture, false, false);
+
+               entity->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID));
 
                entity->addComponent<BackgroundComponent>();
             } break;
@@ -1642,10 +1809,11 @@ void MapSystem::loadEntities(World* world) {
                auto* position = entity->addComponent<PositionComponent>(
                    Vector2f(j, i) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
 
-               entity->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID),
-                   false, false);
+               entity->addComponent<TextureComponent>(blockTexture, false, false);
+
+               entity->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID));
 
                auto pipe =
                    getPipeCoordinate(scene->getLevelData().warpPipeLocations, Vector2i(j, i));
@@ -1694,14 +1862,37 @@ void MapSystem::loadEntities(World* world) {
                entity->addComponent<PositionComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
                                                        Vector2i(SCALED_CUBE_SIZE));
 
-               entity->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID),
-                   false, false);
+               entity->addComponent<TextureComponent>(blockTexture, false, false);
+
+               entity->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID));
 
                entity->addComponent<AboveForegroundComponent>();
             } break;
          }
       }
    }
+}
+
+void MapSystem::loadEntities() {
+   loadEntities(scene->getWorld());
+}
+
+void MapSystem::hideGameEntities(World* world) {
+   world->find<TextureComponent>([](Entity* entity) {
+      if (entity->hasComponent<IconComponent>()) {
+         return;
+      }
+      entity->getComponent<TextureComponent>()->setVisible(false);
+   });
+}
+
+void MapSystem::showGameEntities(World* world) {
+   world->find<TextureComponent>([](Entity* entity) {
+      if (entity->hasComponent<IconComponent>()) {
+         return;
+      }
+      entity->getComponent<TextureComponent>()->setVisible(true);
+   });
 }

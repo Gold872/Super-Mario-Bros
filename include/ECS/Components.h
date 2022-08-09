@@ -73,21 +73,63 @@ struct PositionComponent : public Component {
 };
 
 struct TextureComponent : public Component {
-   TextureComponent(std::shared_ptr<SDL_Texture> texture, int entityWidth, int entityHeight,
-                    int xOffset, int yOffset, int gridGapWidth, int gridWidth, int gridHeight,
-                    Vector2i spritesheetCoordinates, bool horizontalFlip = false,
+   TextureComponent(std::shared_ptr<SDL_Texture> texture, bool horizontalFlip = false,
                     bool verticalFlip = false)
-       : texture{texture},
-         entityWidth{entityWidth},
+       : texture{texture}, horizontalFlipped{horizontalFlip}, verticalFlipped{verticalFlip} {};
+
+   std::shared_ptr<SDL_Texture> getTexture() {
+      return texture;
+   }
+
+   SDL_Rect getSourceRect() {
+      return sourceRect;
+   }
+
+   void setHorizontalFlipped(bool val) {
+      horizontalFlipped = val;
+   }
+
+   void setVerticalFlipped(bool val) {
+      verticalFlipped = val;
+   }
+
+   void setVisible(bool val) {
+      visible = val;
+   }
+
+   bool isHorizontalFlipped() {
+      return horizontalFlipped;
+   }
+
+   bool isVerticalFlipped() {
+      return verticalFlipped;
+   }
+
+   bool isVisible() {
+      return visible;
+   }
+
+  private:
+   SDL_Rect sourceRect;
+
+   std::shared_ptr<SDL_Texture> texture;
+   bool horizontalFlipped = false;
+   bool verticalFlipped = false;
+   bool visible = true;
+};
+
+struct SpritesheetComponent : public Component {
+   SpritesheetComponent(int entityWidth, int entityHeight, int xOffset, int yOffset,
+                        int gridGapWidth, int gridWidth, int gridHeight,
+                        Vector2i spritesheetCoordinates)
+       : entityWidth{entityWidth},
          entityHeight{entityHeight},
          xOffset{xOffset},
          yOffset{yOffset},
          gridGapWidth{gridGapWidth},
          gridWidth{gridWidth},
          gridHeight{gridHeight},
-         spritesheetCoordinates{spritesheetCoordinates},
-         horizontalFlipped{horizontalFlip},
-         verticalFlipped{verticalFlip} {
+         spritesheetCoordinates{spritesheetCoordinates} {
       this->spritesheetCoordinates = spritesheetCoordinates;
 
       sourceRect.x = xOffset + ((spritesheetCoordinates.x) * gridGapWidth) +
@@ -97,10 +139,6 @@ struct TextureComponent : public Component {
       sourceRect.w = entityWidth;
       sourceRect.h = entityHeight;
    };
-
-   std::shared_ptr<SDL_Texture> getTexture() {
-      return texture;
-   }
 
    void setSpritesheetCoordinates(Vector2i coords) {
       spritesheetCoordinates = coords;
@@ -136,38 +174,13 @@ struct TextureComponent : public Component {
       return spritesheetCoordinates;
    }
 
-   SDL_Rect getSourceRect() {
+   SDL_Rect& getSourceRect() {
       return sourceRect;
-   }
-
-   void setHorizontalFlipped(bool val) {
-      horizontalFlipped = val;
-   }
-
-   void setVerticalFlipped(bool val) {
-      verticalFlipped = val;
-   }
-
-   void setVisible(bool val) {
-      visible = val;
-   }
-
-   bool isHorizontalFlipped() {
-      return horizontalFlipped;
-   }
-
-   bool isVerticalFlipped() {
-      return verticalFlipped;
-   }
-
-   bool isVisible() {
-      return visible;
    }
 
   private:
    SDL_Rect sourceRect;
 
-   std::shared_ptr<SDL_Texture> texture;
    int entityWidth;
    int entityHeight;
    int xOffset;
@@ -176,9 +189,6 @@ struct TextureComponent : public Component {
    int gridWidth;
    int gridHeight;
    Vector2i spritesheetCoordinates;
-   bool horizontalFlipped = false;
-   bool verticalFlipped = false;
-   bool visible = true;
 };
 
 struct TextComponent : public Component {
@@ -422,12 +432,11 @@ struct WarpPipeComponent : public Component {
 
 struct MovingPlatformComponent : public Component {
    MovingPlatformComponent(PlatformMotionType motionType, Direction movingDirection,
-                           Vector2i minMax = Vector2i(0, 0), int platformLength = 0)
+                           Vector2i minMax = Vector2i(0, 0))
        : motionType{motionType},
          movingDirection{movingDirection},
          minPoint{(float)minMax.x},
-         maxPoint{(float)minMax.y},
-         platformLength{platformLength} {}
+         maxPoint{(float)minMax.y} {}
 
    PlatformMotionType motionType;
    Direction movingDirection;
@@ -435,15 +444,27 @@ struct MovingPlatformComponent : public Component {
    float minPoint;
    float maxPoint;
 
-   int platformLength;
-
    std::function<float(float position, float distanceTravel)> calculateVelocity =
        [](float position, float distanceTravel) {
           return 2 * std::pow(M_E, -((std::pow(position - (1.9 * distanceTravel), 2)) /
                                      (2 * std::pow(distanceTravel, 2))));
        };
+};
 
-   std::vector<Entity*> connectedParts;
+struct PlatformLevelComponent : public Component {
+   PlatformLevelComponent(Entity* other, Entity* pulleyLine, int pulleyHeight)
+       : otherPlatform{other}, pulleyLine{pulleyLine}, pulleyHeight{pulleyHeight} {}
+
+   Entity* getOtherPlatform() {
+      return otherPlatform;
+   }
+
+   Entity* otherPlatform;
+
+   Entity* pulleyLine;
+   std::vector<Entity*> pulleyLines;
+
+   int pulleyHeight;
 };
 
 enum class RotationDirection
@@ -582,15 +603,11 @@ struct CollectibleComponent : public Component {
 
 /* PHYSICS COMPONENTS */
 struct MovingComponent : public Component {
-   MovingComponent(float velocityX, float velocityY, float accelerationX = 0.00000,
-                   float accelerationY = 0.00000)
-       : velocityX{velocityX},
-         velocityY{velocityY},
-         accelerationX{accelerationX},
-         accelerationY{accelerationY} {}
+   MovingComponent(Vector2f velocity, Vector2f acceleration)
+       : velocity{velocity}, acceleration{acceleration} {}
 
-   float velocityX, velocityY;
-   float accelerationX, accelerationY;
+   Vector2f velocity;
+   Vector2f acceleration;
 };
 
 struct CollisionExemptComponent : public Component {};

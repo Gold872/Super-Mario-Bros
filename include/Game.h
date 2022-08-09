@@ -1,8 +1,5 @@
 #pragma once
 
-#include "ECS/Components.h"
-#include "ECS/ECS.h"
-#include "Map.h"
 #include "scenes/GameScene.h"
 #include "scenes/MenuScene.h"
 #include "scenes/Scene.h"
@@ -27,6 +24,7 @@ enum class Scenes
 class Game {
   public:
    Game();
+   Game(Core* core);
 
    void init();
 

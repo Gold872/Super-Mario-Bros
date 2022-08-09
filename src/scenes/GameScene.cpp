@@ -8,6 +8,8 @@
 #include "Math.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
+#include "command/CommandScheduler.h"
+#include "command/Commands.h"
 #include "systems/Systems.h"
 
 #include <algorithm>
@@ -18,6 +20,14 @@
 #include <string>
 #include <tuple>
 #include <vector>
+
+static int preloadEntities(void* data) {
+   MapSystem* mapSystem = (MapSystem*)data;
+
+   mapSystem->loadEntities();
+
+   return 0;
+}
 
 GameScene::GameScene(int level, int subLevel) {
    this->level = level;
@@ -43,7 +53,7 @@ GameScene::GameScene(int level, int subLevel) {
    TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
 
    mapSystem = world->registerSystem<MapSystem>(this);
-   world->registerSystem<PhysicsSystem>();
+   physicsSystem = world->registerSystem<PhysicsSystem>();
    playerSystem = world->registerSystem<PlayerSystem>(this);
    world->registerSystem<AnimationSystem>();
    world->registerSystem<EnemySystem>();
@@ -53,18 +63,23 @@ GameScene::GameScene(int level, int subLevel) {
    world->registerSystem<CallbackSystem>();
    scoreSystem = world->registerSystem<ScoreSystem>(this);
    soundSystem = world->registerSystem<SoundSystem>();
-   world->registerSystem<RenderSystem>();
+   renderSystem = world->registerSystem<RenderSystem>();
 
    scoreSystem->showTransitionEntities();
 
-   Entity* callbackEntity(world->create());
-   callbackEntity->addComponent<CallbackComponent>(
-       [=](Entity* entity) {
+   physicsSystem->setActive(false);
+   renderSystem->setTransitionRendering(true);
+   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+
+   CommandScheduler::getInstance().addCommand(new DelayedCommand(
+       [=]() {
           TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
           scoreSystem->hideTransitionEntities();
 
-          mapSystem->loadEntities(world);
+          SDL_WaitThread(loaderThread, NULL);
+          physicsSystem->setActive(true);
+          renderSystem->setTransitionRendering(false);
 
           startTimer();
 
@@ -74,10 +89,8 @@ GameScene::GameScene(int level, int subLevel) {
           scoreSystem->reset();
 
           startLevelMusic();
-
-          world->destroy(callbackEntity);
        },
-       180);
+       3.0));
 }
 
 void GameScene::update() {
@@ -120,24 +133,27 @@ void GameScene::switchLevel(int level, int subLevel) {
 
       scoreSystem->reset();
 
-      Entity* callbackEntity(world->create());
-      callbackEntity->addComponent<CallbackComponent>(
-          [=](Entity* entity) {
+      physicsSystem->setActive(false);
+      renderSystem->setTransitionRendering(true);
+      loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+
+      CommandScheduler::getInstance().addCommand(new DelayedCommand(
+          [=]() {
              TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
              scoreSystem->hideTransitionEntities();
 
-             mapSystem->loadEntities(world);
+             SDL_WaitThread(loaderThread, NULL);
+             physicsSystem->setActive(true);
+             renderSystem->setTransitionRendering(false);
 
              startTimer();
 
              startLevelMusic();
 
              playerSystem->reset();
-
-             world->destroy(callbackEntity);
           },
-          180);
+          3.0));
    });
 }
 
@@ -162,24 +178,27 @@ void GameScene::restartLevel() {
       scoreSystem->reset();
       scoreSystem->decreaseLives();
 
-      Entity* callbackEntity(world->create());
-      callbackEntity->addComponent<CallbackComponent>(
-          [=](Entity* entity) {
+      physicsSystem->setActive(false);
+      renderSystem->setTransitionRendering(true);
+      loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+
+      CommandScheduler::getInstance().addCommand(new DelayedCommand(
+          [=]() {
              TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
              scoreSystem->hideTransitionEntities();
 
-             mapSystem->loadEntities(world);
+             SDL_WaitThread(loaderThread, NULL);
+             physicsSystem->setActive(true);
+             renderSystem->setTransitionRendering(false);
 
              startTimer();
 
              startLevelMusic();
 
              playerSystem->reset();
-
-             world->destroy(callbackEntity);
           },
-          180);
+          3.0));
    });
 }
 
@@ -237,12 +256,13 @@ bool GameScene::scoreCountdownFinished() {
 }
 
 void GameScene::destroyWorldEntities() {
-   for (auto* entity : world->getEntities()) {
+   std::vector<Entity*> entities = world->getEntities();
+   for (auto* entity : entities) {
       if (!entity->hasAny<PlayerComponent, TextComponent, IconComponent>()) {
          world->destroy(entity);
       }
    }
-   world->getEntities().shrink_to_fit();
+   entities.shrink_to_fit();
 }
 
 void GameScene::loadLevel(int level, int subLevel) {

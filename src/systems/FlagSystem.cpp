@@ -4,10 +4,13 @@
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "command/CommandScheduler.h"
+#include "command/Commands.h"
 #include "systems/PlayerSystem.h"
 
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 bool FlagSystem::climbing = false;
 
@@ -16,7 +19,9 @@ FlagSystem::FlagSystem(GameScene* scene) {
 }
 
 void FlagSystem::climbFlag(World* world, Entity* player, Entity* flag) {
-   if (player->hasComponent<WaitUntilComponent>()) {
+   static bool inSequence = false;
+
+   if (inSequence) {
       return;
    }
 
@@ -30,11 +35,11 @@ void FlagSystem::climbFlag(World* world, Entity* player, Entity* flag) {
 
    playerPosition->setLeft(flag->getComponent<PositionComponent>()->getLeft());
 
-   playerMove->velocityX = playerMove->accelerationX = playerMove->accelerationY = 0;
+   playerMove->velocity.x = playerMove->acceleration.x = playerMove->acceleration.y = 0;
 
-   playerMove->velocityY = 4;
+   playerMove->velocity.y = 4;
 
-   flagMove->velocityY = 4;
+   flagMove->velocity.y = 4;
 
    scene->stopTimer();
 
@@ -46,79 +51,63 @@ void FlagSystem::climbFlag(World* world, Entity* player, Entity* flag) {
    player->remove<GravityComponent>();
    player->addComponent<FrictionExemptComponent>();
 
-   player->addComponent<WaitUntilComponent>(
-       [=](Entity* entity) {
-          // Flag is done sliding down
-          return entity->hasComponent<BottomCollisionComponent>() &&
+   inSequence = true;
+
+   CommandScheduler::getInstance().addCommand(new SequenceCommand(std::vector<Command*>{
+       /* Move to the other side of the flag */
+       new WaitUntilCommand([=]() -> bool {
+          return player->hasComponent<BottomCollisionComponent>() &&
                  flag->hasComponent<BottomCollisionComponent>();
-       },
-       [=](Entity* entity) {
-          // Set the player to be on the other side of the flag
-          auto* wait = entity->getComponent<WaitUntilComponent>();
-
-          Camera::Get().setCameraFrozen(true);
-
-          playerMove->velocityY = flagMove->velocityY = 0;
-          entity->getComponent<TextureComponent>()->setHorizontalFlipped(true);
+       }),
+       new RunCommand([=]() {
+          playerMove->velocity.y = flagMove->velocity.y = 0;
+          player->getComponent<TextureComponent>()->setHorizontalFlipped(true);
           playerPosition->position.x += 34;
+       }),
+       new WaitCommand(0.6),
+       /* Move towards the castle */
+       new RunCommand([=]() {
+          FlagSystem::setClimbing(false);
 
-          wait->condition = [](Entity* entity) {
-             static int climbTimer = 0;
-             // Delay the sequence for 1 second
-             if (climbTimer++ == (int)std::round(MAX_FPS * 0.6)) {
-                FlagSystem::setClimbing(false);
-                climbTimer = 0;
-                return true;
-             }
-             return false;
-          };
+          Camera::Get().setCameraFrozen(false);
 
-          wait->doAfter = [=](Entity* entity) {
-             // Move towards the castle
-             Camera::Get().setCameraFrozen(false);
+          player->addComponent<GravityComponent>();
 
-             entity->addComponent<GravityComponent>();
+          playerMove->velocity.x = 2.0;
+          player->getComponent<TextureComponent>()->setHorizontalFlipped(false);
+       }),
+       /* Wait until the player hits a solid block */
+       new WaitUntilCommand([=]() -> bool {
+          return player->hasComponent<RightCollisionComponent>();
+       }),
+       new WaitUntilCommand([=]() -> bool {
+          static int nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
 
-             playerMove->velocityX = 2.0;
-             entity->getComponent<TextureComponent>()->setHorizontalFlipped(false);
+          if (nextLevelDelay > 0) {
+             nextLevelDelay--;
+          }
 
-             wait->condition = [](Entity* entity) {
-                // When the player has hit a block
-                return entity->hasComponent<RightCollisionComponent>();
-             };
+          scene->scoreCountdown();
 
-             wait->doAfter = [=](Entity* entity) {
-                wait->condition = [=](Entity* entity) {
-                   // Count down the score and timer (if needed)
-                   static int nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
+          if (scene->scoreCountdownFinished() && nextLevelDelay == 0) {
+             nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
+             return true;
+          }
+          return false;
+       }),
+       new RunCommand([=]() mutable {
+          Vector2i nextLevel = scene->getLevelData().nextLevel;
 
-                   if (nextLevelDelay > 0) {
-                      nextLevelDelay--;
-                   }
+          player->getComponent<TextureComponent>()->setVisible(false);
 
-                   scene->scoreCountdown();
+          inSequence = false;
 
-                   if (scene->scoreCountdownFinished() && nextLevelDelay == 0) {
-                      nextLevelDelay = (int)std::round(MAX_FPS * 4.5);
-                      return true;
-                   }
-                   return false;
-                };
-                wait->doAfter = [=](Entity* entity) {
-                   Vector2i nextLevel = scene->getLevelData().nextLevel;
-
-                   entity->getComponent<TextureComponent>()->setVisible(false);
-
-                   entity->addComponent<CallbackComponent>(
-                       [=](Entity* entity) {
-                          scene->switchLevel(nextLevel.x, nextLevel.y);
-                       },
-                       MAX_FPS * 2);
-                   entity->remove<WaitUntilComponent>();
-                };
-             };
-          };
-       });
+          CommandScheduler::getInstance().addCommand(new DelayedCommand(
+              [=]() {
+                 scene->switchLevel(nextLevel.x, nextLevel.y);
+              },
+              2.0));
+       })}));
 }
 
 void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
@@ -130,8 +119,8 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
 
    PlayerSystem::enableInput(false);
 
-   playerMove->velocityX = playerMove->accelerationX = playerMove->velocityY =
-       playerMove->accelerationY = 0;
+   playerMove->velocity.x = playerMove->acceleration.x = playerMove->velocity.y =
+       playerMove->acceleration.y = 0;
 
    scene->stopTimer();
 
@@ -196,7 +185,7 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
 
              world->destroy(axe);
 
-             playerMove->velocityX = 3.0;
+             playerMove->velocity.x = 3.0;
 
              player->addComponent<GravityComponent>();
 
@@ -207,7 +196,7 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
              };
 
              wait->doAfter = [=](Entity* entity) {
-                playerMove->velocityX = 0;
+                playerMove->velocity.x = 0;
 
                 entity->addComponent<CallbackComponent>(
                     [=](Entity* entity) {

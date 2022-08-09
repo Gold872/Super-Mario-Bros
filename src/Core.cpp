@@ -3,13 +3,14 @@
 #include "Constants.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
+#include "command/CommandScheduler.h"
 
 #include <iostream>
 #include <stdlib.h>
 
 Core::Core() {
+   game = Game(this);
    running = true;
-   game.setCore(this);
 }
 
 void Core::limitFPS(Uint64 startTick) {
@@ -44,6 +45,7 @@ void Core::mainLoop() {
    Uint64 startTicks = SDL_GetTicks64();
    game.handleInput();
    game.update();
+   CommandScheduler::getInstance().run();
    limitFPS(startTicks);
    std::cout << std::flush;
 }

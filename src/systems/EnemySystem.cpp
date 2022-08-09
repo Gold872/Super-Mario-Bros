@@ -1,11 +1,10 @@
-#include "systems/EnemySystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
+#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -125,7 +124,7 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
       }
       // Enemies that were destroyed through either a projectile or super star mario
       if (enemy->hasComponent<EnemyDestroyedComponent>()) {
-         move->velocityY = -ENEMY_BOUNCE;
+         move->velocity.y = -ENEMY_BOUNCE;
          enemy->addComponent<ParticleComponent>();
          enemy->addComponent<DeadComponent>();
          enemy->addComponent<DestroyOutsideCameraComponent>();
@@ -164,7 +163,7 @@ void EnemySystem::tick(World* world) {
       switch (entity->getComponent<ProjectileComponent>()->projectileType) {
          case ProjectileType::FIREBALL:
             if (entity->hasComponent<BottomCollisionComponent>()) {
-               entity->getComponent<MovingComponent>()->velocityY = -PROJECTILE_BOUNCE;
+               entity->getComponent<MovingComponent>()->velocity.y = -PROJECTILE_BOUNCE;
                entity->remove<BottomCollisionComponent>();
             }
             break;
@@ -221,7 +220,7 @@ void EnemySystem::tick(World* world) {
             return;
          }
          if (other->getComponent<EnemyComponent>()->enemyType == EnemyType::KOOPA_SHELL &&
-             other->getComponent<MovingComponent>()->velocityX != 0) {
+             other->getComponent<MovingComponent>()->velocity.x != 0) {
             enemy->addComponent<EnemyDestroyedComponent>();
             enemy->addComponent<MoveOutsideCameraComponent>();
 
@@ -244,7 +243,7 @@ void EnemySystem::tick(World* world) {
       // Moves Koopas in the opposite direction
       if (Camera::Get().inCameraRange(position) && enemyComponent->enemyType == EnemyType::KOOPA) {
          if (!enemy->hasAny<BottomCollisionComponent, DeadComponent>()) {
-            move->velocityX *= -1;
+            move->velocity.x *= -1;
             bool horizontalFlipped = enemy->getComponent<TextureComponent>()->isHorizontalFlipped();
             enemy->getComponent<TextureComponent>()->setHorizontalFlipped(!horizontalFlipped);
          }
@@ -256,17 +255,17 @@ void EnemySystem::tick(World* world) {
          // Reverses the direction of the enemy when it hits a wall or another enemy
          if (enemy->hasComponent<LeftCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
-               move->velocityX = 6.0;
+               move->velocity.x = 6.0;
             } else {
-               move->velocityX = ENEMY_SPEED;
+               move->velocity.x = ENEMY_SPEED;
             }
             enemy->getComponent<TextureComponent>()->setHorizontalFlipped(true);
             enemy->remove<LeftCollisionComponent>();
          } else if (enemy->hasComponent<RightCollisionComponent>()) {
             if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
-               move->velocityX = -6.0;
+               move->velocity.x = -6.0;
             } else {
-               move->velocityX = -ENEMY_SPEED;
+               move->velocity.x = -ENEMY_SPEED;
             }
             enemy->getComponent<TextureComponent>()->setHorizontalFlipped(false);
             enemy->remove<RightCollisionComponent>();

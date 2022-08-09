@@ -15,4 +15,5 @@ class PhysicsSystem : public System {
   private:
    void updateFireBars(World* world);
    void updateMovingPlatforms(World* world);
+   void updatePlatformLevels(World* world);
 };

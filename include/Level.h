@@ -15,7 +15,14 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+
 using std::string;
+using MovingPlatformData = std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, bool>;
+using PlatformLevelData = std::tuple<Vector2i, Vector2i, int>;
+using FireBarData = std::tuple<Vector2i, int, RotationDirection, int>;
+using VineData = std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>;
+using WarpPipeData = std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
+                                BackgroundColor, LevelType, Vector2i>;
 
 enum class WarpPipeDirections
 {
@@ -48,13 +55,11 @@ struct LevelData {
 
    Vector2i nextLevel;
 
-   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
-                          LevelType, Vector2i>>
-       warpPipeLocations;
-   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
-       movingPlatformDirections;
-   std::vector<std::tuple<Vector2i, int, RotationDirection, int>> fireBarLocations;
-   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> vineLocations;
+   std::vector<WarpPipeData> warpPipeLocations;
+   std::vector<MovingPlatformData> movingPlatformDirections;
+   std::vector<PlatformLevelData> platformLevelLocations;
+   std::vector<FireBarData> fireBarLocations;
+   std::vector<VineData> vineLocations;
 };
 
 class Level {
@@ -136,15 +141,14 @@ class Level {
       if (std::regex_search(stringToSearch, coordinates_match, coordinates_regex)) {
          std::istringstream iss(coordinates_match[1]);
 
-         std::smatch pair_match;
+         std::smatch pairMatch;
 
          string s;
          while (getline(iss, s)) {
-            std::regex_search(s, pair_match, pair_regex);
+            std::regex_search(s, pairMatch, pair_regex);
 
-            for (unsigned int i = 1; i < pair_match.size(); i += 2) {
-               pairArray.push_back(
-                   Vector2i(std::stoi(pair_match[i]), std::stoi(pair_match[i + 1])));
+            for (unsigned int i = 1; i < pairMatch.size(); i += 2) {
+               pairArray.push_back(Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1])));
             }
          }
       }
@@ -192,13 +196,12 @@ class Level {
       return 0;
    }
 
-   std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
-   loadMovingPlatform(string arrayPattern, string stringToSearch, string enumSearch) {
+   std::vector<MovingPlatformData> loadMovingPlatforms(string arrayPattern, string stringToSearch,
+                                                       string platformSearch) {
       std::regex arrayRegex(arrayPattern);
-      std::regex enumPairRegex(enumSearch);
+      std::regex platformRegex(platformSearch);
 
-      std::vector<std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>>
-          platformLocations;
+      std::vector<MovingPlatformData> platformData;
 
       std::smatch arrayMatch;
       if (std::regex_search(stringToSearch, arrayMatch, arrayRegex)) {
@@ -208,36 +211,63 @@ class Level {
          string s;
 
          while (getline(iss, s)) {
-            if (std::regex_search(s, pairMatch, enumPairRegex)) {
-               for (unsigned int i = 1; i < pairMatch.size(); i += 8) {
+            if (std::regex_search(s, pairMatch, platformRegex)) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 7) {
                   Vector2i platformLocation(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
                   PlatformMotionType motionType = motionTypeString.at(pairMatch[i + 2]);
                   Direction movingDirection(directionString.at(pairMatch[i + 3]));
                   Vector2i platformMinMax(std::stoi(pairMatch[i + 4]), std::stoi(pairMatch[i + 5]));
-                  int platformLength = std::stoi(pairMatch[i + 6]);
-                  bool rightShift = pairMatch[i + 7] == "TRUE";
+                  bool rightShift = pairMatch[i + 6] == "TRUE";
 
-                  platformLocations.push_back(
-                      std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, int, bool>(
-                          platformLocation, motionType, movingDirection, platformMinMax,
-                          platformLength, rightShift));
+                  platformData.push_back(MovingPlatformData(
+                      platformLocation, motionType, movingDirection, platformMinMax, rightShift));
                }
             }
          }
       }
 
-      return platformLocations;
+      return platformData;
    }
 
-   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool, BackgroundColor,
-                          LevelType, Vector2i>>
-   loadWarpPipeLocation(string regexPattern, string stringToSearch, string pipeSearch) {
-      std::regex arrayRegex(regexPattern);
+   std::vector<PlatformLevelData> loadPlatformLevels(string arrayPattern, string stringToSearch,
+                                                     string levelSearch) {
+      std::regex arrayRegex(arrayPattern);
+      std::regex levelRegex(levelSearch);
+
+      std::vector<PlatformLevelData> platformData;
+
+      std::smatch arrayMatch;
+      if (std::regex_search(stringToSearch, arrayMatch, arrayRegex)) {
+         std::istringstream iss(arrayMatch[1]);
+
+         std::smatch pairMatch;
+         string s;
+
+         while (getline(iss, s)) {
+            if (std::regex_search(s, pairMatch, levelRegex)) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 5) {
+                  Vector2i leftPlatformLocation =
+                      Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
+                  Vector2i rightPlatformLocation =
+                      Vector2i(std::stoi(pairMatch[i + 2]), std::stoi(pairMatch[i + 3]));
+                  int pulleyLevel = std::stoi(pairMatch[i + 4]);
+
+                  platformData.push_back(
+                      PlatformLevelData(leftPlatformLocation, rightPlatformLocation, pulleyLevel));
+               }
+            }
+         }
+      }
+
+      return platformData;
+   }
+
+   std::vector<WarpPipeData> loadWarpPipes(string arrayRegexPattern, string stringToSearch,
+                                           string pipeSearch) {
+      std::regex arrayRegex(arrayRegexPattern);
       std::regex pipeRegex(pipeSearch);
 
-      std::vector<std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
-                             BackgroundColor, LevelType, Vector2i>>
-          warpLocation;
+      std::vector<WarpPipeData> pipeData;
 
       std::smatch arrayMatch;
       if (std::regex_search(stringToSearch, arrayMatch, arrayRegex)) {
@@ -268,25 +298,22 @@ class Level {
                   Vector2i newLevel =
                       Vector2i(std::stoi(pairMatch[i + 11]), std::stoi(pairMatch[i + 12]));
 
-                  warpLocation.push_back(
-                      std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
-                                 BackgroundColor, LevelType, Vector2i>(
-                          pipeCoordinates, teleportCoordinates, cameraCoordinates, inDirection,
-                          outDirection, cameraFreeze, color, levelType, newLevel));
+                  pipeData.push_back(WarpPipeData(pipeCoordinates, teleportCoordinates,
+                                                  cameraCoordinates, inDirection, outDirection,
+                                                  cameraFreeze, color, levelType, newLevel));
                }
             }
          }
       }
-      return warpLocation;
+      return pipeData;
    }
 
-   std::vector<std::tuple<Vector2i, int, RotationDirection, int>> loadFireBar(string regexPattern,
-                                                                              string stringToSearch,
-                                                                              string searchBar) {
+   std::vector<FireBarData> loadFireBars(string regexPattern, string stringToSearch,
+                                         string searchBar) {
       std::regex arrayRegex(regexPattern);
       std::regex barRegex(searchBar);
 
-      std::vector<std::tuple<Vector2i, int, RotationDirection, int>> barLocations;
+      std::vector<FireBarData> barData;
 
       std::smatch arrayMatch;
 
@@ -306,14 +333,14 @@ class Level {
                   RotationDirection rotationDirection = rotationString.at(pairMatch[i + 3]);
                   int barLength = std::stoi(pairMatch[i + 4]);
 
-                  barLocations.push_back(std::tuple<Vector2i, int, RotationDirection, int>(
-                      barCoordinates, startAngle, rotationDirection, barLength));
+                  barData.push_back(
+                      FireBarData(barCoordinates, startAngle, rotationDirection, barLength));
                }
             }
          }
       }
 
-      return barLocations;
+      return barData;
    }
 
    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> loadVines(
@@ -364,23 +391,27 @@ class Level {
           "BACKGROUND_COLOR" + normalRegexPattern, levelProperties, backgroundColorString);
 
       data.playerStart =
-          loadCoordinate("PLAYER_START(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
+          loadCoordinate("PLAYER_START(?:\\s)?=(?:\\s)?" + vectorPattern, levelProperties);
 
-      data.nextLevel = loadCoordinate("NEXT_LEVEL(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
+      data.nextLevel =
+          loadCoordinate("NEXT_LEVEL(?:\\s)?=(?:\\s)?" + vectorPattern, levelProperties);
 
       data.cameraStart =
-          loadCoordinate("CAMERA_START(?:\\s)?=(?:\\s)?" + pairPattern, levelProperties);
+          loadCoordinate("CAMERA_START(?:\\s)?=(?:\\s)?" + vectorPattern, levelProperties);
 
       data.cameraMax = loadIntData("CAMERA_MAX" + normalRegexPattern, levelProperties);
 
       data.warpPipeLocations =
-          loadWarpPipeLocation("WARP_PIPE" + arrayPattern, levelProperties, warpPipePattern);
+          loadWarpPipes("WARP_PIPE" + arrayPattern, levelProperties, warpPipePattern);
 
       data.movingPlatformDirections =
-          loadMovingPlatform("MOVING_PLATFORM" + arrayPattern, levelProperties, platformPattern);
+          loadMovingPlatforms("MOVING_PLATFORM" + arrayPattern, levelProperties, platformPattern);
+
+      data.platformLevelLocations = loadPlatformLevels("PLATFORM_LEVEL" + arrayPattern,
+                                                       levelProperties, platformLevelPattern);
 
       data.fireBarLocations =
-          loadFireBar("FIRE_BAR" + arrayPattern, levelProperties, fireBarPattern);
+          loadFireBars("FIRE_BAR" + arrayPattern, levelProperties, fireBarPattern);
 
       data.vineLocations = loadVines("VINE" + arrayPattern, levelProperties, vinePattern);
    }
@@ -404,25 +435,27 @@ class Level {
   private:
    LevelData data;
 
-   string normalRegexPattern = /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
+   string normalRegexPattern = "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
 
-   string arrayPattern =
-       /* SEARCH NAME */ "(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s\\w,\\\\\\n]+)";
+   string arrayPattern = "(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s\\w,\\\\\\n]+)";
 
-   string pairPattern = "\\((\\d+), (\\d+)\\)";
+   string enumPattern = "(\\w+)";
 
-   string coordinateEnumPattern = "\\((\\d+), (\\d+)\\)\\s(\\w+)";
+   string vectorPattern = "\\((\\d+), (\\d+)\\)";
 
-   string warpPipePattern =
-       "\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s\\((\\d+), "
-       "(\\d+)\\)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)";
+   string intPattern = "(\\d+)";
 
-   string platformPattern =
-       "\\((\\d+), (\\d+)\\)\\s(\\w+)\\s(\\w+)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)";
+   string warpPipePattern = vectorPattern + " " + vectorPattern + " " + vectorPattern + " " +
+                            enumPattern + " " + enumPattern + " " + enumPattern + " " +
+                            enumPattern + " " + enumPattern + " " + vectorPattern;
 
-   string fireBarPattern = "\\((\\d+), (\\d+)\\)\\s(\\d+)\\s(\\w+)\\s(\\d+)";
+   string platformPattern = vectorPattern + " " + enumPattern + " " + enumPattern + " " +
+                            vectorPattern + " " + enumPattern;
 
-   string vinePattern =
-       "\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s\\((\\d+), (\\d+)\\)\\s(\\d+)\\s\\((\\d+), "
-       "(\\d+)\\)";
+   string platformLevelPattern = vectorPattern + " " + vectorPattern + " " + intPattern;
+
+   string fireBarPattern = vectorPattern + " " + intPattern + " " + enumPattern + " " + intPattern;
+
+   string vinePattern = vectorPattern + " " + vectorPattern + " " + vectorPattern + " " +
+                        intPattern + " " + vectorPattern;
 };

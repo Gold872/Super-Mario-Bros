@@ -12,18 +12,18 @@ CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
    auto* solidPosition = solid->getComponent<PositionComponent>();
    CollisionDirection direction = CollisionDirection::NONE;
 
-   if (move->velocityY >= 0.0f) {
+   if (move->velocity.y >= 0.0f) {
       // If falling
       if (AABBTotalCollision(position->position.x + position->hitbox.x + (TILE_ROUNDNESS / 2),
-                             position->position.y + position->hitbox.y + move->velocityY,
+                             position->position.y + position->hitbox.y + move->velocity.y,
                              position->hitbox.w - TILE_ROUNDNESS, position->hitbox.h,
                              solidPosition->position.x + (TILE_ROUNDNESS / 2),
                              solidPosition->position.y, solidPosition->hitbox.w - TILE_ROUNDNESS,
                              solidPosition->hitbox.h)) {
          float topDistance =
-             std::abs(solidPosition->getTop() - (position->getBottom() + move->velocityY));
+             std::abs(solidPosition->getTop() - (position->getBottom() + move->velocity.y));
          float bottomDistance =
-             std::abs((position->getTop() + move->velocityY) - solidPosition->getBottom());
+             std::abs((position->getTop() + move->velocity.y) - solidPosition->getBottom());
 
          if (topDistance < bottomDistance) {
             if (adjustPosition) {
@@ -36,15 +36,15 @@ CollisionDirection checkCollisionY(Entity* solid, PositionComponent* position,
    } else {
       // Jumping
       if (AABBTotalCollision(position->position.x + position->hitbox.x + TILE_ROUNDNESS,
-                             position->position.y + position->hitbox.y + move->velocityY,
+                             position->position.y + position->hitbox.y + move->velocity.y,
                              position->hitbox.w - (TILE_ROUNDNESS * 2), position->hitbox.h,
                              solidPosition->position.x + TILE_ROUNDNESS, solidPosition->position.y,
                              solidPosition->hitbox.w - (TILE_ROUNDNESS * 2),
                              solidPosition->hitbox.h)) {
          float topDistance =
-             std::abs(solidPosition->getTop() - (position->getBottom() + move->velocityY));
+             std::abs(solidPosition->getTop() - (position->getBottom() + move->velocity.y));
          float bottomDistance =
-             std::abs((position->getTop() + move->velocityY) - solidPosition->getBottom());
+             std::abs((position->getTop() + move->velocity.y) - solidPosition->getBottom());
          if (topDistance > bottomDistance) {
             if (adjustPosition) {
                position->setTop(solidPosition->getBottom());
@@ -62,13 +62,13 @@ CollisionDirection checkCollisionX(Entity* solid, PositionComponent* position,
    auto* solidPosition = solid->getComponent<PositionComponent>();
    CollisionDirection direction = CollisionDirection::NONE;
 
-   if (AABBTotalCollision(position->position.x + position->hitbox.x + move->velocityX,
+   if (AABBTotalCollision(position->position.x + position->hitbox.x + move->velocity.x,
                           position->position.y + position->hitbox.y, position->hitbox.w,
                           position->hitbox.h - (TILE_ROUNDNESS * 2), solidPosition)) {
-      float leftDistance = std::abs((position->position.x + position->hitbox.x + move->velocityX) -
+      float leftDistance = std::abs((position->position.x + position->hitbox.x + move->velocity.x) -
                                     solidPosition->getRight());
       float rightDistance = std::abs(
-          (position->position.x + position->hitbox.x + position->hitbox.w + move->velocityX) -
+          (position->position.x + position->hitbox.x + position->hitbox.w + move->velocity.x) -
           solidPosition->getLeft());
       if (leftDistance < rightDistance) {
          if (adjustPosition) {
@@ -126,10 +126,6 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
       auto* platformMove = entity->getComponent<MovingComponent>();
       auto* position = entity->getComponent<PositionComponent>();
 
-      if (platform->connectedParts.empty() && platform->platformLength != 1) {
-         return;
-      }
-
       switch (platform->motionType) {
          case PlatformMotionType::ONE_DIRECTION_REPEATED:
             switch (platform->movingDirection) {
@@ -137,64 +133,16 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
                case Direction::RIGHT:
                   if (position->position.x < platform->minPoint) {
                      position->position.x = platform->maxPoint;
-
-                     for (auto* connectedPart : platform->connectedParts) {
-                        connectedPart->getComponent<PositionComponent>()->position.x =
-                            platform->maxPoint;
-                     }
                   } else if (position->position.x > platform->maxPoint) {
                      position->position.x = platform->minPoint;
-
-                     for (auto* connectedPart : platform->connectedParts) {
-                        connectedPart->getComponent<PositionComponent>()->position.x =
-                            platform->minPoint;
-                     }
-                  }
-                  // Re-aligns the platform pieces together
-                  for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                     Entity* connectedPart = platform->connectedParts[i];
-
-                     if (i != 0) {
-                        connectedPart->getComponent<PositionComponent>()->setTop(
-                            platform->connectedParts[i - 1]
-                                ->getComponent<PositionComponent>()
-                                ->getTop());
-                     } else {
-                        connectedPart->getComponent<PositionComponent>()->setTop(
-                            position->getTop());
-                     }
                   }
                   break;
                case Direction::UP:
                case Direction::DOWN:
-                  if (position->position.y > platform->minPoint) {
-                     position->position.y = platform->maxPoint;
-
-                     for (auto* connectedPart : platform->connectedParts) {
-                        connectedPart->getComponent<PositionComponent>()->position.y =
-                            platform->maxPoint;
-                     }
-                  } else if (position->position.y < platform->maxPoint) {
+                  if (position->position.y > platform->maxPoint) {
                      position->position.y = platform->minPoint;
-
-                     for (auto* connectedPart : platform->connectedParts) {
-                        connectedPart->getComponent<PositionComponent>()->position.y =
-                            platform->minPoint;
-                     }
-                  }
-                  // Re-aligns the platform pieces together
-                  for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                     Entity* connectedPart = platform->connectedParts[i];
-
-                     if (i != 0) {
-                        connectedPart->getComponent<PositionComponent>()->setTop(
-                            platform->connectedParts[i - 1]
-                                ->getComponent<PositionComponent>()
-                                ->getTop());
-                     } else {
-                        connectedPart->getComponent<PositionComponent>()->setTop(
-                            position->getTop());
-                     }
+                  } else if (position->position.y < platform->minPoint) {
+                     position->position.y = platform->maxPoint;
                   }
                   break;
                default:
@@ -213,22 +161,7 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
                          position->getRight() - platform->minPoint,
                          (platform->maxPoint - platform->minPoint) / 3.8);
 
-                     platformMove->velocityX = newVelocity;
-
-                     for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                        Entity* connectedPart = platform->connectedParts[i];
-
-                        connectedPart->getComponent<MovingComponent>()->velocityX = newVelocity;
-                        if (i != 0) {
-                           connectedPart->getComponent<PositionComponent>()->setLeft(
-                               platform->connectedParts[i - 1]
-                                   ->getComponent<PositionComponent>()
-                                   ->getRight());
-                        } else {
-                           connectedPart->getComponent<PositionComponent>()->setLeft(
-                               position->getRight());
-                        }
-                     }
+                     platformMove->velocity.x = newVelocity;
                   }
                   break;
                case Direction::RIGHT:
@@ -241,79 +174,33 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
                          platform->maxPoint - position->getLeft(),
                          (platform->maxPoint - platform->minPoint) / 3.8);
 
-                     platformMove->velocityX = newVelocity;
-
-                     for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                        Entity* connectedPart = platform->connectedParts[i];
-
-                        connectedPart->getComponent<MovingComponent>()->velocityX = newVelocity;
-                        if (i != 0) {
-                           connectedPart->getComponent<PositionComponent>()->setLeft(
-                               platform->connectedParts[i - 1]
-                                   ->getComponent<PositionComponent>()
-                                   ->getRight());
-                        } else {
-                           connectedPart->getComponent<PositionComponent>()->setLeft(
-                               position->getRight());
-                        }
-                     }
+                     platformMove->velocity.x = newVelocity;
                   }
                   break;
                case Direction::UP:
-                  if (position->getTop() <= platform->maxPoint) {
+                  if (position->getTop() <= platform->minPoint) {
                      platform->movingDirection = Direction::DOWN;
                      break;
                   }
                   {
                      float newVelocity = -platform->calculateVelocity(
-                         position->getBottom() - platform->maxPoint,
-                         (platform->minPoint - platform->maxPoint) / 3.8);
+                         position->getBottom() - platform->minPoint,
+                         (platform->maxPoint - platform->minPoint) / 3.8);
 
-                     platformMove->velocityY = newVelocity;
-
-                     for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                        Entity* connectedPart = platform->connectedParts[i];
-
-                        connectedPart->getComponent<MovingComponent>()->velocityY = newVelocity;
-                        if (i != 0) {
-                           connectedPart->getComponent<PositionComponent>()->setTop(
-                               platform->connectedParts[i - 1]
-                                   ->getComponent<PositionComponent>()
-                                   ->getTop());
-                        } else {
-                           connectedPart->getComponent<PositionComponent>()->setTop(
-                               position->getTop());
-                        }
-                     }
+                     platformMove->velocity.y = newVelocity;
                   }
-
                   break;
                case Direction::DOWN:
-                  if (position->getBottom() >= platform->minPoint) {
+                  if (position->getBottom() >= platform->maxPoint) {
                      platform->movingDirection = Direction::UP;
                      break;
                   }
                   {
                      float newVelocity = platform->calculateVelocity(
-                         platform->minPoint - position->getTop(),
-                         (platform->minPoint - platform->maxPoint) / 3.8);
+                         platform->maxPoint - position->getTop(),
+                         (platform->maxPoint - platform->minPoint) / 3.8);
 
-                     platformMove->velocityY = newVelocity;
-
-                     for (unsigned int i = 0; i < platform->connectedParts.size(); i++) {
-                        Entity* connectedPart = platform->connectedParts[i];
-
-                        connectedPart->getComponent<MovingComponent>()->velocityY = newVelocity;
-                        if (i != 0) {
-                           connectedPart->getComponent<PositionComponent>()->setTop(
-                               platform->connectedParts[i - 1]
-                                   ->getComponent<PositionComponent>()
-                                   ->getTop());
-                        } else {
-                           connectedPart->getComponent<PositionComponent>()->setTop(
-                               position->getTop());
-                        }
-                     }
+                     platformMove->velocity.y = newVelocity;
                   }
                   break;
                default:
@@ -326,13 +213,60 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
    });
 }
 
+void PhysicsSystem::updatePlatformLevels(World* world) {
+   world->find<PlatformLevelComponent>([](Entity* entity) {
+      auto* platformLevel = entity->getComponent<PlatformLevelComponent>();
+      auto* platformPosition = entity->getComponent<PositionComponent>();
+      auto* platformMove = entity->getComponent<MovingComponent>();
+
+      if (!Camera::Get().inCameraRange(platformPosition)) {
+         return;
+      }
+
+      auto* pulleyPosition = platformLevel->pulleyLine->getComponent<PositionComponent>();
+
+      pulleyPosition->scale.y = platformPosition->getTop() - pulleyPosition->getTop();
+
+      Entity* otherPlatform = platformLevel->getOtherPlatform();
+
+      if (platformPosition->getTop() < platformLevel->pulleyHeight) {
+         platformPosition->setTop(platformLevel->pulleyHeight);
+         platformMove->velocity = Vector2f(0, 0);
+
+         otherPlatform->getComponent<MovingComponent>()->acceleration.y = 0;
+         otherPlatform->addComponent<GravityComponent>();
+         otherPlatform->addComponent<CollisionExemptComponent>();
+         otherPlatform->addComponent<DestroyOutsideCameraComponent>();
+
+         otherPlatform->remove<PlatformLevelComponent>();
+         entity->remove<PlatformLevelComponent>();
+
+         return;
+      }
+
+      if (!entity->hasComponent<TopCollisionComponent>()) {
+         // Slows the platform down if the other platform isn't accelerating
+         if (otherPlatform->getComponent<MovingComponent>()->acceleration.y == 0) {
+            platformMove->velocity.y *= 0.92;
+
+            // Sets the 2 platforms to have opposite velocities
+            otherPlatform->getComponent<MovingComponent>()->velocity.y = -platformMove->velocity.y;
+         }
+
+         platformMove->acceleration.y = 0;
+         return;
+      }
+
+      platformMove->acceleration.y = 0.12f;
+
+      // Sets the 2 platforms to have opposite velocities
+      otherPlatform->getComponent<MovingComponent>()->velocity.y = -platformMove->velocity.y;
+
+      entity->remove<TopCollisionComponent>();
+   });
+}
+
 void PhysicsSystem::tick(World* world) {
-   // Update the spinning of the fire bars
-   updateFireBars(world);
-
-   // Update the velocities for the moving platforms
-   updateMovingPlatforms(world);
-
    // Update gravity for entities that have a gravity component
    world->find<GravityComponent, MovingComponent>([&](Entity* entity) {
       if ((!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) &&
@@ -340,7 +274,7 @@ void PhysicsSystem::tick(World* world) {
           entity->hasComponent<FrozenComponent>()) {
          return;
       }
-      entity->getComponent<MovingComponent>()->velocityY += GRAVITY;
+      entity->getComponent<MovingComponent>()->velocity.y += 0.575;
    });
 
    // Change the y position of the block being bumped
@@ -374,26 +308,26 @@ void PhysicsSystem::tick(World* world) {
       auto* move = entity->getComponent<MovingComponent>();
       auto* position = entity->getComponent<PositionComponent>();
 
-      position->position.x += move->velocityX;
-      position->position.y += move->velocityY;
+      position->position.x += move->velocity.x;
+      position->position.y += move->velocity.y;
 
-      move->velocityX += move->accelerationX;
-      move->velocityY += move->accelerationY;
+      move->velocity.x += move->acceleration.x;
+      move->velocity.y += move->acceleration.y;
 
       if (!entity->hasAny<EnemyComponent, CollectibleComponent>() &&
           !entity->hasComponent<FrictionExemptComponent>()) {
-         move->velocityX *= FRICTION;
+         move->velocity.x *= FRICTION;
       }
 
-      if (move->velocityX > MAX_SPEED_X) {
-         move->velocityX = MAX_SPEED_X;
+      if (move->velocity.x > MAX_SPEED_X) {
+         move->velocity.x = MAX_SPEED_X;
       }
-      if (move->velocityY > MAX_SPEED_Y) {
-         move->velocityY = MAX_SPEED_Y;
+      if (move->velocity.y > MAX_SPEED_Y) {
+         move->velocity.y = MAX_SPEED_Y;
       }
 
-      if (move->velocityX < -MAX_SPEED_X) {
-         move->velocityX = -MAX_SPEED_X;
+      if (move->velocity.x < -MAX_SPEED_X) {
+         move->velocity.x = -MAX_SPEED_X;
       }
 
       // Entity + Tile Collisions
@@ -416,10 +350,10 @@ void PhysicsSystem::tick(World* world) {
             collidedDirectionHorizontal = checkCollisionX(other, position, move, true);
 
             if (collidedDirectionVertical != CollisionDirection::NONE) {
-               move->velocityY = move->accelerationY = 0.0f;
+               move->velocity.y = move->acceleration.y = 0.0f;
             }
             if (collidedDirectionHorizontal != CollisionDirection::NONE) {
-               move->velocityX = move->accelerationX = 0.0f;
+               move->velocity.x = move->acceleration.x = 0.0f;
             }
          }
 
@@ -446,11 +380,20 @@ void PhysicsSystem::tick(World* world) {
          }
       });
 
-      if (std::abs(move->velocityY) < MARIO_ACCELERATION_X / 2) {
-         move->velocityY = 0;
+      if (std::abs(move->velocity.y) < MARIO_ACCELERATION_X / 2) {
+         move->velocity.y = 0;
       }
-      if (std::abs(move->velocityX) < MARIO_ACCELERATION_X / 2) {
-         move->velocityX = 0;
+      if (std::abs(move->velocity.x) < MARIO_ACCELERATION_X / 2) {
+         move->velocity.x = 0;
       }
    });
+
+   // Update the spinning of the fire bars
+   updateFireBars(world);
+
+   // Update the velocities for the moving platforms
+   updateMovingPlatforms(world);
+
+   // Update the velocities for the platform levels
+   updatePlatformLevels(world);
 }

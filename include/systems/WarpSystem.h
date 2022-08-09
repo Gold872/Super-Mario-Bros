@@ -45,6 +45,18 @@ class WarpSystem : public System {
       climbed = val;
    }
 
+   void setTeleportLevelY(int levelY) {
+      teleportLevelY = levelY;
+   }
+
+   void setTeleportPlayerCoordinates(Vector2i playerCoordinates) {
+      teleportPlayerCoordinates = playerCoordinates;
+   }
+
+   void setTeleportCameraCoordinates(Vector2i cameraCoordinates) {
+      teleportCameraCoordinates = cameraCoordinates;
+   }
+
    int up = 0;
    int down = 0;
    int left = 0;

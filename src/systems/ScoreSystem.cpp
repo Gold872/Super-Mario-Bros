@@ -1,8 +1,7 @@
-#include "systems/ScoreSystem.h"
-
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
+#include "systems/ScoreSystem.h"
 
 #include <cmath>
 #include <memory>
@@ -18,7 +17,7 @@ Entity* ScoreSystem::createFloatingText(World* world, Entity* originalEntity, st
    Entity* scoreText(world->create());
    scoreText->addComponent<PositionComponent>(
        Vector2f(originalPosition->getCenterX(), originalPosition->getTop() - 4), Vector2i());
-   scoreText->addComponent<MovingComponent>(0, -1, 0, 0);
+   scoreText->addComponent<MovingComponent>(Vector2f(0, -1), Vector2f(0, 0));
    scoreText->addComponent<TextComponent>(text, 10, true);
    scoreText->addComponent<FloatingTextComponent>();
    scoreText->addComponent<DestroyDelayedComponent>(35);
@@ -60,9 +59,11 @@ void ScoreSystem::onAddedToWorld(World* world) {
           Vector2f(paddingW + columnWidth, paddingH + textHeight + spacingH + 2),
           Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
 
-      coinIcon->addComponent<TextureComponent>(
-          scene->blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-          ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(754), false, false);
+      coinIcon->addComponent<TextureComponent>(scene->blockTexture, false, false);
+
+      coinIcon->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
+                                                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                   Map::BlockIDCoordinates.at(754));
 
       coinIcon->addComponent<AnimationComponent>(std::vector<int>{754, 755, 756, 757}, 8,
                                                  Map::BlockIDCoordinates);
@@ -142,9 +143,12 @@ void ScoreSystem::onAddedToWorld(World* world) {
               ->getComponent<TextureComponent>()
               ->getTexture();
 
-      auto* marioIconTexture = marioIcon->addComponent<TextureComponent>(
-          playerTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 9, 0, ORIGINAL_CUBE_SIZE,
-          ORIGINAL_CUBE_SIZE, Map::PlayerIDCoordinates.at(0), false, false);
+      auto* marioIconTexture =
+          marioIcon->addComponent<TextureComponent>(playerTexture, false, false);
+
+      marioIcon->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 9, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::PlayerIDCoordinates.at(0));
 
       marioIcon->addComponent<IconComponent>();
 

@@ -26,8 +26,12 @@ WARP_PIPE=\
 	(13, 30) (163, 11) (159, 0) RIGHT UP FALSE BLUE OVERWORLD (0, 0)
 
 # The positions and directions for moving platforms
-# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Platform Length) (Shift to the right by half a pixel)
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
 MOVING_PLATFORM=\
+
+# The positions for the platform levels
+# Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
+PLATFORM_LEVEL=\
 
 # The positions and directions for fire bars
 # Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)

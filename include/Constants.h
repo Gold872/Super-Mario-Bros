@@ -12,7 +12,7 @@ constexpr int SCREEN_HEIGHT = 15 * SCALED_CUBE_SIZE;
 constexpr float GRAVITY = 0.575f;
 constexpr float FRICTION = 0.94f;
 constexpr float MAX_SPEED_X = 10.00f;
-constexpr float MAX_SPEED_Y = 9.5f;
+constexpr float MAX_SPEED_Y = 7.5f;
 constexpr float MAX_UNDERWATER_Y = 2.0;
 
 constexpr float MARIO_ACCELERATION_X = 0.24f;

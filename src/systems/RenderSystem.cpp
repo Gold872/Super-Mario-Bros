@@ -19,43 +19,46 @@ void RenderSystem::onAddedToWorld(World* world) {
 void RenderSystem::tick(World* world) {
    TextureManager::Get().Clear();
    // This is to render the entities in the correct order
-   world->find<PositionComponent, TextureComponent, BackgroundComponent>([&](Entity* entity) {
-      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+   if (!transitionRendering) {  // Don't show the entities being loaded during a transition
+      world->find<PositionComponent, TextureComponent, BackgroundComponent>([&](Entity* entity) {
+         if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+            renderEntity(entity);
+         }
+      });
+      world->find<PositionComponent, TextureComponent, ForegroundComponent>([&](Entity* entity) {
+         if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+            renderEntity(entity);
+         }
+      });
+      world->find<PositionComponent, TextureComponent, ProjectileComponent>([&](Entity* entity) {
          renderEntity(entity);
-      }
-   });
-   world->find<PositionComponent, TextureComponent, ForegroundComponent>([&](Entity* entity) {
-      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+      });
+      world->find<PositionComponent, TextureComponent, CollectibleComponent>([&](Entity* entity) {
+         if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+            renderEntity(entity);
+         }
+      });
+      world->find<PositionComponent, TextureComponent, EnemyComponent>([&](Entity* entity) {
+         if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+            renderEntity(entity);
+         }
+      });
+      world->find<PositionComponent, TextComponent, FloatingTextComponent>([&](Entity* entity) {
+         renderText(entity, entity->getComponent<TextComponent>()->followCamera);
+      });
+      world->find<PositionComponent, TextureComponent, PlayerComponent>([&](Entity* entity) {
          renderEntity(entity);
-      }
-   });
-   world->find<PositionComponent, TextureComponent, ProjectileComponent>([&](Entity* entity) {
-      renderEntity(entity);
-   });
-   world->find<PositionComponent, TextureComponent, CollectibleComponent>([&](Entity* entity) {
-      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+      });
+      world->find<PositionComponent, TextureComponent, AboveForegroundComponent>(
+          [&](Entity* entity) {
+             if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+                renderEntity(entity);
+             }
+          });
+      world->find<PositionComponent, TextureComponent, ParticleComponent>([&](Entity* entity) {
          renderEntity(entity);
-      }
-   });
-   world->find<PositionComponent, TextureComponent, EnemyComponent>([&](Entity* entity) {
-      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
-         renderEntity(entity);
-      }
-   });
-   world->find<PositionComponent, TextComponent, FloatingTextComponent>([&](Entity* entity) {
-      renderText(entity, entity->getComponent<TextComponent>()->followCamera);
-   });
-   world->find<PositionComponent, TextureComponent, PlayerComponent>([&](Entity* entity) {
-      renderEntity(entity);
-   });
-   world->find<PositionComponent, TextureComponent, AboveForegroundComponent>([&](Entity* entity) {
-      if (Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
-         renderEntity(entity);
-      }
-   });
-   world->find<PositionComponent, TextureComponent, ParticleComponent>([&](Entity* entity) {
-      renderEntity(entity);
-   });
+      });
+   }
 
    world->find<PositionComponent, TextureComponent, IconComponent>([&](Entity* entity) {
       renderEntity(entity, false);
@@ -73,6 +76,10 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
    auto* position = entity->getComponent<PositionComponent>();
    auto* texture = entity->getComponent<TextureComponent>();
 
+   if (!texture->isVisible()) {
+      return;
+   }
+
    float screenPositionX =
        (cameraBound) ? position->position.x - Camera::Get().getCameraX() : position->position.x;
    float screenPositionY =
@@ -81,9 +88,16 @@ void RenderSystem::renderEntity(Entity* entity, bool cameraBound) {
    SDL_Rect destinationRect = {(int)std::round(screenPositionX), (int)std::round(screenPositionY),
                                position->scale.x, position->scale.y};
 
-   if (texture->isVisible()) {
-      TextureManager::Get().Draw(texture->getTexture(), texture->getSourceRect(), destinationRect,
-                                 texture->isHorizontalFlipped(), texture->isVerticalFlipped());
+   if (entity->hasComponent<SpritesheetComponent>()) {
+      auto* spritesheet = entity->getComponent<SpritesheetComponent>();
+
+      TextureManager::Get().Draw(texture->getTexture(), spritesheet->getSourceRect(),
+                                 destinationRect, texture->isHorizontalFlipped(),
+                                 texture->isVerticalFlipped());
+   } else {
+      TextureManager::Get().Draw(
+          texture->getTexture(), SDL_Rect{0, 0, position->scale.x, position->scale.y},
+          destinationRect, texture->isHorizontalFlipped(), texture->isVerticalFlipped());
    }
 }
 
@@ -118,4 +132,8 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
           (SDL_Rect){(int)std::round(screenPositionX), (int)std::round(screenPositionY),
                      messageWidth, messageHeight});
    }
+}
+
+void RenderSystem::setTransitionRendering(bool transition) {
+   transitionRendering = transition;
 }

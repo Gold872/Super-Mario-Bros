@@ -14,15 +14,21 @@ class MapSystem : public System {
 
    void tick(World* world) override{};
 
+   void loadEntities();
    void loadEntities(World* world);
+   void hideGameEntities(World* world);
+   void showGameEntities(World* world);
 
   private:
    GameScene* scene;
 
    Entity* createBlockEntity(World* world, int coordinateX, int coordinateY, int entityID);
+   Entity* createBackgroundEntity(World* world, int coordinateX, int coordinateY, int entityID);
    Entity* createPlatformEntity(
-       World* world, int coordinateX, int coordinateY, int entityID,
-       std::tuple<PlatformMotionType, Direction, Vector2i, int, bool> platformCoordinate);
+       World* world, int coordinateX, int coordinateY, int entityID, int platformLength,
+       std::tuple<PlatformMotionType, Direction, Vector2i, bool> platformData);
+   Entity* createPlatformLevelEntity(World* world,
+                                     std::tuple<Vector2i, Vector2i, int> platformLevelData);
 
    float generateRandomNumber(float min, float max);
 

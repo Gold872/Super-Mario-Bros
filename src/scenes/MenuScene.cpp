@@ -64,10 +64,11 @@ void MenuScene::createMenuEntities() {
                    Vector2f(j * SCALED_CUBE_SIZE, i * SCALED_CUBE_SIZE),
                    Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
 
-               entity->addComponent<TextureComponent>(
-                   blockTexture, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1,
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID),
-                   false, false);
+               entity->addComponent<TextureComponent>(blockTexture, false, false);
+
+               entity->addComponent<SpritesheetComponent>(
+                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(entityID));
 
                entity->addComponent<BackgroundComponent>();
                break;

@@ -19,10 +19,14 @@ class RenderSystem : public System {
 
    void onRemovedFromWorld(World* world) override {}
 
+   void setTransitionRendering(bool transition);
+
   private:
    void renderEntity(Entity* entity, bool cameraBound = true);
 
    void renderText(Entity* entity, bool followCamera = false);
+
+   bool transitionRendering = false;
 
    std::shared_ptr<TTF_Font> normalFont;
    std::shared_ptr<TTF_Font> smallFont;

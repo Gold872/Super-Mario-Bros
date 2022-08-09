@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 
 /*
  * The Vector2 stores an x and a y value. This is used for the position of all Entities
@@ -8,6 +9,9 @@
  * */
 template <typename T>
 class Vector2 {
+  public:
+   using VectorType = T;
+
   public:
    Vector2() : x{0}, y{0} {};
    Vector2(T X, T Y) : x{X}, y{Y} {};
@@ -25,6 +29,22 @@ class Vector2 {
    Vector2<OTHER> convertTo() {
       return Vector2<OTHER>((OTHER)x, (OTHER)y);
    };
+
+   Vector2<float> normalize() {
+      float length = std::sqrt(x * x + y * y);
+
+      if (length == 0) {
+         return Vector2<float>(0);
+      }
+
+      float normalizedX = x / length;
+      float normalizedY = y / length;
+
+      float scaledX = std::abs(normalizedX) * x;
+      float scaledY = std::abs(normalizedY) * y;
+
+      return Vector2<float>(scaledX, scaledY);
+   }
 };
 
 template <typename T>
@@ -53,6 +73,11 @@ Vector2<T> operator*(const Vector2<T>& A, int B) {
 }
 
 template <typename T>
+Vector2<T> operator*(const Vector2<T>& left, const Vector2<T>& right) {
+   return Vector2<T>(left.x * right.x, left.y * right.y);
+}
+
+template <typename T>
 Vector2<T> operator/(const Vector2<T>& A, int B) {
    return Vector2<T>(A.x / B, A.y / B);
 }
@@ -75,9 +100,9 @@ void operator*=(Vector2<T>& A, int B) {
    A.y *= B;
 }
 
-typedef Vector2<int> Vector2i;
-typedef Vector2<unsigned int> Vector2u;
-typedef Vector2<float> Vector2f;
+using Vector2i = Vector2<int>;
+using Vector2u = Vector2<unsigned int>;
+using Vector2f = Vector2<float>;
 
 class PIDController {
   public:

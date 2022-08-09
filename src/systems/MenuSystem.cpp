@@ -13,8 +13,9 @@ void MenuSystem::onAddedToWorld(World* world) {
       logo->addComponent<PositionComponent>(Vector2f(7 * SCALED_CUBE_SIZE, 2 * SCALED_CUBE_SIZE),
                                             Vector2i(11 * SCALED_CUBE_SIZE, 6 * SCALED_CUBE_SIZE));
       logo->addComponent<TextureComponent>(
-          TextureManager::Get().LoadSharedTexture("res/sprites/icons/logo.png"),
-          11 * ORIGINAL_CUBE_SIZE, 6 * ORIGINAL_CUBE_SIZE, 0, 0, 0, 176, 96, Vector2i(0, 0));
+          TextureManager::Get().LoadSharedTexture("res/sprites/icons/logo.png"));
+      logo->addComponent<SpritesheetComponent>(11 * ORIGINAL_CUBE_SIZE, 6 * ORIGINAL_CUBE_SIZE, 0,
+                                               0, 0, 176, 96, Vector2i(0, 0));
       logo->addComponent<IconComponent>();
    }
    {  // ABOUT TEXT

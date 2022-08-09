@@ -5,6 +5,8 @@
 #include "Scene.h"
 #include "systems/systems.h"
 
+#include <SDL2/SDL_thread.h>
+
 #include <functional>
 #include <memory>
 
@@ -12,6 +14,8 @@ class PlayerSystem;  // Idk why this is needed, but it doesn't work without it
 class MapSystem;
 class ScoreSystem;
 class SoundSystem;
+class PhysicsSystem;
+class RenderSystem;
 
 class Level;
 struct LevelData;
@@ -58,16 +62,24 @@ class GameScene : public Scene {
       return gameLevel->getData();
    }
 
+   World* getWorld() {
+      return world;
+   }
+
    std::shared_ptr<SDL_Texture> blockTexture;
    std::shared_ptr<SDL_Texture> enemyTexture;
 
   private:
    friend class MapSystem;
 
+   SDL_Thread* loaderThread;
+
    PlayerSystem* playerSystem;
    MapSystem* mapSystem;
    ScoreSystem* scoreSystem;
    SoundSystem* soundSystem;
+   PhysicsSystem* physicsSystem;
+   RenderSystem* renderSystem;
 
    std::unique_ptr<Level> gameLevel = std::make_unique<Level>();
 

@@ -1,8 +1,8 @@
 #include "Core.h"
 
-Core core;
-
 int main(int argc, char** argv) {
+   Core core;
+
    if (core.init() != 0) {
       return -1;
    }
