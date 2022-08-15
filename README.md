@@ -34,6 +34,10 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 - Entities don't only serve the purpose of displaying a texture on the screen, some are used to add properties to Entities (For example, classifying an entity as the player with the PlayerComponent), and some are also used to schedule an action (this is most commonly used in the sound and score system)
 
+### The Commands
+
+- Commands are used to perform actions that aren't focused on one entity. Commands are most commonly used in sequences, where multi-step processes are executed in order. Examples of this being used is the WarpCommand for warp-pipes and the VineCommand for climbing a vine.
+
 ### The Levels
 
 - The Levels were created with the help of a program called [Tiled Map Editor](https://www.mapeditor.org/)
@@ -44,11 +48,8 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 - Finish creating the methods for loading all of the enemies
     - Koopa Paratroopa
-    - Lakitu
 
 - Finish all of the Levels
-
-- Create custom levels
 
 - Record a demo video of the game
 

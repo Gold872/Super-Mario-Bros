@@ -10,11 +10,13 @@
 #include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
+#include <iostream>
 #include <vector>
 
 class VineCommand : public SequenceCommand {
   public:
-   VineCommand(WarpSystem* warpSystem, World* world, Entity* vine, Entity* player) {
+   VineCommand(GameScene* scene, WarpSystem* warpSystem, World* world, Entity* vine,
+               Entity* player) {
       auto* vineComponent = vine->getComponent<VineComponent>();
 
       auto* playerMove = player->getComponent<MovingComponent>();
@@ -39,8 +41,18 @@ class VineCommand : public SequenceCommand {
              return !Camera::Get().inCameraRange(playerPosition);
           }),
           new RunCommand([=, &vineParts]() {
+             warpSystem->setTeleportCameraMax(Camera::Get().getCameraMaxX());
+             Camera::Get().setCameraMaxX(vineComponent->newCameraMax * SCALED_CUBE_SIZE);
+
              Camera::Get().setCameraX(vineComponent->cameraCoordinates.x * SCALED_CUBE_SIZE);
              Camera::Get().setCameraY(vineComponent->cameraCoordinates.y * SCALED_CUBE_SIZE);
+
+             warpSystem->setTeleportBackgroundColor(TextureManager::Get().getBackgroundColor());
+             TextureManager::Get().SetBackgroundColor(vineComponent->newBackgroundColor);
+
+             warpSystem->setTeleportLevelType(scene->getCurrentLevelType());
+             scene->setCurrentLevelType(vineComponent->newLevelType);
+             scene->setLevelMusic(vineComponent->newLevelType);
 
              // Moves the vines upwards
              for (Entity* vinePiece : vineParts) {

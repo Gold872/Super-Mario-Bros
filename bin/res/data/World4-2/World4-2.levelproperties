@@ -1,0 +1,66 @@
+### STARTING POSITIONS
+# The starting position of the player
+PLAYER_START = (2, 12)
+
+# The starting position of the camera
+CAMERA_START = (0, 0)
+
+# The maximum point the camera can reach
+CAMERA_MAX = 224
+
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = START_UNDERGROUND
+
+# The level to go to next
+NEXT_LEVEL = (4, 3)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLUE
+
+### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+	(110, 6) (WELCOME TO WARP ZONE),\
+	(111, 9) (8),\
+	(115, 9) (7),\
+	(119, 9) (6),\
+	(210, 24) (WELCOME TO WARP ZONE),\
+	(215, 27) (5)
+
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
+WARP_PIPE=\
+	(10, 12) (3, 20) (0, 18) RIGHT NONE FALSE BLACK UNDERGROUND (0, 0),\
+	(84, 28) (118, 38) (116, 36) DOWN NONE TRUE BLACK UNDERGROUND (0, 0),\
+	(129, 48) (131, 29) (125, 18) RIGHT UP FALSE BLACK UNDERGROUND (0, 0),\
+	(187, 27) (189, 11) (186, 0) RIGHT UP FALSE BLUE OVERWORLD (0, 0),\
+	(110, 10) (0, 0) (0, 0) DOWN NONE FALSE BLUE OVERWORLD (8, 1),\
+	(114, 10) (0, 0) (0, 0) DOWN NONE FALSE BLUE OVERWORLD (7, 1),\
+	(118, 10) (0, 0) (0, 0) DOWN NONE FALSE BLUE OVERWORLD (6, 1),\
+	(214, 28) (0, 0) (0, 0) DOWN NONE FALSE BLUE OVERWORLD (5, 1)
+
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
+MOVING_PLATFORM=\
+	(59, 26) ONE_DIRECTION_REPEATED DOWN (17, 32) FALSE,\
+	(115, 21) ONE_DIRECTION_REPEATED DOWN (17, 32) FALSE,\
+	(115, 28) ONE_DIRECTION_REPEATED DOWN (17, 32) FALSE,\
+	(124, 22) ONE_DIRECTION_REPEATED UP (17, 32) FALSE,\
+	(124, 29) ONE_DIRECTION_REPEATED UP (17, 32) FALSE,\
+	(156, 22) ONE_DIRECTION_REPEATED DOWN (17, 32) FALSE,\
+	(156, 29) ONE_DIRECTION_REPEATED DOWN (17, 32) FALSE
+
+# The positions for the platform levels
+# Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
+PLATFORM_LEVEL=\
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (New camera max) (Background Color of the vine location) (Level type of the vine location)
+VINE=\
+	(64, 23) (64, 13) (60, 0) 1000 (0, 0) 124 BLUE OVERWORLD

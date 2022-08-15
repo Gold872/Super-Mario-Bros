@@ -38,6 +38,16 @@ class GameScene : public Scene {
       return subLevel;
    }
 
+   LevelType getCurrentLevelType() {
+      return currentLevelType;
+   }
+
+   void setCurrentLevelType(LevelType levelType) {
+      currentLevelType = levelType;
+   }
+
+   void setupLevel();
+
    void switchLevel(int level, int subLevel);
    void restartLevel();
 
@@ -87,6 +97,7 @@ class GameScene : public Scene {
    int subLevel;
 
    MusicID currentMusicID;
+   LevelType currentLevelType;
 
    Map enemiesMap;
    Map foregroundMap;

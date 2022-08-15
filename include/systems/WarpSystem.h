@@ -57,6 +57,18 @@ class WarpSystem : public System {
       teleportCameraCoordinates = cameraCoordinates;
    }
 
+   void setTeleportCameraMax(int cameraMax) {
+      teleportCameraMax = cameraMax;
+   }
+
+   void setTeleportBackgroundColor(BackgroundColor backgroundColor) {
+      teleportBackgroundColor = backgroundColor;
+   }
+
+   void setTeleportLevelType(LevelType levelType) {
+      teleportLevelType = levelType;
+   }
+
    int up = 0;
    int down = 0;
    int left = 0;
@@ -72,4 +84,7 @@ class WarpSystem : public System {
    int teleportLevelY;
    Vector2i teleportPlayerCoordinates;
    Vector2i teleportCameraCoordinates;
+   int teleportCameraMax;
+   BackgroundColor teleportBackgroundColor;
+   LevelType teleportLevelType;
 };

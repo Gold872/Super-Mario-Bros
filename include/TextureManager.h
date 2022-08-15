@@ -44,6 +44,10 @@ class TextureManager {
       return renderer;
    }
 
+   BackgroundColor getBackgroundColor() {
+      return currentColor;
+   }
+
   private:
    TextureManager() {}
 

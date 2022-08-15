@@ -21,16 +21,24 @@ void Camera::updateCameraMin() {
    m_cameraMinX = m_cameraX;
 }
 
-void Camera::setCameraMin(float x) {
+void Camera::setCameraLeft(float x) {
    m_cameraMinX = x;
 }
 
-void Camera::setCameraMax(float x) {
+void Camera::setCameraRight(float x) {
    setCameraX(x - SCREEN_WIDTH);
 }
 
 void Camera::setCameraFrozen(bool val) {
    m_frozen = val;
+}
+
+void Camera::setCameraMinX(float x) {
+   m_cameraMinX = x;
+}
+
+void Camera::setCameraMaxX(float x) {
+   m_cameraMaxX = x;
 }
 
 float Camera::getCameraX() {
@@ -49,12 +57,20 @@ float Camera::getCameraCenterY() {
    return getCameraY() + (SCREEN_HEIGHT / 2);
 }
 
+float Camera::getCameraLeft() {
+   return getCameraX();
+}
+
+float Camera::getCameraRight() {
+   return getCameraX() + SCREEN_WIDTH;
+}
+
 float Camera::getCameraMinX() {
    return m_cameraMinX;
 }
 
 float Camera::getCameraMaxX() {
-   return getCameraX() + SCREEN_WIDTH;
+   return m_cameraMaxX;
 }
 
 bool Camera::isFrozen() {

@@ -1,5 +1,3 @@
-#include "scenes/GameScene.h"
-
 #include "AABBCollision.h"
 #include "Constants.h"
 #include "ECS/Components.h"
@@ -10,6 +8,7 @@
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
+#include "scenes/GameScene.h"
 #include "systems/Systems.h"
 
 #include <algorithm>
@@ -109,96 +108,66 @@ bool GameScene::isFinished() {
    return false;
 }
 
+void GameScene::setupLevel() {
+   destroyWorldEntities();
+
+   enemiesMap.reset();
+   foregroundMap.reset();
+   undergroundMap.reset();
+   backgroundMap.reset();
+   aboveForegroundMap.reset();
+   collectiblesMap.reset();
+
+   WarpSystem::setClimbed(false);
+
+   gameLevel->clearLevelData();
+
+   loadLevel(level, subLevel);
+
+   TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
+   scoreSystem->showTransitionEntities();
+
+   scoreSystem->reset();
+
+   physicsSystem->setActive(false);
+   renderSystem->setTransitionRendering(true);
+   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+
+   CommandScheduler::getInstance().addCommand(new DelayedCommand(
+       [=]() {
+          TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
+
+          scoreSystem->hideTransitionEntities();
+
+          SDL_WaitThread(loaderThread, NULL);
+          physicsSystem->setActive(true);
+          renderSystem->setTransitionRendering(false);
+
+          startTimer();
+
+          startLevelMusic();
+
+          playerSystem->reset();
+       },
+       3.0));
+}
+
 void GameScene::switchLevel(int level, int subLevel) {
    commandQueue.push_back([=]() {
       this->level = level;
       this->subLevel = subLevel;
 
       //      std::cout << "Number of Entities: " << world->getEntities().size() << '\n';
-      destroyWorldEntities();
-
-      enemiesMap.reset();
-      foregroundMap.reset();
-      undergroundMap.reset();
-      backgroundMap.reset();
-      aboveForegroundMap.reset();
-      collectiblesMap.reset();
-
-      gameLevel->clearLevelData();
-
-      loadLevel(level, subLevel);
-
-      TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
-      scoreSystem->showTransitionEntities();
-
-      scoreSystem->reset();
-
-      physicsSystem->setActive(false);
-      renderSystem->setTransitionRendering(true);
-      loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
-
-      CommandScheduler::getInstance().addCommand(new DelayedCommand(
-          [=]() {
-             TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
-
-             scoreSystem->hideTransitionEntities();
-
-             SDL_WaitThread(loaderThread, NULL);
-             physicsSystem->setActive(true);
-             renderSystem->setTransitionRendering(false);
-
-             startTimer();
-
-             startLevelMusic();
-
-             playerSystem->reset();
-          },
-          3.0));
+      setupLevel();
    });
 }
 
 void GameScene::restartLevel() {
    commandQueue.push_back([=]() {
-      destroyWorldEntities();
-
-      enemiesMap.reset();
-      foregroundMap.reset();
-      undergroundMap.reset();
-      backgroundMap.reset();
-      aboveForegroundMap.reset();
-      collectiblesMap.reset();
-
-      gameLevel->clearLevelData();
-
-      loadLevel(level, subLevel);
-
-      TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
-      scoreSystem->showTransitionEntities();
-
       scoreSystem->reset();
       scoreSystem->decreaseLives();
 
-      physicsSystem->setActive(false);
-      renderSystem->setTransitionRendering(true);
-      loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
-
-      CommandScheduler::getInstance().addCommand(new DelayedCommand(
-          [=]() {
-             TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
-
-             scoreSystem->hideTransitionEntities();
-
-             SDL_WaitThread(loaderThread, NULL);
-             physicsSystem->setActive(true);
-             renderSystem->setTransitionRendering(false);
-
-             startTimer();
-
-             startLevelMusic();
-
-             playerSystem->reset();
-          },
-          3.0));
+      setupLevel();
    });
 }
 
@@ -258,7 +227,11 @@ bool GameScene::scoreCountdownFinished() {
 void GameScene::destroyWorldEntities() {
    std::vector<Entity*> entities = world->getEntities();
    for (auto* entity : entities) {
-      if (!entity->hasAny<PlayerComponent, TextComponent, IconComponent>()) {
+      if (!entity->hasAny<PlayerComponent, IconComponent>()) {
+         if (entity->hasComponent<TextComponent>() &&
+             !entity->hasComponent<FloatingTextComponent>()) {
+            continue;
+         }
          world->destroy(entity);
       }
    }

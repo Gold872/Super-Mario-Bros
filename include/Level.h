@@ -20,9 +20,12 @@ using std::string;
 using MovingPlatformData = std::tuple<Vector2i, PlatformMotionType, Direction, Vector2i, bool>;
 using PlatformLevelData = std::tuple<Vector2i, Vector2i, int>;
 using FireBarData = std::tuple<Vector2i, int, RotationDirection, int>;
-using VineData = std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>;
+using VineData =
+    std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i, int, BackgroundColor, LevelType>;
 using WarpPipeData = std::tuple<Vector2i, Vector2i, Vector2i, Direction, Direction, bool,
                                 BackgroundColor, LevelType, Vector2i>;
+
+using FloatingText = std::tuple<Vector2i, string>;
 
 enum class WarpPipeDirections
 {
@@ -60,6 +63,7 @@ struct LevelData {
    std::vector<PlatformLevelData> platformLevelLocations;
    std::vector<FireBarData> fireBarLocations;
    std::vector<VineData> vineLocations;
+   std::vector<FloatingText> floatingTextLocations;
 };
 
 class Level {
@@ -196,10 +200,41 @@ class Level {
       return 0;
    }
 
-   std::vector<MovingPlatformData> loadMovingPlatforms(string arrayPattern, string stringToSearch,
-                                                       string platformSearch) {
-      std::regex arrayRegex(arrayPattern);
-      std::regex platformRegex(platformSearch);
+   std::vector<FloatingText> loadFloatingText(string stringToSearch) {
+      std::regex arrayRegex("FLOATING_TEXT" + arrayPattern);
+      std::regex textRegex(floatingTextPattern);
+
+      std::smatch arrayMatch;
+
+      std::vector<FloatingText> floatingTextLocations;
+
+      if (std::regex_search(stringToSearch, arrayMatch, arrayRegex)) {
+         std::istringstream iss(arrayMatch[1]);
+
+         std::smatch pairMatch;
+
+         string s;
+
+         while (getline(iss, s)) {
+            if (std::regex_search(s, pairMatch, textRegex)) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 3) {
+                  Vector2i textLocation =
+                      Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
+
+                  string text = pairMatch[i + 2];
+
+                  floatingTextLocations.push_back(FloatingText(textLocation, text));
+               }
+            }
+         }
+      }
+
+      return floatingTextLocations;
+   }
+
+   std::vector<MovingPlatformData> loadMovingPlatforms(string stringToSearch) {
+      std::regex arrayRegex("MOVING_PLATFORM" + arrayPattern);
+      std::regex platformRegex(platformPattern);
 
       std::vector<MovingPlatformData> platformData;
 
@@ -229,10 +264,9 @@ class Level {
       return platformData;
    }
 
-   std::vector<PlatformLevelData> loadPlatformLevels(string arrayPattern, string stringToSearch,
-                                                     string levelSearch) {
-      std::regex arrayRegex(arrayPattern);
-      std::regex levelRegex(levelSearch);
+   std::vector<PlatformLevelData> loadPlatformLevels(string stringToSearch) {
+      std::regex arrayRegex("PLATFORM_LEVEL" + arrayPattern);
+      std::regex levelRegex(platformLevelPattern);
 
       std::vector<PlatformLevelData> platformData;
 
@@ -262,10 +296,9 @@ class Level {
       return platformData;
    }
 
-   std::vector<WarpPipeData> loadWarpPipes(string arrayRegexPattern, string stringToSearch,
-                                           string pipeSearch) {
-      std::regex arrayRegex(arrayRegexPattern);
-      std::regex pipeRegex(pipeSearch);
+   std::vector<WarpPipeData> loadWarpPipes(string stringToSearch) {
+      std::regex arrayRegex("WARP_PIPE" + arrayPattern);
+      std::regex pipeRegex(warpPipePattern);
 
       std::vector<WarpPipeData> pipeData;
 
@@ -308,10 +341,9 @@ class Level {
       return pipeData;
    }
 
-   std::vector<FireBarData> loadFireBars(string regexPattern, string stringToSearch,
-                                         string searchBar) {
-      std::regex arrayRegex(regexPattern);
-      std::regex barRegex(searchBar);
+   std::vector<FireBarData> loadFireBars(string stringToSearch) {
+      std::regex arrayRegex("FIRE_BAR" + arrayPattern);
+      std::regex barRegex(fireBarPattern);
 
       std::vector<FireBarData> barData;
 
@@ -343,12 +375,11 @@ class Level {
       return barData;
    }
 
-   std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> loadVines(
-       string regexPattern, string stringToSearch, string searchVines) {
-      std::regex arrayRegex(regexPattern);
-      std::regex vineRegex(searchVines);
+   std::vector<VineData> loadVines(string stringToSearch) {
+      std::regex arrayRegex("VINE" + arrayPattern);
+      std::regex vineRegex(vinePattern);
 
-      std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> vineLocations;
+      std::vector<VineData> vineLocations;
 
       std::smatch arrayMatch;
 
@@ -361,7 +392,7 @@ class Level {
 
          while (getline(iss, s)) {
             if (std::regex_search(s, pairMatch, vineRegex)) {
-               for (unsigned int i = 1; i < pairMatch.size(); i += 9) {
+               for (unsigned int i = 1; i < pairMatch.size(); i += 12) {
                   Vector2i blockLocation =
                       Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1]));
                   Vector2i teleportLocation =
@@ -371,10 +402,13 @@ class Level {
                   int resetYValue = std::stoi(pairMatch[i + 6]);
                   Vector2i resetTeleportLocation =
                       Vector2i(std::stoi(pairMatch[i + 7]), std::stoi(pairMatch[i + 8]));
+                  int newCameraMax = std::stoi(pairMatch[i + 9]);
+                  BackgroundColor backgroundColor = backgroundColorString.at(pairMatch[i + 10]);
+                  LevelType levelType = levelTypeString.at(pairMatch[i + 11]);
 
-                  vineLocations.push_back(std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>(
-                      blockLocation, teleportLocation, cameraCoordinates, resetYValue,
-                      resetTeleportLocation));
+                  vineLocations.push_back(
+                      VineData(blockLocation, teleportLocation, cameraCoordinates, resetYValue,
+                               resetTeleportLocation, newCameraMax, backgroundColor, levelType));
                }
             }
          }
@@ -401,19 +435,17 @@ class Level {
 
       data.cameraMax = loadIntData("CAMERA_MAX" + normalRegexPattern, levelProperties);
 
-      data.warpPipeLocations =
-          loadWarpPipes("WARP_PIPE" + arrayPattern, levelProperties, warpPipePattern);
+      data.floatingTextLocations = loadFloatingText(levelProperties);
 
-      data.movingPlatformDirections =
-          loadMovingPlatforms("MOVING_PLATFORM" + arrayPattern, levelProperties, platformPattern);
+      data.warpPipeLocations = loadWarpPipes(levelProperties);
 
-      data.platformLevelLocations = loadPlatformLevels("PLATFORM_LEVEL" + arrayPattern,
-                                                       levelProperties, platformLevelPattern);
+      data.movingPlatformDirections = loadMovingPlatforms(levelProperties);
 
-      data.fireBarLocations =
-          loadFireBars("FIRE_BAR" + arrayPattern, levelProperties, fireBarPattern);
+      data.platformLevelLocations = loadPlatformLevels(levelProperties);
 
-      data.vineLocations = loadVines("VINE" + arrayPattern, levelProperties, vinePattern);
+      data.fireBarLocations = loadFireBars(levelProperties);
+
+      data.vineLocations = loadVines(levelProperties);
    }
 
    void clearLevelData() {
@@ -422,8 +454,10 @@ class Level {
       data.playerStart = Vector2i(0, 0);
       data.nextLevel = Vector2i(0, 0);
       data.cameraMax = 0;
+      data.floatingTextLocations.clear();
       data.warpPipeLocations.clear();
       data.movingPlatformDirections.clear();
+      data.platformLevelLocations.clear();
       data.fireBarLocations.clear();
       data.vineLocations.clear();
    }
@@ -445,6 +479,8 @@ class Level {
 
    string intPattern = "(\\d+)";
 
+   string stringPattern = "\\((.*)\\)";
+
    string warpPipePattern = vectorPattern + " " + vectorPattern + " " + vectorPattern + " " +
                             enumPattern + " " + enumPattern + " " + enumPattern + " " +
                             enumPattern + " " + enumPattern + " " + vectorPattern;
@@ -457,5 +493,8 @@ class Level {
    string fireBarPattern = vectorPattern + " " + intPattern + " " + enumPattern + " " + intPattern;
 
    string vinePattern = vectorPattern + " " + vectorPattern + " " + vectorPattern + " " +
-                        intPattern + " " + vectorPattern;
+                        intPattern + " " + vectorPattern + " " + intPattern + " " + enumPattern +
+                        " " + enumPattern;
+
+   string floatingTextPattern = vectorPattern + " " + stringPattern;
 };

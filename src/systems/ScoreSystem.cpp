@@ -1,7 +1,8 @@
+#include "systems/ScoreSystem.h"
+
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
-#include "systems/ScoreSystem.h"
 
 #include <cmath>
 #include <memory>

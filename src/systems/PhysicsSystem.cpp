@@ -1,9 +1,8 @@
-#include "systems/PhysicsSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "systems/PhysicsSystem.h"
 
 #include <cmath>
 #include <iostream>
@@ -207,6 +206,16 @@ void PhysicsSystem::updateMovingPlatforms(World* world) {
                   break;
             }
             break;
+         case PlatformMotionType::GRAVITY: {
+            if (entity->hasComponent<TopCollisionComponent>()) {
+               platformMove->acceleration.y = 0.10;
+            } else {
+               platformMove->acceleration.y = 0;
+               platformMove->velocity.y *= 0.92;
+            }
+
+            entity->remove<TopCollisionComponent>();
+         } break;
          default:
             break;
       }
@@ -380,10 +389,10 @@ void PhysicsSystem::tick(World* world) {
          }
       });
 
-      if (std::abs(move->velocity.y) < MARIO_ACCELERATION_X / 2) {
+      if (std::abs(move->velocity.y) < MARIO_ACCELERATION_X / 2 && move->acceleration.y == 0.0) {
          move->velocity.y = 0;
       }
-      if (std::abs(move->velocity.x) < MARIO_ACCELERATION_X / 2) {
+      if (std::abs(move->velocity.x) < MARIO_ACCELERATION_X / 2 && move->acceleration.x == 0.0) {
          move->velocity.x = 0;
       }
    });

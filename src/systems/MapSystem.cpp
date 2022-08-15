@@ -1,16 +1,18 @@
-#include "systems/MapSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Map.h"
 #include "SoundManager.h"
+#include "command/CommandScheduler.h"
+#include "command/Commands.h"
+#include "systems/MapSystem.h"
 
 #include <functional>
 #include <iostream>
 #include <time.h>
 #include <tuple>
+#include <vector>
 
 template <typename T>
 std::tuple<Vector2i, T> getDataCoordinate(std::vector<std::tuple<Vector2i, T>> levelData,
@@ -78,17 +80,19 @@ auto getFireBarCoordinate(std::vector<std::tuple<Vector2i, int, RotationDirectio
                                                             RotationDirection::NONE, 0);
 }
 
-auto getVineCoordinate(
-    std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>> levelData,
-    Vector2i coordinate) {
+auto getVineCoordinate(std::vector<std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i, int,
+                                              BackgroundColor, LevelType>>
+                           levelData,
+                       Vector2i coordinate) {
    for (auto tupledData : levelData) {
       if (std::get<0>(tupledData) == coordinate) {
          return tupledData;
       }
    }
 
-   return std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i>(Vector2i(0), Vector2i(0),
-                                                                  Vector2i(0), 0, Vector2i(0));
+   return std::tuple<Vector2i, Vector2i, Vector2i, int, Vector2i, int, BackgroundColor, LevelType>(
+       Vector2i(0), Vector2i(0), Vector2i(0), 0, Vector2i(0), 0, BackgroundColor::BLACK,
+       LevelType::NONE);
 }
 
 MapSystem::MapSystem(GameScene* scene) {
@@ -283,7 +287,11 @@ Entity* MapSystem::createPlatformEntity(
    switch (std::get<0>(platformData)) {
       case PlatformMotionType::ONE_DIRECTION_REPEATED: {
          Direction movingDirection = std::get<1>(platformData);
-         Vector2i minMax = std::get<2>(platformData) * SCALED_CUBE_SIZE;
+         Vector2i minMax = std::get<2>(platformData);
+
+         minMax += Vector2i(0, 1);
+
+         minMax *= SCALED_CUBE_SIZE;
 
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::ONE_DIRECTION_REPEATED,
                                                          movingDirection, minMax);
@@ -339,6 +347,10 @@ Entity* MapSystem::createPlatformEntity(
          platform->addComponent<MovingPlatformComponent>(PlatformMotionType::BACK_AND_FORTH,
                                                          movingDirection, minMax);
       } break;
+      case PlatformMotionType::GRAVITY:
+         platform->addComponent<MovingPlatformComponent>(PlatformMotionType::GRAVITY,
+                                                         Direction::NONE);
+         break;
       default:
          break;
    }
@@ -658,9 +670,10 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
             vineTop->addComponent<CollisionExemptComponent>();
 
-            vineTop->addComponent<VineComponent>(std::get<0>(vineData), std::get<1>(vineData),
-                                                 std::get<2>(vineData), std::get<3>(vineData),
-                                                 std::get<4>(vineData), vineParts);
+            vineTop->addComponent<VineComponent>(
+                std::get<0>(vineData), std::get<1>(vineData), std::get<2>(vineData),
+                std::get<3>(vineData), std::get<4>(vineData), std::get<5>(vineData),
+                std::get<6>(vineData), std::get<7>(vineData), vineParts);
 
             vineTop->addComponent<ForegroundComponent>();
 
@@ -708,7 +721,8 @@ void MapSystem::addItemDispenser(World* world, Entity* entity, int entityID, int
 
                       vinePiece->addComponent<VineComponent>(
                           std::get<0>(vineData), std::get<1>(vineData), std::get<2>(vineData),
-                          std::get<3>(vineData), std::get<4>(vineData), vineParts);
+                          std::get<3>(vineData), std::get<4>(vineData), std::get<5>(vineData),
+                          std::get<6>(vineData), std::get<7>(vineData), vineParts);
 
                       vinePiece->addComponent<ForegroundComponent>();
 
@@ -749,6 +763,25 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             int collectibleID = scene->collectiblesMap.getLevelData()[coordinateY][coordinateX];
             int referenceCollectibleID = getReferenceBlockID(collectibleID);
 
+            int blankBlockID;
+
+            if (collectibleID != 608) {
+               blankBlockID = getReferenceBlockIDAsEntity(collectibleID, 53);
+            } else {
+               switch (scene->getLevelData().levelType) {
+                  case LevelType::UNDERGROUND:
+                  case LevelType::START_UNDERGROUND:
+                     blankBlockID = 69;  // nice
+                     break;
+                  case LevelType::CASTLE:
+                     blankBlockID = 581;
+                     break;
+                  default:
+                     blankBlockID = 53;
+                     break;
+               }
+            }
+
             switch (referenceCollectibleID) {
                case 52:  // One-up
                   collectibleType = MysteryBoxType::ONE_UP;
@@ -769,7 +802,7 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
             if (collectibleType != MysteryBoxType::NONE) {
                entity->addComponent<MysteryBoxComponent>(collectibleType);
 
-               addItemDispenser(world, entity, 53, 53);
+               addItemDispenser(world, entity, blankBlockID, 53);
             }
          }
          break;
@@ -1266,6 +1299,96 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          blooper->addComponent<EnemyComponent>(EnemyType::BLOOPER);
       } break;
       /* ****************************************************************** */
+      case 50: {  // LAKITU
+         Entity* lakitu(world->create());
+
+         lakitu->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2));
+
+         lakitu->addComponent<TextureComponent>(scene->enemyTexture);
+
+         lakitu->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                    1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         lakitu->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
+
+         lakitu->addComponent<FrictionExemptComponent>();
+
+         lakitu->addComponent<CrushableComponent>([](Entity* entity) {
+            entity->getComponent<TextureComponent>()->setVerticalFlipped(true);
+            entity->addComponent<DeadComponent>();
+            entity->addComponent<GravityComponent>();
+            entity->addComponent<ParticleComponent>();
+         });
+
+         lakitu->addComponent<LakituComponent>();
+
+         lakitu->addComponent<EnemyComponent>(EnemyType::LAKITU);
+
+         int inCloudID = getReferenceEnemyIDAsEntity(entityID, 86);
+
+         std::function<Entity*(Entity*)> createSpine = [=](Entity* entity) {
+            auto* position = entity->getComponent<PositionComponent>();
+            auto* texture = entity->getComponent<TextureComponent>();
+
+            Entity* spine(world->create());
+
+            spine->addComponent<PositionComponent>(position->position,
+                                                   Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
+            spine->addComponent<TextureComponent>(scene->enemyTexture);
+
+            spine->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                      0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                      Map::EnemyIDCoordinates.at(500));
+
+            spine->addComponent<AnimationComponent>(std::vector<int>{500, 501}, 4,
+                                                    Map::EnemyIDCoordinates);
+
+            spine->addComponent<MovingComponent>(
+                Vector2f((texture->isHorizontalFlipped()) ? 2.5 : -2.5, 0), Vector2f(0, 0));
+
+            spine->addComponent<GravityComponent>();
+
+            spine->addComponent<DestroyOutsideCameraComponent>();
+
+            spine->addComponent<EnemyComponent>(EnemyType::SPINE);
+
+            return spine;
+         };
+
+         std::function<void(Entity*)> throwSpine = [=](Entity* entity) {
+            auto* position = entity->getComponent<PositionComponent>();
+            auto* spritesheet = entity->getComponent<SpritesheetComponent>();
+
+            CommandScheduler::getInstance().addCommand(new SequenceCommand(std::vector<Command*>{
+                /* Set Lakitu to be in the cloud */
+                new RunCommand([=]() {
+                   position->scale.y = SCALED_CUBE_SIZE;
+                   position->position.y += SCALED_CUBE_SIZE;
+
+                   spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE);
+                   spritesheet->setSpritesheetCoordinates(Map::EnemyIDCoordinates.at(inCloudID));
+                }),
+                new WaitCommand(0.75),
+                /* Move out of the cloud and launch a spine */
+                new RunCommand([=]() {
+                   position->scale.y = SCALED_CUBE_SIZE * 2;
+                   position->position.y -= SCALED_CUBE_SIZE;
+
+                   spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE * 2);
+                   spritesheet->setSpritesheetCoordinates(Map::EnemyIDCoordinates.at(entityID));
+
+                   createSpine(entity);
+                }),
+            }));
+         };
+
+         lakitu->addComponent<TimerComponent>(throwSpine, 3 * MAX_FPS);
+      } break;
+      /* ****************************************************************** */
       case 61: {  // BOWSER
          Entity* bowser(world->create());
 
@@ -1451,7 +1574,11 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
                 Map::EnemyIDCoordinates.at(deadEnemyID));
+
+            entity->addComponent<DeadComponent>();
+
             entity->remove<AnimationComponent>();
+
             entity->remove<MovingComponent>();
 
             entity->addComponent<DestroyDelayedComponent>(20);
@@ -1483,8 +1610,13 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
 
-         entity->addComponent<CrushableComponent>([&](Entity* entity) {
-            entity->getComponent<SpritesheetComponent>()->setSpritesheetXCoordinate(2);
+         entity->addComponent<CrushableComponent>([=](Entity* entity) {
+            int deadEnemyID = getReferenceEnemyIDAsEntity(entityID, 72);
+
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
+                Map::EnemyIDCoordinates.at(deadEnemyID));
+
+            entity->addComponent<DeadComponent>();
 
             entity->remove<AnimationComponent>();
 
@@ -1554,7 +1686,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             auto* position = entity->getComponent<PositionComponent>();
             position->scale.y = SCALED_CUBE_SIZE;
-            position->hitbox.h = SCALED_CUBE_SIZE;
+            position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
             position->position.y += SCALED_CUBE_SIZE;
 
             int shellCoordinate = 494;
@@ -1642,6 +1774,35 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
          }
+      } break;
+      /* ****************************************************************** */
+      case 504: {  // LAVA BUBBLE
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY + 1) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+
+         int resetYLevel = (coordinateY + 1) * SCALED_CUBE_SIZE;
+
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         entity->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
+
+         entity->addComponent<GravityComponent>();
+
+         entity->addComponent<TimerComponent>(
+             [resetYLevel](Entity* entity) {
+                entity->getComponent<PositionComponent>()->position.y = resetYLevel;
+                entity->getComponent<MovingComponent>()->velocity.y = -10.0;
+                entity->getComponent<MovingComponent>()->acceleration.y = -0.40;
+             },
+             MAX_FPS * 6);
+
+         entity->addComponent<EnemyComponent>(EnemyType::LAVA_BUBBLE);
       } break;
       /* ****************************************************************** */
       default: {
@@ -1873,6 +2034,21 @@ void MapSystem::loadEntities(World* world) {
          }
       }
    }
+
+   // Floating text
+   for (auto floatingText : scene->getLevelData().floatingTextLocations) {
+      Entity* text(world->create());
+
+      text->addComponent<PositionComponent>(
+          std::get<0>(floatingText).convertTo<float>() * SCALED_CUBE_SIZE, Vector2i());
+
+      text->addComponent<TextComponent>(std::get<1>(floatingText), 16, true);
+
+      text->addComponent<FloatingTextComponent>();
+   }
+
+   // Set the camera max (i don't know where to put this)
+   Camera::Get().setCameraMaxX(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
 }
 
 void MapSystem::loadEntities() {

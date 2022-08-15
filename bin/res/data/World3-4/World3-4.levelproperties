@@ -13,12 +13,16 @@ CAMERA_MAX = 164
 LEVEL_TYPE = CASTLE
 
 # The level to go to next
-NEXT_LEVEL = (1, 1)
+NEXT_LEVEL = (4, 1)
 
 # The color to set the background to for the level
 BACKGROUND_COLOR = BLACK
 
 ### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+
 # The locations for the Warp pipes
 # Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
 WARP_PIPE=\
@@ -35,17 +39,17 @@ PLATFORM_LEVEL=\
 # The positions and directions for fire bars
 # Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
 FIRE_BAR=\
-	(19, 11) 330 COUNTER_CLOCKWISE 6
-	(24, 11) 210 COUNTER_CLOCKWISE 6
-	(29, 11) 90 COUNTER_CLOCKWISE 6
-	(54, 5) 330 COUNTER_CLOCKWISE 6
-	(54, 11) 60 CLOCKWISE 6
-	(64, 5) 210 COUNTER_CLOCKWISE 6
-	(64, 11) 300 CLOCKWISE 6
-	(80, 5) 330 CLOCKWISE 6
+	(19, 11) 330 COUNTER_CLOCKWISE 6,\
+	(24, 11) 210 COUNTER_CLOCKWISE 6,\
+	(29, 11) 90 COUNTER_CLOCKWISE 6,\
+	(54, 5) 330 COUNTER_CLOCKWISE 6,\
+	(54, 11) 60 CLOCKWISE 6,\
+	(64, 5) 210 COUNTER_CLOCKWISE 6,\
+	(64, 11) 300 CLOCKWISE 6,\
+	(80, 5) 330 CLOCKWISE 6,\
 	(80, 11) 60 COUNTER_CLOCKWISE 6
 	
 
 # The locations for the vines
-# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location)
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (New camera max) (Background Color of the vine location) (Level type of the vine location)
 VINE=\

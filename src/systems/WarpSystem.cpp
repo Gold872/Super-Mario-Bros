@@ -34,7 +34,7 @@ void WarpSystem::warp(World* world, Entity* pipe, Entity* player) {
 }
 
 void WarpSystem::climb(World* world, Entity* vine, Entity* player) {
-   CommandScheduler::getInstance().addCommand(new VineCommand(this, world, vine, player));
+   CommandScheduler::getInstance().addCommand(new VineCommand(scene, this, world, vine, player));
 }
 
 WarpSystem::WarpSystem(GameScene* scene) {
@@ -138,11 +138,20 @@ void WarpSystem::tick(World* world) {
 
                 Camera::Get().setCameraX(teleportCameraCoordinates.x);
                 Camera::Get().setCameraY(teleportCameraCoordinates.y);
+                Camera::Get().setCameraMaxX(teleportCameraMax);
+
+                TextureManager::Get().SetBackgroundColor(teleportBackgroundColor);
+
+                scene->setCurrentLevelType(teleportLevelType);
+                scene->setLevelMusic(teleportLevelType);
 
                 playerPosition->position = teleportPlayerCoordinates.convertTo<float>();
 
                 teleportPlayerCoordinates = Vector2i(0, 0);
                 teleportLevelY = 0;
+                teleportCameraMax = 0;
+                teleportBackgroundColor = BackgroundColor::NONE;
+                teleportLevelType = LevelType::NONE;
              },
              2.0));
       }

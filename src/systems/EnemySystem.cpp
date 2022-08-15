@@ -1,10 +1,11 @@
+#include "systems/EnemySystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
-#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -101,35 +102,73 @@ void EnemySystem::performBowserActions(World* world, Entity* entity) {
    }
 }
 
+void EnemySystem::performLakituActions(World* world, Entity* entity) {
+   auto* position = entity->getComponent<PositionComponent>();
+   auto* texture = entity->getComponent<TextureComponent>();
+   auto* move = entity->getComponent<MovingComponent>();
+   auto* lakituComponent = entity->getComponent<LakituComponent>();
+
+   if (!Camera::Get().inCameraRange(position)) {
+      return;
+   }
+
+   Entity* player = world->findFirst<PlayerComponent>();
+   auto* playerPosition = player->getComponent<PositionComponent>();
+
+   if (playerPosition->position.x > position->position.x && !texture->isHorizontalFlipped()) {
+      texture->setHorizontalFlipped(true);
+   } else if (playerPosition->position.x < position->position.x && texture->isHorizontalFlipped()) {
+      texture->setHorizontalFlipped(false);
+   }
+
+   lakituComponent->sideChangeTimer++;
+
+   if (lakituComponent->sideChangeTimer >= MAX_FPS * 8) {
+      if (lakituComponent->lakituSide == Direction::LEFT) {
+         lakituComponent->lakituSide = Direction::RIGHT;
+      } else {
+         lakituComponent->lakituSide = Direction::LEFT;
+      }
+      lakituComponent->sideChangeTimer = 0;
+   }
+
+   // Lakitu stops harassing you if you're near the flag
+   {
+      Entity* flag = world->findFirst<FlagComponent>();
+
+      if (flag->getComponent<PositionComponent>()->position.x - playerPosition->position.x <
+          30 * SCALED_CUBE_SIZE) {
+         move->velocity.x = -4.0;
+         return;
+      }
+   }
+
+   // If not near the flag, move lakitu to the desired side of the screen
+   if (lakituComponent->lakituSide == Direction::RIGHT) {
+      move->velocity.x = lakituComponent->speedController.calculate(
+          position->position.x, Camera::Get().getCameraCenterX() + SCALED_CUBE_SIZE * 6);
+   } else {
+      move->velocity.x = lakituComponent->speedController.calculate(
+          position->position.x, Camera::Get().getCameraCenterX() - SCALED_CUBE_SIZE * 6);
+   }
+   // Limits the speed to prevent lakitu from going zoooooooooooooooom
+   if (std::abs(move->velocity.x) > 6.0) {
+      move->velocity.x = (move->velocity.x > 0) ? 6.0 : -6.0;
+   }
+}
+
 void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
+   if (enemy->hasComponent<ParticleComponent>()) {
+      return;
+   }
+
    auto* move = enemy->getComponent<MovingComponent>();
    auto* enemyComponent = enemy->getComponent<EnemyComponent>();
 
-   if (!enemy->hasComponent<ParticleComponent>() &&
-       enemyComponent->enemyType != EnemyType::PIRANHA_PLANT) {
-      // If enemy is crushed
-      if (enemy->hasComponent<CrushableComponent, CrushedComponent>()) {
-         if (enemyComponent->enemyType != EnemyType::KOOPA) {
-            enemy->addComponent<DeadComponent>();
-         }
-         enemy->getComponent<CrushableComponent>()->whenCrushed(enemy);
-         enemy->remove<CrushableComponent>();
-         enemy->remove<CrushedComponent>();
-
-         Entity* floatingText(world->create());
-         floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
-
-         Entity* stompSound(world->create());
-         stompSound->addComponent<SoundComponent>(SoundID::STOMP);
-      }
-      // Enemies that were destroyed through either a projectile or super star mario
+   if (enemyComponent->enemyType == EnemyType::PIRANHA_PLANT) {  // Destroy Pirhanna
       if (enemy->hasComponent<EnemyDestroyedComponent>()) {
-         move->velocity.y = -ENEMY_BOUNCE;
          enemy->addComponent<ParticleComponent>();
          enemy->addComponent<DeadComponent>();
-         enemy->addComponent<DestroyOutsideCameraComponent>();
-
-         enemy->getComponent<TextureComponent>()->setVerticalFlipped(true);
          enemy->remove<EnemyDestroyedComponent>();
          enemy->remove<AnimationComponent>();
 
@@ -138,12 +177,33 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
 
          Entity* destroyedSound(world->create());
          destroyedSound->addComponent<SoundComponent>(SoundID::KICK);
+
+         enemy->addComponent<DestroyDelayedComponent>(1);
       }
-   } else if (!enemy->hasComponent<ParticleComponent>() &&
-              enemy->hasComponent<EnemyDestroyedComponent>() &&
-              enemyComponent->enemyType == EnemyType::PIRANHA_PLANT) {  // Destroy Pirhanna
+      return;
+   }
+
+   // If enemy is crushed
+   if (enemy->hasComponent<CrushableComponent, CrushedComponent>()) {
+      enemy->getComponent<CrushableComponent>()->whenCrushed(enemy);
+      enemy->remove<CrushableComponent>();
+      enemy->remove<CrushedComponent>();
+
+      Entity* floatingText(world->create());
+      floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
+
+      Entity* stompSound(world->create());
+      stompSound->addComponent<SoundComponent>(SoundID::STOMP);
+   }
+
+   // Enemies that were destroyed through either a projectile or super star mario
+   if (enemy->hasComponent<EnemyDestroyedComponent>()) {
+      move->velocity.y = -ENEMY_BOUNCE;
       enemy->addComponent<ParticleComponent>();
       enemy->addComponent<DeadComponent>();
+      enemy->addComponent<DestroyOutsideCameraComponent>();
+
+      enemy->getComponent<TextureComponent>()->setVerticalFlipped(true);
       enemy->remove<EnemyDestroyedComponent>();
       enemy->remove<AnimationComponent>();
 
@@ -152,13 +212,11 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
 
       Entity* destroyedSound(world->create());
       destroyedSound->addComponent<SoundComponent>(SoundID::KICK);
-
-      enemy->addComponent<DestroyDelayedComponent>(1);
    }
 }
 
 void EnemySystem::tick(World* world) {
-   // Projectile bouncing
+   /* Projectile bouncing */
    world->find<PositionComponent, ProjectileComponent, MovingComponent>([&](Entity* entity) {
       switch (entity->getComponent<ProjectileComponent>()->projectileType) {
          case ProjectileType::FIREBALL:
@@ -172,19 +230,47 @@ void EnemySystem::tick(World* world) {
       }
    });
 
-   // Main enemy update loop
+   /* Main enemy update loop */
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
       auto* position = enemy->getComponent<PositionComponent>();
       auto* move = enemy->getComponent<MovingComponent>();
       auto* enemyComponent = enemy->getComponent<EnemyComponent>();
 
-      if (enemyComponent->enemyType == EnemyType::BOWSER) {
-         performBowserActions(world, enemy);
+      // Perform actions unique to each type of enemy
+      switch (enemyComponent->enemyType) {
+         case EnemyType::BOWSER:
+            performBowserActions(world, enemy);
+            break;
+         case EnemyType::LAKITU:
+            performLakituActions(world, enemy);
+            break;
+         case EnemyType::SPINE: {
+            // Turn spine eggs into spiny shells when they hit the ground
+            auto* animation = enemy->getComponent<AnimationComponent>();
+            if (enemy->hasComponent<BottomCollisionComponent>() &&
+                animation->frameIDS != std::vector<int>{502, 503}) {
+               animation->frameIDS = std::vector<int>{502, 503};
+               animation->currentFrame = 0;
+               animation->frameTimer = 0;
+            }
+         } break;
+         case EnemyType::LAVA_BUBBLE: {
+            auto* texture = enemy->getComponent<TextureComponent>();
+            // If going up and upside down
+            if (move->velocity.y <= 0 && texture->isVerticalFlipped()) {
+               texture->setVerticalFlipped(false);
+            } else if (move->velocity.y > 0 && !texture->isVerticalFlipped()) {
+               // If going down and not upside down
+               texture->setVerticalFlipped(true);
+            }
+         } break;
+         default:
+            break;
       }
 
       // If the enemy is standing on a block and the block gets hit
       if (enemy->hasComponent<BottomCollisionComponent>()) {
-         world->find<BlockBumpComponent>([&](Entity* block) {
+         world->find<BlockBumpComponent>([enemy](Entity* block) {
             if (AABBCollision(enemy->getComponent<PositionComponent>(),
                               block->getComponent<PositionComponent>())) {
                enemy->addComponent<EnemyDestroyedComponent>();
@@ -240,7 +326,7 @@ void EnemySystem::tick(World* world) {
          }
       });
 
-      // Moves Koopas in the opposite direction
+      // Moves Koopas in the opposite direction if not on the ground
       if (Camera::Get().inCameraRange(position) && enemyComponent->enemyType == EnemyType::KOOPA) {
          if (!enemy->hasAny<BottomCollisionComponent, DeadComponent>()) {
             move->velocity.x *= -1;
@@ -251,23 +337,23 @@ void EnemySystem::tick(World* world) {
 
       if (enemyComponent->enemyType != EnemyType::PIRANHA_PLANT &&
           enemyComponent->enemyType != EnemyType::CHEEP_CHEEP &&
-          enemyComponent->enemyType != EnemyType::BLOOPER) {
+          enemyComponent->enemyType != EnemyType::BLOOPER &&
+          enemyComponent->enemyType != EnemyType::LAKITU &&
+          enemyComponent->enemyType != EnemyType::LAVA_BUBBLE) {
          // Reverses the direction of the enemy when it hits a wall or another enemy
          if (enemy->hasComponent<LeftCollisionComponent>()) {
-            if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
-               move->velocity.x = 6.0;
-            } else {
-               move->velocity.x = ENEMY_SPEED;
-            }
+            move->velocity.x =
+                (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) ? 6.0 : ENEMY_SPEED;
+
             enemy->getComponent<TextureComponent>()->setHorizontalFlipped(true);
+
             enemy->remove<LeftCollisionComponent>();
          } else if (enemy->hasComponent<RightCollisionComponent>()) {
-            if (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) {
-               move->velocity.x = -6.0;
-            } else {
-               move->velocity.x = -ENEMY_SPEED;
-            }
+            move->velocity.x =
+                (enemyComponent->enemyType == EnemyType::KOOPA_SHELL) ? -6.0 : -ENEMY_SPEED;
+
             enemy->getComponent<TextureComponent>()->setHorizontalFlipped(false);
+
             enemy->remove<RightCollisionComponent>();
          }
       }

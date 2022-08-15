@@ -1,4 +1,4 @@
-#include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 
 #include "AABBCollision.h"
 #include "Camera.h"
@@ -6,7 +6,7 @@
 #include "ECS/Components.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/PlayerSystem.h"
+#include "systems/FlagSystem.h"
 
 #include <cmath>
 #include <iostream>
@@ -111,13 +111,15 @@ void FlagSystem::climbFlag(World* world, Entity* player, Entity* flag) {
 }
 
 void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
-   if (player->hasComponent<WaitUntilComponent>()) {
+   static bool inSequence = false;
+
+   if (inSequence) {
       return;
    }
 
-   auto* playerMove = player->getComponent<MovingComponent>();
-
    PlayerSystem::enableInput(false);
+
+   auto* playerMove = player->getComponent<MovingComponent>();
 
    playerMove->velocity.x = playerMove->acceleration.x = playerMove->velocity.y =
        playerMove->acceleration.y = 0;
@@ -129,6 +131,8 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
    player->remove<GravityComponent>();
    player->addComponent<FrictionExemptComponent>();
    player->addComponent<FrozenComponent>();
+
+   inSequence = true;
 
    world->destroy(world->findFirst<BridgeChainComponent>());
 
@@ -157,61 +161,116 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
        },
        5);
 
-   player->addComponent<WaitUntilComponent>(
-       [=](Entity* entity) {
-          // Bridge is done collapsing
+   CommandScheduler::getInstance().addCommand(new SequenceCommand(std::vector<Command*>{
+       /* Wait until the bridge is done collapsing, then make bowser fall */
+       new WaitUntilCommand([=]() -> bool {
           return !bridge->hasComponent<TimerComponent>();
-       },
-       [=](Entity* entity) {
-          auto* wait = entity->getComponent<WaitUntilComponent>();
-
+       }),
+       new RunCommand([=]() {
           bowser->remove<FrozenComponent>();
           bowser->addComponent<DeadComponent>();
 
           Entity* bowserFall(world->create());
           bowserFall->addComponent<SoundComponent>(SoundID::BOWSER_FALL);
+       }),
+       /* Wait until bowser is not visible in the camera, then destroy the axe and move the player
+        */
+       new WaitUntilCommand([bowser]() -> bool {
+          return !Camera::Get().inCameraRange(bowser->getComponent<PositionComponent>());
+       }),
+       new RunCommand([=]() {
+          // Play the castle clear sound in 0.325 seconds, this is separate from the sequence to
+          // avoid sequence interruption
+          CommandScheduler::getInstance().addCommand(new DelayedCommand(
+              [=]() {
+                 Entity* castleClear(world->create());
 
-          wait->condition = [=](Entity* entity) {
-             return !Camera::Get().inCameraRange(bowser->getComponent<PositionComponent>());
-          };
+                 castleClear->addComponent<SoundComponent>(SoundID::CASTLE_CLEAR);
+              },
+              0.325));
 
-          wait->doAfter = [=](Entity* entity) {
-             Entity* worldClear(world->create());
-             worldClear->addComponent<CallbackComponent>(
-                 [=](Entity* entity) {
-                    entity->addComponent<SoundComponent>(SoundID::CASTLE_CLEAR);
-                 },
-                 MAX_FPS * 0.325);
+          world->destroy(axe);
 
-             world->destroy(axe);
+          playerMove->velocity.x = 3.0;
 
-             playerMove->velocity.x = 3.0;
+          player->addComponent<GravityComponent>();
 
-             player->addComponent<GravityComponent>();
+          player->remove<FrozenComponent>();
+       }),
+       /* Wait until mario runs into a block, then stop and switch to the next level */
+       new WaitUntilCommand([player]() -> bool {
+          return player->hasComponent<RightCollisionComponent>();
+       }),
+       new RunCommand([=]() mutable {
+          inSequence = false;
 
-             player->remove<FrozenComponent>();
+          CommandScheduler::getInstance().addCommand(new DelayedCommand(
+              [=]() {
+                 Vector2i nextLevel = scene->getLevelData().nextLevel;
 
-             wait->condition = [=](Entity* entity) {
-                return entity->hasComponent<RightCollisionComponent>();
-             };
+                 player->getComponent<TextureComponent>()->setVisible(false);
 
-             wait->doAfter = [=](Entity* entity) {
-                playerMove->velocity.x = 0;
+                 scene->switchLevel(nextLevel.x, nextLevel.y);
+              },
+              5.0));
+       }),
+   }));
 
-                entity->addComponent<CallbackComponent>(
-                    [=](Entity* entity) {
-                       Vector2i nextLevel = scene->getLevelData().nextLevel;
-
-                       player->getComponent<TextureComponent>()->setVisible(false);
-
-                       scene->switchLevel(nextLevel.x, nextLevel.y);
-                    },
-                    240);
-
-                entity->remove<WaitUntilComponent>();
-             };
-          };
-       });
+   //   player->addComponent<WaitUntilComponent>(
+   //       [=](Entity* entity) {
+   //          // Bridge is done collapsing
+   //          return !bridge->hasComponent<TimerComponent>();
+   //       },
+   //       [=](Entity* entity) {
+   //          auto* wait = entity->getComponent<WaitUntilComponent>();
+   //
+   //          bowser->remove<FrozenComponent>();
+   //          bowser->addComponent<DeadComponent>();
+   //
+   //          Entity* bowserFall(world->create());
+   //          bowserFall->addComponent<SoundComponent>(SoundID::BOWSER_FALL);
+   //
+   //          wait->condition = [=](Entity* entity) {
+   //             return !Camera::Get().inCameraRange(bowser->getComponent<PositionComponent>());
+   //          };
+   //
+   //          wait->doAfter = [=](Entity* entity) {
+   //             Entity* worldClear(world->create());
+   //             worldClear->addComponent<CallbackComponent>(
+   //                 [=](Entity* entity) {
+   //                    entity->addComponent<SoundComponent>(SoundID::CASTLE_CLEAR);
+   //                 },
+   //                 MAX_FPS * 0.325);
+   //
+   //             world->destroy(axe);
+   //
+   //             playerMove->velocity.x = 3.0;
+   //
+   //             player->addComponent<GravityComponent>();
+   //
+   //             player->remove<FrozenComponent>();
+   //
+   //             wait->condition = [=](Entity* entity) {
+   //                return entity->hasComponent<RightCollisionComponent>();
+   //             };
+   //
+   //             wait->doAfter = [=](Entity* entity) {
+   //                playerMove->velocity.x = 0;
+   //
+   //                entity->addComponent<CallbackComponent>(
+   //                    [=](Entity* entity) {
+   //                       Vector2i nextLevel = scene->getLevelData().nextLevel;
+   //
+   //                       player->getComponent<TextureComponent>()->setVisible(false);
+   //
+   //                       scene->switchLevel(nextLevel.x, nextLevel.y);
+   //                    },
+   //                    240);
+   //
+   //                entity->remove<WaitUntilComponent>();
+   //             };
+   //          };
+   //       });
 }
 
 void FlagSystem::tick(World* world) {

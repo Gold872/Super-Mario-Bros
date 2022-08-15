@@ -541,12 +541,16 @@ struct FlagPoleComponent : public Component {};
 
 struct VineComponent : public Component {
    VineComponent(Vector2i coordinates, Vector2i teleport, Vector2i camera, int resetValue,
-                 Vector2i resetLocation, std::vector<Entity*>& vineParts)
+                 Vector2i resetLocation, int newCameraMax, BackgroundColor newBackgroundColor,
+                 LevelType newLevelType, std::vector<Entity*>& vineParts)
        : coordinates{coordinates},
          teleportCoordinates{teleport},
          cameraCoordinates{camera},
          resetYValue{resetValue},
          resetTeleportLocation{resetLocation},
+         newCameraMax{newCameraMax},
+         newBackgroundColor{newBackgroundColor},
+         newLevelType{newLevelType},
          vineParts{vineParts} {}
 
    Vector2i coordinates;
@@ -554,6 +558,9 @@ struct VineComponent : public Component {
    Vector2i cameraCoordinates;
    int resetYValue;
    Vector2i resetTeleportLocation;
+   int newCameraMax;
+   BackgroundColor newBackgroundColor;
+   LevelType newLevelType;
    std::vector<Entity*>& vineParts;
 };
 
@@ -666,6 +673,9 @@ enum class EnemyType
    CHEEP_CHEEP,
    BLOOPER,
    BOWSER,
+   LAKITU,
+   SPINE,
+   LAVA_BUBBLE,
    FIRE_BAR,
 };
 
@@ -705,6 +715,12 @@ struct BowserComponent : public Component {
    int currentMoveIndex = 0;
 
    Direction lastMoveDirection = Direction::NONE;
+};
+
+struct LakituComponent : public Component {
+   int sideChangeTimer = 0;
+   Direction lakituSide = Direction::LEFT;
+   PIDController speedController = PIDController(0.06, 0, 0);
 };
 
 struct DeadComponent : public Component {};

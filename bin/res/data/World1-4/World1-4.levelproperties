@@ -19,6 +19,10 @@ NEXT_LEVEL = (2, 1)
 BACKGROUND_COLOR = BLACK
 
 ### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+
 # The locations for the Warp pipes
 # Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
 WARP_PIPE=\
@@ -43,5 +47,5 @@ FIRE_BAR=\
 	(88, 4) 60 CLOCKWISE 6
 
 # The locations for the vines
-# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location)
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (New camera max) (Background Color of the vine location) (Level type of the vine location)
 VINE=\

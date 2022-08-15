@@ -30,7 +30,7 @@ class WarpCommand : public SequenceCommand {
       Vector2f pipeLocation = pipe->getComponent<PositionComponent>()->position;
       Vector2i teleportLocation = warpPipe->playerLocation;
 
-      Camera::Get().setCameraMin(warpPipe->cameraLocation.x);
+      Camera::Get().setCameraLeft(warpPipe->cameraLocation.x);
 
       WarpSystem::setWarping(true);
       PlayerSystem::enableInput(false);
@@ -99,13 +99,11 @@ class WarpCommand : public SequenceCommand {
           new RunCommand([=]() {
              if (warpPipe->newLevel != Vector2i(0, 0)) {
                 Camera::Get().setCameraFrozen(false);
-                Camera::Get().setCameraX(0);
-                Camera::Get().setCameraY(0);
 
                 player->remove<CollisionExemptComponent, FrictionExemptComponent>();
                 player->addComponent<GravityComponent>();
 
-                TextureManager::Get().SetBackgroundColor(warpPipe->backgroundColor);
+                TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
 
                 WarpSystem::setWarping(false);
 

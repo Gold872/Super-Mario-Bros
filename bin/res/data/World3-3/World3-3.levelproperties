@@ -19,6 +19,10 @@ NEXT_LEVEL = (3, 4)
 BACKGROUND_COLOR = BLACK
 
 ### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+
 # The locations for the Warp pipes
 # Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
 WARP_PIPE=\
@@ -26,17 +30,18 @@ WARP_PIPE=\
 # The positions and directions for moving platforms
 # Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
 MOVING_PLATFORM=\
-	(30, 4) BACK_AND_FORTH LEFT (27, 32) FALSE
-	(33, 8) BACK_AND_FORTH LEFT (30, 35) FALSE
-	(96, 5) BACK_AND_FORTH LEFT (93, 98) FALSE
-	(94, 9) BACK_AND_FORTH LEFT (91, 96) FALSE
-	(103, 11) BACK_AND_FORTH LEFT (100, 105) FALSE
+	(30, 4) BACK_AND_FORTH LEFT (27, 32) FALSE,\
+	(33, 8) BACK_AND_FORTH LEFT (30, 35) FALSE,\
+	(60, 6) GRAVITY NONE (0, 0) FALSE,\
+	(96, 5) BACK_AND_FORTH LEFT (93, 98) FALSE,\
+	(94, 9) BACK_AND_FORTH LEFT (91, 96) FALSE,\
+	(103, 11) BACK_AND_FORTH LEFT (100, 105) FALSE,\
 	(132, 6) BACK_AND_FORTH LEFT (128, 134) FALSE
 
 # The positions for the platform levels
 # Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
 PLATFORM_LEVEL=\
-	(81, 6) (88, 8) 2
+	(81, 6) (88, 8) 2,\
 	(136, 5) (140, 8) 2
 
 # The positions and directions for fire bars
@@ -44,5 +49,5 @@ PLATFORM_LEVEL=\
 FIRE_BAR=\
 
 # The locations for the vines
-# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location)
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (New camera max) (Background Color of the vine location) (Level type of the vine location)
 VINE=\

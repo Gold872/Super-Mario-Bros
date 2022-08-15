@@ -1002,17 +1002,20 @@ void PlayerSystem::updateCamera() {
    auto* move = mario->getComponent<MovingComponent>();
 
    if (!Camera::Get().isFrozen()) {
-      Camera::Get().updateCameraMin();
       if (position->position.x + 16 > Camera::Get().getCameraCenterX() && move->velocity.x > 0.0) {
          Camera::Get().increaseCameraX(move->velocity.x);
       }
-      if (position->position.x <= Camera::Get().getCameraMinX()) {
-         position->position.x = Camera::Get().getCameraMinX();
+      if (position->position.x <= Camera::Get().getCameraLeft()) {
+         position->position.x = Camera::Get().getCameraLeft();
       }
-      if (Camera::Get().getCameraMaxX() >= scene->getLevelData().cameraMax * SCALED_CUBE_SIZE) {
-         Camera::Get().setCameraMax(scene->getLevelData().cameraMax * SCALED_CUBE_SIZE);
-         Camera::Get().setCameraMin(Camera::Get().getCameraX());
+      if (position->getRight() >= Camera::Get().getCameraMaxX()) {
+         position->setRight(Camera::Get().getCameraMaxX());
       }
+      if (Camera::Get().getCameraRight() >= Camera::Get().getCameraMaxX()) {
+         Camera::Get().setCameraRight(Camera::Get().getCameraMaxX());
+      }
+
+      Camera::Get().updateCameraMin();
    }
 }
 
@@ -1062,71 +1065,6 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             }
 
             break;
-         case EnemyType::KOOPA:
-         case EnemyType::FLYING_KOOPA:
-            if (isSuperStar()) {
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-
-               enemy->addComponent<EnemyDestroyedComponent>();
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-               return;
-            }
-            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
-               enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-               move->velocity.y = -MARIO_BOUNCE;
-
-               enemyCrushed = true;
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-
-            } else if (!enemyCrushed && move->velocity.y <= 0 &&
-                       !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
-               onGameOver(world);
-            } else if (enemyCrushed) {
-               enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-               move->velocity.y = -MARIO_BOUNCE;
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-            }
-            break;
-         case EnemyType::GOOMBA:
-            if (isSuperStar()) {
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-
-               enemy->addComponent<EnemyDestroyedComponent>();
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-               return;
-            }
-            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
-               enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-               move->velocity.y = -MARIO_BOUNCE;
-
-               enemyCrushed = true;
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-
-            } else if (!enemyCrushed && move->velocity.y <= 0 &&
-                       !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
-               onGameOver(world);
-            } else if (enemyCrushed) {
-               enemy->addComponent<CrushedComponent>();
-               enemy->getComponent<MovingComponent>()->velocity.x = 0;
-               move->velocity.y = -MARIO_BOUNCE;
-
-               Entity* score(world->create());
-               score->addComponent<AddScoreComponent>(100);
-            }
-            break;
          case EnemyType::FIRE_BAR:
             if (!isSuperStar() && !mario->hasComponent<EndingBlinkComponent>()) {
                onGameOver(world);
@@ -1134,12 +1072,34 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
             break;
          default:
             if (isSuperStar()) {
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+
                enemy->addComponent<EnemyDestroyedComponent>();
 
                Entity* score(world->create());
                score->addComponent<AddScoreComponent>(100);
-            } else if (!mario->hasComponent<EndingBlinkComponent>()) {
+               return;
+            }
+            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
+               enemy->addComponent<CrushedComponent>();
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
+
+               enemyCrushed = true;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+
+            } else if (!enemyCrushed && move->velocity.y <= 0 &&
+                       !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
                onGameOver(world);
+            } else if (enemyCrushed) {
+               enemy->addComponent<CrushedComponent>();
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
             }
             break;
       }
