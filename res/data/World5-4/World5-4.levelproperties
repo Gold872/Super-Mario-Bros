@@ -1,0 +1,60 @@
+### STARTING POSITIONS
+# The starting position of the player
+PLAYER_START = (1, 6)
+
+# The starting position of the camera
+CAMERA_START = (0, 0)
+
+# The maximum point the camera can reach
+CAMERA_MAX = 164
+
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = CASTLE
+
+# The level to go to next
+NEXT_LEVEL = (6, 1)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLACK
+
+### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
+WARP_PIPE=\
+
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
+MOVING_PLATFORM=\
+	(85, 6) ONE_DIRECTION_REPEATED UP (2, 14) TRUE,\
+	(85, 14) ONE_DIRECTION_REPEATED UP (2, 14) TRUE,\
+	(88, 4) ONE_DIRECTION_REPEATED DOWN (2, 14) TRUE,\
+	(88, 12) ONE_DIRECTION_REPEATED DOWN (2, 14) TRUE,\
+	(135, 6) BACK_AND_FORTH LEFT (134, 139) TRUE
+
+# The positions for the platform levels
+# Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
+PLATFORM_LEVEL=\
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\
+	(23, 7) 90 CLOCKWISE 12,\
+	(43, 13) 210 CLOCKWISE 6,\
+	(49, 9) 150 COUNTER_CLOCKWISE 6,\
+	(55, 5) 210 COUNTER_CLOCKWISE 6,\
+	(55, 13) 290 CLOCKWISE 6,\
+	(61, 9) 150 COUNTER_CLOCKWISE 6,\
+	(67, 13) 210 COUNTER_CLOCKWISE 6,\
+	(73, 9) 90 COUNTER_CLOCKWISE 6,\
+	(82, 6) 50 COUNTER_CLOCKWISE 6,\
+	(92, 10) 330 CLOCKWISE 6,\
+	(103, 11) 270 CLOCKWISE 6
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (new camera max) (Background Color of the vine location) (Level type of the vine location)
+VINE=\

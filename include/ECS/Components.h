@@ -313,6 +313,10 @@ struct TimerComponent : public Component {
    std::function<void(Entity*)> onExecute;
    int delay;
    int time;
+
+   void reset() {
+      time = delay;
+   }
 };
 
 struct WaitUntilComponent : public Component {
@@ -676,6 +680,7 @@ enum class EnemyType
    LAKITU,
    SPINE,
    LAVA_BUBBLE,
+   BULLET_BILL,
    FIRE_BAR,
 };
 

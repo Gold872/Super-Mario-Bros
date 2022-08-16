@@ -1,3 +1,5 @@
+#include "systems/MapSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -6,7 +8,6 @@
 #include "SoundManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/MapSystem.h"
 
 #include <functional>
 #include <iostream>
@@ -810,6 +811,8 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
       case 762:
       case 810:
       case 811:
+      case 858:
+      case 859:
          break;
       case 144: {  // COIN
          Entity* entity(world->create());
@@ -833,6 +836,82 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          break;
       }
+      /* ****************************************************************** */
+      case 63: {  // BULLET BILL CANNON
+         Entity* entity(createBlockEntity(world, coordinateX, coordinateY, entityID));
+
+         int bulletBillID;
+
+         switch (entityID) {
+            case 63:  // Overworld
+               bulletBillID = 90;
+               break;
+            case 79:  // Underground
+               bulletBillID = 195;
+               break;
+            case 95:  // Underwater
+               bulletBillID = 300;
+               break;
+            case 591:  // Castle
+               bulletBillID = 405;
+               break;
+            default:
+               bulletBillID = 0;
+               break;
+         }
+
+         entity->addComponent<TimerComponent>(
+             [=](Entity* entity) {
+                bool randomDirection = rand() % 2;
+
+                Entity* bulletBill(world->create());
+
+                bulletBill->addComponent<PositionComponent>(
+                    Vector2f(coordinateX + ((int)randomDirection * 2 - 1), coordinateY) *
+                        SCALED_CUBE_SIZE,
+                    Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
+                bulletBill->addComponent<TextureComponent>(scene->enemyTexture, randomDirection,
+                                                           false);
+
+                bulletBill->addComponent<SpritesheetComponent>(
+                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0, ORIGINAL_CUBE_SIZE,
+                    ORIGINAL_CUBE_SIZE, Map::EnemyIDCoordinates.at(bulletBillID));
+
+                float xVelocity = (randomDirection) ? 3.0 : -3.0;
+
+                bulletBill->addComponent<MovingComponent>(Vector2f(xVelocity, 0), Vector2f(0, 0));
+
+                bulletBill->addComponent<FrictionExemptComponent>();
+
+                bulletBill->addComponent<ParticleComponent>();
+
+                bulletBill->addComponent<WaitUntilComponent>(
+                    [](Entity* bulletBill) -> bool {
+                       return Camera::Get().inCameraRange(
+                           bulletBill->getComponent<PositionComponent>());
+                    },
+                    [=](Entity* bulletBill) {
+                       Entity* cannonSound(world->create());
+                       cannonSound->addComponent<SoundComponent>(SoundID::CANNON_FIRE);
+
+                       bulletBill->remove<WaitUntilComponent>();
+                    });
+
+                bulletBill->addComponent<CrushableComponent>([](Entity* bulletBill) {
+                   bulletBill->getComponent<MovingComponent>()->velocity.x = 0;
+
+                   bulletBill->addComponent<DeadComponent>();
+
+                   bulletBill->addComponent<GravityComponent>();
+
+                   bulletBill->addComponent<DestroyOutsideCameraComponent>();
+                });
+
+                bulletBill->addComponent<EnemyComponent>(EnemyType::BULLET_BILL);
+             },
+             5 * MAX_FPS);
+      } break;
       /* ****************************************************************** */
       case 101:
       case 149: {  // FLAG POLE
@@ -1058,6 +1137,37 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
          //         createPlatformEntity(world, coordinateX, coordinateY, entityID, 3,
          //         platformData);
+      } break;
+      /* ****************************************************************** */
+      case 857: {  // CLOUD PLATFORM
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(3, 1) * SCALED_CUBE_SIZE);
+
+         entity->addComponent<TextureComponent>(scene->blockTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE * 3, ORIGINAL_CUBE_SIZE, 1,
+                                                    1, 1, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::BlockIDCoordinates.at(entityID));
+
+         entity->addComponent<MovingComponent>(Vector2f(0, 0), Vector2f(0, 0));
+
+         entity->addComponent<FrictionExemptComponent>();
+
+         entity->addComponent<WaitUntilComponent>(
+             [](Entity* entity) -> bool {
+                return entity->hasComponent<TopCollisionComponent>();
+             },
+             [](Entity* entity) {
+                entity->getComponent<MovingComponent>()->velocity.x = 2.0;
+                entity->remove<WaitUntilComponent>();
+             });
+
+         entity->addComponent<ForegroundComponent>();
+
+         entity->addComponent<TileComponent>();
       } break;
       /* ****************************************************************** */
       default: {
@@ -1653,6 +1763,47 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
       } break;
+      case 90: {  // BULLET BILL
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE),
+             SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
+
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         entity->addComponent<MovingComponent>(Vector2f(-3.0, 0), Vector2f(0, 0));
+
+         entity->addComponent<FrictionExemptComponent>();
+
+         entity->addComponent<ParticleComponent>();
+
+         entity->addComponent<WaitUntilComponent>(
+             [](Entity* entity) -> bool {
+                return Camera::Get().inCameraRange(entity->getComponent<PositionComponent>());
+             },
+             [=](Entity* entity) {
+                Entity* cannonSound(world->create());
+                cannonSound->addComponent<SoundComponent>(SoundID::CANNON_FIRE);
+
+                entity->remove<WaitUntilComponent>();
+             });
+
+         entity->addComponent<CrushableComponent>([](Entity* entity) {
+            entity->getComponent<MovingComponent>()->velocity.x = 0;
+
+            entity->addComponent<DeadComponent>();
+
+            entity->addComponent<GravityComponent>();
+         });
+
+         entity->addComponent<EnemyComponent>(EnemyType::BULLET_BILL);
+      } break;
       /* ****************************************************************** */
       case 455: {  // NORMAL KOOPA (RED)
          Entity* entity(world->create());
@@ -1805,81 +1956,61 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          entity->addComponent<EnemyComponent>(EnemyType::LAVA_BUBBLE);
       } break;
       /* ****************************************************************** */
-      default: {
-         //         Entity* entity(world->create());
-         //
-         //         entity->addComponent<PositionComponent>(
-         //             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
-         //             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
-         //
-         //         entity->addComponent<TextureComponent>(scene->enemyTexture, ORIGINAL_CUBE_SIZE,
-         //                                                ORIGINAL_CUBE_SIZE, 1, 1, 0,
-         //                                                ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
-         //                                                Map::EnemyIDCoordinates.at(entityID),
-         //                                                false, false);
-         //
-         //         entity->addComponent<MovingComponent>(-ENEMY_SPEED, 0, 0, 0);
-         //
-         //         entity->addComponent<GravityComponent>();
-      } break;
+      default:
+         break;
    }
 }
 
 void MapSystem::createFireBarEntities(World* world) {
-   for (unsigned int i = 0; i < scene->foregroundMap.getLevelData().size(); i++) {
-      for (unsigned int j = 0; j < scene->foregroundMap.getLevelData()[0].size(); j++) {
-         auto fireBarCoordinate =
-             getFireBarCoordinate(scene->getLevelData().fireBarLocations, Vector2i(j, i));
+   for (auto fireBarCoordinate : scene->getLevelData().fireBarLocations) {
+      Vector2i barCoordinate = std::get<0>(fireBarCoordinate);
+      float startAngle = (float)std::get<1>(fireBarCoordinate);
+      RotationDirection rotationDirection = std::get<2>(fireBarCoordinate);
+      int barLength = std::get<3>(fireBarCoordinate);
 
-         if (std::get<0>(fireBarCoordinate) != Vector2i(0, 0)) {
-            float startAngle = (float)std::get<1>(fireBarCoordinate);
-            RotationDirection rotationDirection = std::get<2>(fireBarCoordinate);
-            int barLength = std::get<3>(fireBarCoordinate);
+      for (int bar = 0; bar < barLength; bar++) {
+         Entity* barElement(world->create());
 
-            for (int bar = 0; bar < barLength; bar++) {
-               Entity* barElement(world->create());
+         barElement->addComponent<PositionComponent>(
+             Vector2f(barCoordinate.x, barCoordinate.y) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE),
+             SDL_Rect{0, 0, SCALED_CUBE_SIZE / 4, SCALED_CUBE_SIZE / 4});
 
-               barElement->addComponent<PositionComponent>(
-                   Vector2f(j, i) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE),
-                   SDL_Rect{0, 0, SCALED_CUBE_SIZE / 4, SCALED_CUBE_SIZE / 4});
+         barElement->addComponent<TextureComponent>(scene->blockTexture, false, false);
 
-               barElement->addComponent<TextureComponent>(scene->blockTexture, false, false);
+         barElement->addComponent<SpritesheetComponent>(
+             ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
+             ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(611));
 
-               barElement->addComponent<SpritesheetComponent>(
-                   ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 1, ORIGINAL_CUBE_SIZE,
-                   ORIGINAL_CUBE_SIZE, Map::BlockIDCoordinates.at(611));
+         barElement->addComponent<AnimationComponent>(std::vector<int>{611, 612, 613, 614}, 12,
+                                                      Map::BlockIDCoordinates);
 
-               barElement->addComponent<AnimationComponent>(std::vector<int>{611, 612, 613, 614},
-                                                            12, Map::BlockIDCoordinates);
+         barElement->addComponent<FireBarComponent>(
+             Vector2f(barCoordinate.x, barCoordinate.y) * SCALED_CUBE_SIZE,
+             bar * ORIGINAL_CUBE_SIZE, startAngle, rotationDirection);
 
-               barElement->addComponent<FireBarComponent>(Vector2f(j, i) * SCALED_CUBE_SIZE,
-                                                          bar * ORIGINAL_CUBE_SIZE, startAngle,
-                                                          rotationDirection);
+         barElement->addComponent<TimerComponent>(
+             [&](Entity* entity) {
+                auto* barComponent = entity->getComponent<FireBarComponent>();
 
-               barElement->addComponent<TimerComponent>(
-                   [&](Entity* entity) {
-                      auto* barComponent = entity->getComponent<FireBarComponent>();
+                switch (barComponent->direction) {
+                   case RotationDirection::CLOCKWISE:
+                      barComponent->barAngle -= 10;
+                      break;
+                   case RotationDirection::COUNTER_CLOCKWISE:
+                      barComponent->barAngle += 10;
+                      break;
+                   default:
+                      break;
+                }
+             },
+             6);
 
-                      switch (barComponent->direction) {
-                         case RotationDirection::CLOCKWISE:
-                            barComponent->barAngle -= 10;
-                            break;
-                         case RotationDirection::COUNTER_CLOCKWISE:
-                            barComponent->barAngle += 10;
-                            break;
-                         default:
-                            break;
-                      }
-                   },
-                   10);
-
-               if (bar != barLength - 1) {
-                  barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);
-               }
-
-               barElement->addComponent<ForegroundComponent>();
-            }
+         if (bar != barLength - 1) {
+            barElement->addComponent<EnemyComponent>(EnemyType::FIRE_BAR);
          }
+
+         barElement->addComponent<ForegroundComponent>();
       }
    }
 }

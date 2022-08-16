@@ -1027,8 +1027,8 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
 
    world->find<EnemyComponent, PositionComponent>([&](Entity* enemy) {
       if (!AABBTotalCollision(enemy->getComponent<PositionComponent>(), position) ||
-          mario->hasComponent<FrozenComponent>() ||
-          enemy->hasAny<ParticleComponent, DeadComponent>() || currentState == GAMEOVER) {
+          mario->hasComponent<FrozenComponent>() || enemy->hasComponent<DeadComponent>() ||
+          currentState == GAMEOVER) {
          return;
       }
       auto* enemyMove = enemy->getComponent<MovingComponent>();

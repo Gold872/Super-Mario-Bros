@@ -123,6 +123,7 @@ class WarpCommand : public SequenceCommand {
                    piranha->getComponent<PiranhaPlantComponent>()->inPipe = true;
                    piranha->getComponent<MovingComponent>()->velocity.y = 0;
 
+                   piranha->getComponent<TimerComponent>()->reset();
                    piranha->remove<WaitUntilComponent>();
                 }
              });
@@ -132,6 +133,7 @@ class WarpCommand : public SequenceCommand {
 
              Camera::Get().setCameraX(warpPipe->cameraLocation.x * SCALED_CUBE_SIZE);
              Camera::Get().setCameraY(warpPipe->cameraLocation.y * SCALED_CUBE_SIZE);
+             Camera::Get().updateCameraMin();
 
              Camera::Get().setCameraFrozen(warpPipe->cameraFreeze);
 

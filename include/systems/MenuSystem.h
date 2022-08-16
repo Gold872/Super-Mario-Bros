@@ -20,8 +20,8 @@ class MenuSystem : public System {
 
    int selectedLevel = 1;
    int selectedSublevel = 1;
-   int maxLevel = 4;
-   int maxSublevel = 4;
+   const int maxLevel = 5;
+   const int maxSublevel = 4;
 
    int currentFocus = 0;  // 0 is level, 1 is sublevel
 

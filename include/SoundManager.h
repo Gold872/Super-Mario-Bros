@@ -11,6 +11,7 @@ enum class SoundID
    BLOCK_HIT,
    BOWSER_FALL,
    BOWSER_FIRE,
+   CANNON_FIRE,
    COIN,
    DEATH,
    FIREBALL,

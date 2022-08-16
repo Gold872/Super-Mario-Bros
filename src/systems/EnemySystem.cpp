@@ -158,7 +158,7 @@ void EnemySystem::performLakituActions(World* world, Entity* entity) {
 }
 
 void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
-   if (enemy->hasComponent<ParticleComponent>()) {
+   if (enemy->hasComponent<DeadComponent>()) {
       return;
    }
 
@@ -339,7 +339,8 @@ void EnemySystem::tick(World* world) {
           enemyComponent->enemyType != EnemyType::CHEEP_CHEEP &&
           enemyComponent->enemyType != EnemyType::BLOOPER &&
           enemyComponent->enemyType != EnemyType::LAKITU &&
-          enemyComponent->enemyType != EnemyType::LAVA_BUBBLE) {
+          enemyComponent->enemyType != EnemyType::LAVA_BUBBLE &&
+          enemyComponent->enemyType != EnemyType::BULLET_BILL) {
          // Reverses the direction of the enemy when it hits a wall or another enemy
          if (enemy->hasComponent<LeftCollisionComponent>()) {
             move->velocity.x =

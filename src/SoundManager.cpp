@@ -58,6 +58,7 @@ void SoundManager::loadSounds() {
    sounds.insert({SoundID::BLOCK_HIT, loadSound("res/sounds/effects/blockhit.wav")});
    sounds.insert({SoundID::BOWSER_FALL, loadSound("res/sounds/effects/bowserfall.wav")});
    sounds.insert({SoundID::BOWSER_FIRE, loadSound("res/sounds/effects/bowserfire.wav")});
+   sounds.insert({SoundID::CANNON_FIRE, loadSound("res/sounds/effects/cannonfire.wav")});
    sounds.insert({SoundID::CASTLE_CLEAR, loadSound("res/sounds/effects/castleclear.wav")});
    sounds.insert({SoundID::COIN, loadSound("res/sounds/effects/coin.wav")});
    sounds.insert({SoundID::DEATH, loadSound("res/sounds/effects/death.wav")});

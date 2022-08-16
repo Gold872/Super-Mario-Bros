@@ -1,4 +1,4 @@
-#include "systems/PlayerSystem.h"
+#include "systems/FlagSystem.h"
 
 #include "AABBCollision.h"
 #include "Camera.h"
@@ -6,7 +6,7 @@
 #include "ECS/Components.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 
 #include <cmath>
 #include <iostream>
@@ -215,62 +215,6 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
               5.0));
        }),
    }));
-
-   //   player->addComponent<WaitUntilComponent>(
-   //       [=](Entity* entity) {
-   //          // Bridge is done collapsing
-   //          return !bridge->hasComponent<TimerComponent>();
-   //       },
-   //       [=](Entity* entity) {
-   //          auto* wait = entity->getComponent<WaitUntilComponent>();
-   //
-   //          bowser->remove<FrozenComponent>();
-   //          bowser->addComponent<DeadComponent>();
-   //
-   //          Entity* bowserFall(world->create());
-   //          bowserFall->addComponent<SoundComponent>(SoundID::BOWSER_FALL);
-   //
-   //          wait->condition = [=](Entity* entity) {
-   //             return !Camera::Get().inCameraRange(bowser->getComponent<PositionComponent>());
-   //          };
-   //
-   //          wait->doAfter = [=](Entity* entity) {
-   //             Entity* worldClear(world->create());
-   //             worldClear->addComponent<CallbackComponent>(
-   //                 [=](Entity* entity) {
-   //                    entity->addComponent<SoundComponent>(SoundID::CASTLE_CLEAR);
-   //                 },
-   //                 MAX_FPS * 0.325);
-   //
-   //             world->destroy(axe);
-   //
-   //             playerMove->velocity.x = 3.0;
-   //
-   //             player->addComponent<GravityComponent>();
-   //
-   //             player->remove<FrozenComponent>();
-   //
-   //             wait->condition = [=](Entity* entity) {
-   //                return entity->hasComponent<RightCollisionComponent>();
-   //             };
-   //
-   //             wait->doAfter = [=](Entity* entity) {
-   //                playerMove->velocity.x = 0;
-   //
-   //                entity->addComponent<CallbackComponent>(
-   //                    [=](Entity* entity) {
-   //                       Vector2i nextLevel = scene->getLevelData().nextLevel;
-   //
-   //                       player->getComponent<TextureComponent>()->setVisible(false);
-   //
-   //                       scene->switchLevel(nextLevel.x, nextLevel.y);
-   //                    },
-   //                    240);
-   //
-   //                entity->remove<WaitUntilComponent>();
-   //             };
-   //          };
-   //       });
 }
 
 void FlagSystem::tick(World* world) {
