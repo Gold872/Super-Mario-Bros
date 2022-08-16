@@ -3,6 +3,7 @@
 #include "Level.h"
 #include "Map.h"
 #include "Scene.h"
+#include "Systems/RenderSystem.h"
 #include "systems/systems.h"
 
 #include <SDL2/SDL_thread.h>
@@ -16,6 +17,7 @@ class ScoreSystem;
 class SoundSystem;
 class PhysicsSystem;
 class RenderSystem;
+class CallbackSystem;
 
 class Level;
 struct LevelData;
@@ -90,6 +92,7 @@ class GameScene : public Scene {
    SoundSystem* soundSystem;
    PhysicsSystem* physicsSystem;
    RenderSystem* renderSystem;
+   CallbackSystem* callbackSystem;
 
    std::unique_ptr<Level> gameLevel = std::make_unique<Level>();
 

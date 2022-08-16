@@ -59,13 +59,14 @@ GameScene::GameScene(int level, int subLevel) {
    world->registerSystem<CollectibleSystem>();
    world->registerSystem<WarpSystem>(this);
    world->registerSystem<FlagSystem>(this);
-   world->registerSystem<CallbackSystem>();
+   callbackSystem = world->registerSystem<CallbackSystem>();
    scoreSystem = world->registerSystem<ScoreSystem>(this);
    soundSystem = world->registerSystem<SoundSystem>();
    renderSystem = world->registerSystem<RenderSystem>();
 
    scoreSystem->showTransitionEntities();
 
+   callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
    loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
@@ -77,6 +78,7 @@ GameScene::GameScene(int level, int subLevel) {
           scoreSystem->hideTransitionEntities();
 
           SDL_WaitThread(loaderThread, NULL);
+          callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);
 
@@ -129,6 +131,7 @@ void GameScene::setupLevel() {
 
    scoreSystem->reset();
 
+   callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
    loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
@@ -140,6 +143,7 @@ void GameScene::setupLevel() {
           scoreSystem->hideTransitionEntities();
 
           SDL_WaitThread(loaderThread, NULL);
+          callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);
 

@@ -30,7 +30,7 @@ class Vector2 {
       return Vector2<OTHER>((OTHER)x, (OTHER)y);
    };
 
-   Vector2<float> normalize() {
+   Vector2<float> normalize(float speed) {
       float length = std::sqrt(x * x + y * y);
 
       if (length == 0) {
@@ -40,8 +40,8 @@ class Vector2 {
       float normalizedX = x / length;
       float normalizedY = y / length;
 
-      float scaledX = std::abs(normalizedX) * x;
-      float scaledY = std::abs(normalizedY) * y;
+      float scaledX = normalizedX * speed;
+      float scaledY = normalizedY * speed;
 
       return Vector2<float>(scaledX, scaledY);
    }
