@@ -1,5 +1,3 @@
-#include "systems/PlayerSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -12,6 +10,7 @@
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
 #include "systems/FlagSystem.h"
+#include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>

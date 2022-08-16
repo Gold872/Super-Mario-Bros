@@ -1,3 +1,5 @@
+#include "systems/MapSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -6,7 +8,6 @@
 #include "SoundManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/MapSystem.h"
 
 #include <functional>
 #include <iostream>
@@ -880,6 +881,8 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                 float xVelocity = (randomDirection) ? 3.0 : -3.0;
 
                 bulletBill->addComponent<MovingComponent>(Vector2f(xVelocity, 0), Vector2f(0, 0));
+
+                bulletBill->addComponent<DestroyOutsideCameraComponent>();
 
                 bulletBill->addComponent<FrictionExemptComponent>();
 
@@ -1777,6 +1780,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                                                     Map::EnemyIDCoordinates.at(entityID));
 
          entity->addComponent<MovingComponent>(Vector2f(-3.0, 0), Vector2f(0, 0));
+
+         entity->addComponent<DestroyOutsideCameraComponent>();
 
          entity->addComponent<FrictionExemptComponent>();
 
