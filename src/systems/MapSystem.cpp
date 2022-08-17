@@ -369,8 +369,15 @@ Entity* MapSystem::createPlatformLevelEntity(
    int leftLineX = leftCoordinate.x + 1;
    int rightLineX = rightCoordinate.x + 1;
 
-   Entity* leftPulleyLine = createBackgroundEntity(world, leftLineX, pulleyHeight, 391);
-   Entity* rightPulleyLine = createBackgroundEntity(world, rightLineX, pulleyHeight, 391);
+   int pulleyID = getReferenceBlockIDAsEntity(
+       scene->backgroundMap.getLevelData()[pulleyHeight - 1][leftLineX], 391);
+
+   if (pulleyID == -1) {
+      pulleyID = 391;
+   }
+
+   Entity* leftPulleyLine = createBackgroundEntity(world, leftLineX, pulleyHeight, pulleyID);
+   Entity* rightPulleyLine = createBackgroundEntity(world, rightLineX, pulleyHeight, pulleyID);
 
    Entity* leftPlatform(world->create());
    Entity* rightPlatform(world->create());

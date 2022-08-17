@@ -1,10 +1,11 @@
+#include "systems/EnemySystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
-#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
