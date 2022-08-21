@@ -1,10 +1,11 @@
+#include "systems/FlagSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/FlagSystem.h"
 #include "systems/PlayerSystem.h"
 
 #include <cmath>

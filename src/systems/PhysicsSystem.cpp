@@ -1,9 +1,8 @@
-#include "systems/PhysicsSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "systems/PhysicsSystem.h"
 
 #include <cmath>
 #include <iostream>

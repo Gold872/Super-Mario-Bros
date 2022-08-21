@@ -33,29 +33,6 @@ void CallbackSystem::tick(World* world) {
       }
    });
 
-   world->find<SequenceComponent>([&](Entity* entity) {
-      auto* sequence = entity->getComponent<SequenceComponent>();
-
-      sequence->currentDelay--;
-      if (sequence->currentDelay <= 0) {
-         sequence->currentSequenceIndex++;
-
-         if (sequence->currentSequenceIndex == sequence->sequenceLength) {
-            if (sequence->repeated) {
-               sequence->currentSequenceIndex = 0;
-            } else {
-               entity->remove<SequenceComponent>();
-               return;
-            }
-         }
-
-         sequence->currentDelay = sequence->delays[sequence->currentSequenceIndex];
-
-      } else if (sequence->currentDelay + 1 == sequence->delays[sequence->currentSequenceIndex]) {
-         sequence->commands[sequence->currentSequenceIndex](entity);
-      }
-   });
-
    world->find<DestroyDelayedComponent>([&](Entity* entity) {
       auto* destroy = entity->getComponent<DestroyDelayedComponent>();
 

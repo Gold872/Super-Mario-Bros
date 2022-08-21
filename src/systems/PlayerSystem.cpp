@@ -1232,6 +1232,10 @@ void PlayerSystem::tick(World* world) {
       if (move->velocity.y > 0) {
          return;
       }
+      if (breakable->hasComponent<DestroyDelayedComponent>()) {
+         return;
+      }
+
       // Destroy the block if the player is Super Mario
       if (!isSmallMario()) {
          if (!breakable->hasComponent<MysteryBoxComponent>() &&

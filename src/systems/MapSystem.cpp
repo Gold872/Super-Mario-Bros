@@ -1500,6 +1500,101 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
          lakitu->addComponent<TimerComponent>(throwSpine, 3 * MAX_FPS);
       } break;
       /* ****************************************************************** */
+      case 56: {  // HAMMER BRO
+         Entity* entity(world->create());
+
+         auto* position = entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(1, 2) * SCALED_CUBE_SIZE);
+
+         auto* texture = entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1,
+                                                    1, 0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         entity->addComponent<MovingComponent>(Vector2f(2, 0), Vector2f(0, 0));
+
+         entity->addComponent<GravityComponent>();
+         entity->addComponent<FrictionExemptComponent>();
+
+         int armsBackID = getReferenceEnemyIDAsEntity(entityID, 58);
+
+         int hammerID = getReferenceEnemyIDAsEntity(entityID, 60);
+
+         std::vector<int> armsDownAnimation = {entityID, entityID + 1};
+         std::vector<int> armsBackAnimation = {armsBackID, armsBackID + 1};
+
+         auto* animation = entity->addComponent<AnimationComponent>(armsDownAnimation, 4,
+                                                                    Map::EnemyIDCoordinates);
+
+         std::function<void(Entity*)> throwHammer = [=](Entity* entity) {
+            animation->frameIDS = armsBackAnimation;
+
+            // Create hammer
+            Entity* hammer(world->create());
+
+            auto* hammerPosition = hammer->addComponent<PositionComponent>(
+                Vector2f(0, position->position.y), Vector2i(SCALED_CUBE_SIZE));
+
+            hammerPosition->setCenterX(position->getCenterX());
+
+            hammer->addComponent<TextureComponent>(scene->enemyTexture,
+                                                   texture->isHorizontalFlipped());
+
+            hammer->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1,
+                                                       0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                       Map::EnemyIDCoordinates.at(hammerID));
+
+            hammer->addComponent<ParticleComponent>();
+
+            hammer->addComponent<DestroyOutsideCameraComponent>();
+
+            entity->getComponent<HammerBroComponent>()->hammer = hammer;
+
+            entity->addComponent<CallbackComponent>(
+                [=](Entity* entity) {
+                   animation->frameIDS = armsDownAnimation;
+
+                   hammerPosition->setBottom(position->getTop());
+
+                   if (texture->isHorizontalFlipped()) {
+                      hammerPosition->setLeft(position->getRight());
+                   } else {
+                      hammerPosition->setRight(position->getLeft());
+                   }
+
+                   hammer->addComponent<MovingComponent>(
+                       Vector2f((texture->isHorizontalFlipped()) ? 3.0 : -3.0, -6), Vector2f(0, 0));
+
+                   hammer->addComponent<FrictionExemptComponent>();
+
+                   hammer->addComponent<GravityComponent>();
+
+                   hammer->addComponent<ProjectileComponent>(ProjectileType::OTHER);
+
+                   entity->getComponent<HammerBroComponent>()->lastThrowTime = 0;
+                },
+                MAX_FPS * 0.5);
+         };
+
+         entity->addComponent<HammerBroComponent>(throwHammer);
+
+         entity->addComponent<CrushableComponent>([](Entity* entity) {
+            entity->getComponent<TextureComponent>()->setVerticalFlipped(true);
+
+            entity->addComponent<ParticleComponent>();
+
+            entity->remove<CallbackComponent>();
+
+            entity->remove<HammerBroComponent>();
+
+            entity->addComponent<DeadComponent>();
+         });
+
+         entity->addComponent<EnemyComponent>(EnemyType::HAMMER_BRO);
+      } break;
+      /* ****************************************************************** */
       case 61: {  // BOWSER
          Entity* bowser(world->create());
 

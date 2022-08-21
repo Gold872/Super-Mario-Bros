@@ -1,11 +1,12 @@
-#include "systems/EnemySystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "SoundManager.h"
+#include "command/CommandScheduler.h"
+#include "command/Commands.h"
+#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -99,6 +100,55 @@ void EnemySystem::performBowserActions(World* world, Entity* entity) {
       int hammerAmount = rand() % 5 + 6;
 
       bowserComponent->bowserAttacks[attackSelect](entity, hammerAmount);
+   }
+}
+
+void EnemySystem::performHammerBroActions(World* world, Entity* entity) {
+   auto* position = entity->getComponent<PositionComponent>();
+   auto* texture = entity->getComponent<TextureComponent>();
+   auto* move = entity->getComponent<MovingComponent>();
+   auto* hammerBroComponent = entity->getComponent<HammerBroComponent>();
+
+   if (!Camera::Get().inCameraRange(position)) {
+      return;
+   }
+
+   Entity* player = world->findFirst<PlayerComponent>();
+   auto* playerPosition = player->getComponent<PositionComponent>();
+
+   if (playerPosition->position.x > position->position.x && !texture->isHorizontalFlipped()) {
+      texture->setHorizontalFlipped(true);
+   } else if (playerPosition->position.x < position->position.x && texture->isHorizontalFlipped()) {
+      texture->setHorizontalFlipped(false);
+   }
+
+   if (hammerBroComponent->hammer != nullptr) {
+      if (!hammerBroComponent->hammer->hasComponent<GravityComponent>()) {
+         hammerBroComponent->hammer->getComponent<PositionComponent>()->setCenterX(
+             position->getCenterX());
+      }
+   }
+
+   hammerBroComponent->lastThrowTime++;
+   hammerBroComponent->lastJumpTime++;
+   hammerBroComponent->lastMoveTime++;
+
+   if (hammerBroComponent->lastThrowTime == MAX_FPS * 2) {
+      hammerBroComponent->throwHammer(entity);
+
+      if (hammerBroComponent->lastJumpTime >= MAX_FPS * 4) {
+         CommandScheduler::getInstance().addCommand(new DelayedCommand(
+             [=]() {
+                move->velocity.y = -10;
+                hammerBroComponent->lastJumpTime = 0;
+             },
+             0.75));
+      }
+   }
+
+   if (hammerBroComponent->lastMoveTime >= MAX_FPS * 3) {
+      move->velocity.x *= -1;
+      hammerBroComponent->lastMoveTime = 0;
    }
 }
 
@@ -244,6 +294,9 @@ void EnemySystem::tick(World* world) {
       switch (enemyType) {
          case EnemyType::BOWSER:
             performBowserActions(world, enemy);
+            break;
+         case EnemyType::HAMMER_BRO:
+            performHammerBroActions(world, enemy);
             break;
          case EnemyType::LAKITU:
             performLakituActions(world, enemy);

@@ -67,6 +67,10 @@ struct PositionComponent : public Component {
       position.x = value - scale.x;
    }
 
+   void setCenterX(float value) {
+      position.x = value - scale.x / 2.0f;
+   }
+
    void setCenterY(float value) {
       position.y = value - scale.y / 2.0f;
    }
@@ -328,26 +332,6 @@ struct WaitUntilComponent : public Component {
    std::function<void(Entity*)> doAfter;
 };
 
-// The first element of the delays is the delay before starting the sequence, the rest is the delay
-// between the steps
-struct SequenceComponent : public Component {
-   SequenceComponent(std::vector<std::function<void(Entity*)>> commands, std::vector<int> delays,
-                     bool repeated = false)
-       : commands{commands}, delays{delays}, repeated{repeated} {
-      sequenceLength = (int)commands.size();
-   }
-
-   std::vector<std::function<void(Entity*)>> commands;
-   std::vector<int> delays;
-
-   bool repeated;
-
-   int currentDelay = 0;
-
-   int currentSequenceIndex = -1;
-   int sequenceLength;
-};
-
 /* UNCATEGORiZED */
 struct BlockBumpComponent : public Component {
    BlockBumpComponent() = default;
@@ -592,8 +576,6 @@ struct MysteryBoxComponent : public Component {
    std::function<void(Entity*)> whenDispensed = [&](Entity* entity) {};
 };
 
-struct CollectibleDispenserComponent : public Component {};
-
 enum class CollectibleType
 {
    NONE,
@@ -675,6 +657,7 @@ enum class EnemyType
    PIRANHA_PLANT,
    CHEEP_CHEEP,
    BLOOPER,
+   HAMMER_BRO,
    BOWSER,
    LAKITU,
    SPINE,
@@ -719,6 +702,20 @@ struct BowserComponent : public Component {
    int currentMoveIndex = 0;
 
    Direction lastMoveDirection = Direction::NONE;
+};
+
+struct HammerBroComponent : public Component {
+   HammerBroComponent(std::function<void(Entity*)> throwHammer) : throwHammer{throwHammer} {}
+
+   int lastJumpTime = 0;
+   int lastThrowTime = 0;
+   int lastMoveTime = 0;
+
+   Entity* hammer = nullptr;
+
+   Direction lastMoveDirection = Direction::NONE;
+
+   std::function<void(Entity*)> throwHammer;
 };
 
 struct LakituComponent : public Component {

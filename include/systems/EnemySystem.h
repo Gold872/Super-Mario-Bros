@@ -11,6 +11,8 @@ class EnemySystem : public System {
   private:
    void performBowserActions(World* world, Entity* entity);
 
+   void performHammerBroActions(World* world, Entity* entity);
+
    void performLakituActions(World* world, Entity* entity);
 
    void checkEnemyDestroyed(World* world, Entity* enemy);

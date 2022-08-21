@@ -1,5 +1,3 @@
-#include "scenes/GameScene.h"
-
 #include "AABBCollision.h"
 #include "Constants.h"
 #include "ECS/Components.h"
@@ -10,6 +8,7 @@
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
+#include "scenes/GameScene.h"
 #include "systems/Systems.h"
 
 #include <algorithm>
