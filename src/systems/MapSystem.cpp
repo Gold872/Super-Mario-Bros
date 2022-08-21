@@ -1,5 +1,3 @@
-#include "systems/MapSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -8,6 +6,7 @@
 #include "SoundManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
+#include "systems/MapSystem.h"
 
 #include <functional>
 #include <iostream>
@@ -863,12 +862,16 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
                bulletBillID = 405;
                break;
             default:
-               bulletBillID = 0;
+               bulletBillID = 90;
                break;
          }
 
          entity->addComponent<TimerComponent>(
              [=](Entity* entity) {
+                if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>())) {
+                   return;
+                }
+
                 bool randomDirection = rand() % 2;
 
                 Entity* bulletBill(world->create());
@@ -895,26 +898,15 @@ void MapSystem::createForegroundEntities(World* world, int coordinateX, int coor
 
                 bulletBill->addComponent<ParticleComponent>();
 
-                bulletBill->addComponent<WaitUntilComponent>(
-                    [](Entity* bulletBill) -> bool {
-                       return Camera::Get().inCameraRange(
-                           bulletBill->getComponent<PositionComponent>());
-                    },
-                    [=](Entity* bulletBill) {
-                       Entity* cannonSound(world->create());
-                       cannonSound->addComponent<SoundComponent>(SoundID::CANNON_FIRE);
+                Entity* cannonSound(world->create());
+                cannonSound->addComponent<SoundComponent>(SoundID::CANNON_FIRE);
 
-                       bulletBill->remove<WaitUntilComponent>();
-                    });
+                bulletBill->addComponent<CrushableComponent>([](Entity* entity) {
+                   entity->getComponent<MovingComponent>()->velocity.x = 0;
 
-                bulletBill->addComponent<CrushableComponent>([](Entity* bulletBill) {
-                   bulletBill->getComponent<MovingComponent>()->velocity.x = 0;
+                   entity->addComponent<DeadComponent>();
 
-                   bulletBill->addComponent<DeadComponent>();
-
-                   bulletBill->addComponent<GravityComponent>();
-
-                   bulletBill->addComponent<DestroyOutsideCameraComponent>();
+                   entity->addComponent<GravityComponent>();
                 });
 
                 bulletBill->addComponent<EnemyComponent>(EnemyType::BULLET_BILL);
@@ -1889,7 +1881,8 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             Entity* entity(world->create());
 
             auto* position = entity->addComponent<PositionComponent>(
-                Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE, Vector2i(SCALED_CUBE_SIZE));
+                Vector2f(coordinateX, coordinateY + 1) * SCALED_CUBE_SIZE,
+                Vector2i(SCALED_CUBE_SIZE));
 
             entity->addComponent<TextureComponent>(scene->enemyTexture, true);
 
@@ -1918,7 +1911,7 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                              return;
                           }
                           position->position =
-                              Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE;
+                              Vector2f(coordinateX, coordinateY + 1) * SCALED_CUBE_SIZE;
 
                           if (!Camera::Get().inCameraXRange(position)) {
                              return;

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <string>
 #include <vector>
 /*
  * This program uses an Entity Component System.
@@ -86,11 +87,11 @@ class Entity {
 
       componentBitset[getComponentTypeID<ComponentType>()] = false;
 
-      components.erase(std::find(
-          components.begin(), components.end(),
-          std::unique_ptr<Component>{componentArray[getComponentTypeID<ComponentType>()]}));
+      auto* toRemove = componentArray[getComponentTypeID<ComponentType>()];
 
-      delete componentArray[getComponentTypeID<ComponentType>()];
+      components.erase(std::remove_if(components.begin(), components.end(), [toRemove](auto& ptr) {
+         return ptr.get() == toRemove;
+      }));
    }
 
    template <typename A, typename B, typename... OTHERS>
@@ -100,13 +101,7 @@ class Entity {
          return;
       }
 
-      componentBitset[getComponentTypeID<A>()] = false;
-
-      components.erase(
-          std::find(components.begin(), components.end(),
-                    std::unique_ptr<Component>{componentArray[getComponentTypeID<A>()]}));
-
-      delete componentArray[getComponentTypeID<A>()];
+      remove<A>();
 
       remove<B, OTHERS...>();
    }

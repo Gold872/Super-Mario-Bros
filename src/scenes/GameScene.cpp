@@ -70,7 +70,7 @@ GameScene::GameScene(int level, int subLevel) {
    callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
-   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+   oldLoaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
@@ -78,7 +78,7 @@ GameScene::GameScene(int level, int subLevel) {
 
           scoreSystem->hideTransitionEntities();
 
-          SDL_WaitThread(loaderThread, NULL);
+          SDL_WaitThread(oldLoaderThread, NULL);
           callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);
@@ -89,8 +89,6 @@ GameScene::GameScene(int level, int subLevel) {
 
           playerSystem->reset();
           scoreSystem->reset();
-
-          startLevelMusic();
        },
        3.0));
 }
@@ -98,6 +96,7 @@ GameScene::GameScene(int level, int subLevel) {
 void GameScene::update() {
    world->tick();
    emptyCommandQueue();
+   //   std::cout << "Enemy Texture count: " << enemyTexture.use_count() << '\n';
 }
 
 void GameScene::emptyCommandQueue() {
@@ -135,7 +134,7 @@ void GameScene::setupLevel() {
    callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
-   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+   oldLoaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
@@ -143,7 +142,7 @@ void GameScene::setupLevel() {
 
           scoreSystem->hideTransitionEntities();
 
-          SDL_WaitThread(loaderThread, NULL);
+          SDL_WaitThread(oldLoaderThread, NULL);
           callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);

@@ -1,11 +1,10 @@
-#include "systems/FlagSystem.h"
-
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
+#include "systems/FlagSystem.h"
 #include "systems/PlayerSystem.h"
 
 #include <cmath>
@@ -146,18 +145,17 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
        [=](Entity* entity) {
           auto* bridgeComponent = entity->getComponent<BridgeComponent>();
 
-          world->destroy(bridgeComponent->connectedBridgeParts.back());
+          // world->destroy() was causing it to crash :/
+          bridgeComponent->connectedBridgeParts.back()->addComponent<DestroyDelayedComponent>(1);
 
           bridgeComponent->connectedBridgeParts.pop_back();
 
-          bridgeComponent->connectedBridgeParts.shrink_to_fit();
+          Entity* bridgeCollapseSound(world->create());
+          bridgeCollapseSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);
 
           if (bridgeComponent->connectedBridgeParts.empty()) {
              entity->remove<TimerComponent>();
           }
-
-          Entity* bridgeCollapseSound(world->create());
-          bridgeCollapseSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);
        },
        5);
 

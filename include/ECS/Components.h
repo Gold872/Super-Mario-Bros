@@ -448,11 +448,10 @@ struct MovingPlatformComponent : public Component {
    float minPoint;
    float maxPoint;
 
-   std::function<float(float position, float distanceTravel)> calculateVelocity =
-       [](float position, float distanceTravel) {
-          return 2 * std::pow(M_E, -((std::pow(position - (1.9 * distanceTravel), 2)) /
-                                     (2 * std::pow(distanceTravel, 2))));
-       };
+   float calculateVelocity(float position, float distanceTravel) {
+      return 2 * std::exp(-((std::pow(position - (1.9 * distanceTravel), 2)) /
+                            (2 * std::pow(distanceTravel, 2))));
+   }
 };
 
 struct PlatformLevelComponent : public Component {
@@ -495,15 +494,15 @@ struct FireBarComponent : public Component {
 
    RotationDirection direction;
 
-   std::function<float(float angle)> calculateYPosition = [=](float angle) {
+   float calculateYPosition(float angle) {
       float angleRadians = angle * (M_PI / 180);
       return std::sin(angleRadians) * barPosition;
-   };
+   }
 
-   std::function<float(float angle)> calculateXPosition = [=](float angle) {
+   float calculateXPosition(float angle) {
       float angleRadians = angle * (M_PI / 180);
       return std::cos(angleRadians) * barPosition;
-   };
+   }
 };
 
 struct BridgeComponent : public Component {

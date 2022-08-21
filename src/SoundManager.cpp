@@ -8,7 +8,7 @@
 SoundManager SoundManager::instance;
 
 int SoundManager::Init() {
-   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) != 0) {
+   if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 4, 1024) != 0) {
       SDL_LogError(SDL_LOG_CATEGORY_AUDIO, "Failed to Open Audio: %s", SDL_GetError());
       std::cerr << "Failed to Open Audio: " << SDL_GetError() << std::endl;
       return -1;
@@ -38,7 +38,7 @@ std::shared_ptr<Mix_Music> SoundManager::loadMusic(const char* path) {
 }
 
 void SoundManager::playSound(SoundID sound) {
-   auto chunk = sounds.at(sound).get();
+   auto* chunk = sounds.at(sound).get();
    Mix_VolumeChunk(chunk, 50);
    Mix_PlayChannel(-1, chunk, 0);
 }

@@ -14,7 +14,7 @@
 
 void EnemySystem::performBowserActions(World* world, Entity* entity) {
    if (!Camera::Get().inCameraRange(entity->getComponent<PositionComponent>()) ||
-       entity->hasComponent<FrozenComponent>()) {
+       entity->hasAny<FrozenComponent, DeadComponent>()) {
       return;
    }
 

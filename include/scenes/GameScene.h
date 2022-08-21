@@ -84,7 +84,7 @@ class GameScene : public Scene {
   private:
    friend class MapSystem;
 
-   SDL_Thread* loaderThread;
+   SDL_Thread* oldLoaderThread;
 
    PlayerSystem* playerSystem;
    MapSystem* mapSystem;

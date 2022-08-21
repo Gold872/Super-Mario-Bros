@@ -1,0 +1,44 @@
+### STARTING POSITIONS
+# The starting position of the player
+PLAYER_START = (2, 12)
+
+# The starting position of the camera
+CAMERA_START = (0, 0)
+
+# The maximum point the camera can reach
+CAMERA_MAX = 240
+
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = OVERWORLD
+
+# The level to go to next
+NEXT_LEVEL = (7, 4)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLUE
+
+### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
+WARP_PIPE=\
+
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
+MOVING_PLATFORM=\
+
+# The positions for the platform levels
+# Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
+PLATFORM_LEVEL=\
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (new camera max) (Background Color of the vine location) (Level type of the vine location)
+VINE=\

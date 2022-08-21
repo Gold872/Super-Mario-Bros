@@ -22,6 +22,9 @@ BACKGROUND_COLOR = BLACK
 # The locations for Floating text
 # Format: (Text Coordinates) (Text Message)
 FLOATING_TEXT=\
+	(148, 5) (THANK YOU MARIO),\
+	(146, 7) (BUT OUR PRINCESS IS IN),\
+	(146, 8) (ANOTHER CASTLE)
 
 # The locations for the Warp pipes
 # Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)

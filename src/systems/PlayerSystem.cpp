@@ -1,3 +1,5 @@
+#include "systems/PlayerSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -10,7 +12,6 @@
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
 #include "systems/FlagSystem.h"
-#include "systems/PlayerSystem.h"
 #include "systems/WarpSystem.h"
 
 #include <SDL2/SDL.h>
@@ -157,26 +158,26 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    mario->addComponent<ParticleComponent>();
 
    // Freezes every non-player entity
-   world->find<MovingComponent>([](Entity* entity) {
-      if (entity->hasComponent<PlayerComponent>()) {
-         return;
-      }
-
-      entity->getComponent<MovingComponent>()->velocity = Vector2f(0, 0);
-      entity->getComponent<MovingComponent>()->acceleration = Vector2f(0, 0);
-   });
-
-   world->find<AnimationComponent>([](Entity* entity) {
-      if (entity->hasComponent<IconComponent>()) {
-         return;
-      }
-
-      entity->getComponent<AnimationComponent>()->setPlaying(false);
-
-      if (entity->hasComponent<PausedAnimationComponent>()) {
-         entity->remove<PausedAnimationComponent>();
-      }
-   });
+   //   world->find<MovingComponent>([](Entity* entity) {
+   //      if (entity->hasComponent<PlayerComponent>()) {
+   //         return;
+   //      }
+   //
+   //      entity->getComponent<MovingComponent>()->velocity = Vector2f(0, 0);
+   //      entity->getComponent<MovingComponent>()->acceleration = Vector2f(0, 0);
+   //   });
+   //
+   //   world->find<AnimationComponent>([](Entity* entity) {
+   //      if (entity->hasComponent<IconComponent>()) {
+   //         return;
+   //      }
+   //
+   //      entity->getComponent<AnimationComponent>()->setPlaying(false);
+   //
+   //      if (entity->hasComponent<PausedAnimationComponent>()) {
+   //         entity->remove<PausedAnimationComponent>();
+   //      }
+   //   });
 
    spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
@@ -1216,7 +1217,7 @@ void PlayerSystem::tick(World* world) {
          return;
       }
       if (!AABBTotalCollision(position, projectilePosition) || isSuperStar() ||
-          mario->hasAny<EndingBlinkComponent, FrozenComponent>()) {
+          mario->hasAny<EndingBlinkComponent, FrozenComponent, ParticleComponent>()) {
          return;
       }
       if (projectile->getComponent<ProjectileComponent>()->projectileType !=
@@ -1240,9 +1241,9 @@ void PlayerSystem::tick(World* world) {
             // the enemy will fall as normal
             breakable->addComponent<BlockBumpComponent>(std::vector<int>{0});
             breakable->addComponent<CallbackComponent>(
-                [&](Entity* breakable) {
+                [=](Entity* breakable) {
                    createBlockDebris(world, breakable);
-                   world->destroy(breakable);
+                   breakable->addComponent<DestroyDelayedComponent>(1);
 
                    Entity* breakSound(world->create());
                    breakSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);
