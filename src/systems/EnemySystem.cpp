@@ -1,3 +1,5 @@
+#include "systems/EnemySystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -6,7 +8,6 @@
 #include "SoundManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/EnemySystem.h"
 
 #include <SDL2/SDL.h>
 
@@ -235,9 +236,14 @@ void EnemySystem::checkEnemyDestroyed(World* world, Entity* enemy) {
 
    // If enemy is crushed
    if (enemy->hasComponent<CrushableComponent, CrushedComponent>()) {
+      // When the paratroopa gets crushed it's still crushable
+      bool removeCrushable = enemyComponent->enemyType != EnemyType::KOOPA_PARATROOPA;
       enemy->getComponent<CrushableComponent>()->whenCrushed(enemy);
-      enemy->remove<CrushableComponent>();
       enemy->remove<CrushedComponent>();
+
+      if (removeCrushable) {
+         enemy->remove<CrushableComponent>();
+      }
 
       Entity* floatingText(world->create());
       floatingText->addComponent<CreateFloatingTextComponent>(enemy, std::to_string(100));
@@ -414,7 +420,10 @@ void EnemySystem::tick(World* world) {
 
       checkEnemyDestroyed(world, enemy);
 
-      enemy->remove<TopCollisionComponent, BottomCollisionComponent, LeftCollisionComponent,
-                    RightCollisionComponent>();
+      if (enemyType != EnemyType::KOOPA_PARATROOPA) {
+         enemy->remove<BottomCollisionComponent>();
+      }
+
+      enemy->remove<TopCollisionComponent, LeftCollisionComponent, RightCollisionComponent>();
    });
 }

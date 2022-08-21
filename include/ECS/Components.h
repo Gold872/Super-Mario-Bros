@@ -652,7 +652,7 @@ enum class EnemyType
    NONE,
    GOOMBA,
    KOOPA,
-   FLYING_KOOPA,
+   KOOPA_PARATROOPA,
    KOOPA_SHELL,
    PIRANHA_PLANT,
    CHEEP_CHEEP,

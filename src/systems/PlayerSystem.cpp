@@ -1070,6 +1070,38 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                onGameOver(world);
             }
             break;
+         case EnemyType::KOOPA_PARATROOPA:
+            if (isSuperStar()) {
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+
+               enemy->addComponent<EnemyDestroyedComponent>();
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+               return;
+            }
+            if (move->velocity.y > 0 && enemy->hasComponent<CrushableComponent>()) {
+               enemy->addComponent<CrushedComponent>();
+               position->setBottom(enemyPosition->getTop());
+               move->velocity.y = -MARIO_BOUNCE;
+
+               enemyCrushed = true;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+
+            } else if (!enemyCrushed && move->velocity.y <= 0 &&
+                       !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
+               onGameOver(world);
+            } else if (enemyCrushed) {
+               enemy->addComponent<CrushedComponent>();
+               move->velocity.y = -MARIO_BOUNCE;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+            }
+
+            break;
          default:
             if (isSuperStar()) {
                enemy->getComponent<MovingComponent>()->velocity.x = 0;

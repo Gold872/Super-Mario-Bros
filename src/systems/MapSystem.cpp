@@ -1,3 +1,5 @@
+#include "systems/MapSystem.h"
+
 #include "AABBCollision.h"
 #include "Camera.h"
 #include "Constants.h"
@@ -6,7 +8,6 @@
 #include "SoundManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"
-#include "systems/MapSystem.h"
 
 #include <functional>
 #include <iostream>
@@ -1273,6 +1274,71 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<EnemyComponent>(EnemyType::KOOPA);
 
+      } break;
+      /* ****************************************************************** */
+      case 40: {  // KOOPA PARATROOPA (GREEN)
+         Entity* koopa(world->create());
+
+         koopa->addComponent<PositionComponent>(
+             Vector2f(coordinateX * SCALED_CUBE_SIZE, coordinateY * SCALED_CUBE_SIZE),
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE * 2),
+             SDL_Rect{0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE});
+
+         koopa->addComponent<TextureComponent>(scene->enemyTexture);
+
+         koopa->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE * 2, 1, 1,
+                                                   0, ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                   Map::EnemyIDCoordinates.at(entityID));
+
+         koopa->addComponent<AnimationComponent>(std::vector<int>{entityID, entityID + 1}, 4,
+                                                 Map::EnemyIDCoordinates);
+
+         koopa->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
+
+         koopa->addComponent<GravityComponent>();
+
+         koopa->addComponent<FrictionExemptComponent>();
+
+         koopa->addComponent<WaitUntilComponent>(
+             [](Entity* entity) {
+                return entity->hasComponent<BottomCollisionComponent>();
+             },
+             [](Entity* entity) {
+                entity->remove<BottomCollisionComponent>();
+
+                entity->getComponent<MovingComponent>()->velocity.y = -8;
+                entity->getComponent<MovingComponent>()->acceleration.y = -0.22;
+             });
+
+         koopa->addComponent<CrushableComponent>([=](Entity* entity) {
+            entity->remove<WaitUntilComponent>();
+
+            entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA;
+
+            entity->getComponent<AnimationComponent>()->frameIDS =
+                std::vector<int>{entityID - 2, entityID - 1};
+
+            entity->getComponent<CrushableComponent>()->whenCrushed = [=](Entity* entity) {
+               entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA_SHELL;
+               entity->getComponent<MovingComponent>()->velocity.x = 0.0;
+               entity->getComponent<SpritesheetComponent>()->setEntityHeight(ORIGINAL_CUBE_SIZE);
+
+               entity->addComponent<DestroyOutsideCameraComponent>();
+
+               auto* position = entity->getComponent<PositionComponent>();
+               position->scale.y = SCALED_CUBE_SIZE;
+               position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
+               position->position.y += SCALED_CUBE_SIZE;
+
+               int shellCoordinate = getReferenceEnemyIDAsEntity(entityID, 77);
+               entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
+                   Map::EnemyIDCoordinates.at(shellCoordinate));
+
+               entity->remove<AnimationComponent>();
+            };
+         });
+
+         koopa->addComponent<EnemyComponent>(EnemyType::KOOPA_PARATROOPA);
       } break;
       /* ****************************************************************** */
       case 44: {  // PIRHANNA PLANT
