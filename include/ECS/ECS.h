@@ -159,23 +159,40 @@ class System {
 
    virtual void tick(World* world) = 0;
 
-   virtual void handleEvent(SDL_Event& event) {}
+   virtual void handleInput(SDL_Event& event) {}
 
-   virtual void handleEvent(const Uint8* keystates) {}
+   virtual void handleInput(const Uint8* keystates) {}
 
    virtual void onRemovedFromWorld(World* world) {}
 
-   void setActive(bool val) {
-      active = val;
+   void setEnabled(bool val) {
+      enabled = val;
    }
 
-   bool isActive() {
-      return active;
+   bool isEnabled() {
+      return enabled;
    }
 
   private:
-   bool active = true;
+   bool enabled = true;
 };
+
+using SystemID = std::uint8_t;
+
+inline SystemID getNewSystemTypeID() {
+   static SystemID lastID = 0;
+   return lastID++;
+}
+
+template <typename T>
+inline SystemID getSystemTypeID() {
+   static SystemID typeID = getNewSystemTypeID();
+   return typeID;
+}
+
+constexpr std::uint8_t maxSystems = 16;
+
+using SystemArray = std::array<System*, maxSystems>;
 
 class World {
   public:
@@ -184,9 +201,8 @@ class World {
    World(const World& other) = delete;
 
    ~World() {
-      for (auto system : systems) {
+      for (auto& system : systems) {
          system->onRemovedFromWorld(this);
-         delete system;
       }
       systems.clear();
 
@@ -221,19 +237,59 @@ class World {
 
    template <typename S, typename... Args>
    S* registerSystem(Args&&... arguments) {
-      auto* system = new S(std::forward<Args>(arguments)...);
-      systems.push_back(system);
-      system->onAddedToWorld(this);
-      return system;
+      std::unique_ptr<S> system = std::make_unique<S>(std::forward<Args>(arguments)...);
+
+      auto* ptr = system.get();
+
+      systemArray[getSystemTypeID<S>()] = ptr;
+      systems.emplace_back(std::move(system));
+
+      ptr->onAddedToWorld(this);
+
+      return ptr;
    }
 
-   void unregisterSystem(System* system) {
-      if (!system) {
-         return;
-      }
-      systems.erase(std::remove(systems.begin(), systems.end(), system), systems.end());
-      system->onRemovedFromWorld(this);
-      delete system;
+   template <typename T>
+   void unregisterSystem() {
+      auto* toRemove = systemArray[getSystemTypeID<T>()];
+
+      systems.erase(std::remove_if(systems.begin(), systems.end(), [toRemove, this](auto& ptr) {
+         if (ptr.get() == toRemove) {
+            ptr->onRemovedFromWorld(this);
+            return true;
+         }
+         return false;
+      }));
+   }
+
+   template <typename T>
+   T* getSystem() {
+      auto ptr(systemArray[getSystemTypeID<T>()]);
+      return static_cast<T*>(ptr);
+   }
+
+   template <typename T>
+   void disableSystem() {
+      getSystem<T>()->setEnabled(false);
+   }
+
+   template <typename A, typename B, typename... OTHERS>
+   void disableSystem() {
+      disableSystem<A>();
+
+      disableSystem<B, OTHERS...>();
+   }
+
+   template <typename T>
+   void enableSystem() {
+      getSystem<T>()->setEnabled(true);
+   }
+
+   template <typename A, typename B, typename... OTHERS>
+   void enableSystem() {
+      enableSystem<A>();
+
+      enableSystem<B, OTHERS...>();
    }
 
    template <typename... Components>
@@ -264,25 +320,25 @@ class World {
    }
 
    void tick() {
-      for (auto system : systems) {
-         if (system->isActive()) {
+      for (auto& system : systems) {
+         if (system->isEnabled()) {
             system->tick(this);
          }
       }
    }
 
-   void handleEvent(SDL_Event& event) {
-      for (auto system : systems) {
-         if (system->isActive()) {
-            system->handleEvent(event);
+   void handleInput(SDL_Event& event) {
+      for (auto& system : systems) {
+         if (system->isEnabled()) {
+            system->handleInput(event);
          }
       }
    }
 
-   void handleEvent(const Uint8* keystates) {
-      for (auto system : systems) {
-         if (system->isActive()) {
-            system->handleEvent(keystates);
+   void handleInput(const Uint8* keystates) {
+      for (auto& system : systems) {
+         if (system->isEnabled()) {
+            system->handleInput(keystates);
          }
       }
    }
@@ -293,5 +349,8 @@ class World {
 
   private:
    std::vector<Entity*> entities;
-   std::vector<System*> systems;
+
+   SystemArray systemArray;
+   //   std::vector<System*> oldSystems;
+   std::vector<std::unique_ptr<System>> systems;
 };

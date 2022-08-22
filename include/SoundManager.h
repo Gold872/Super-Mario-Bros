@@ -16,9 +16,11 @@ enum class SoundID
    DEATH,
    FIREBALL,
    FLAG_RAISE,
+   GAME_OVER,
    JUMP,
    KICK,
    ONE_UP,
+   PAUSE,
    PIPE,
    POWER_UP_APPEAR,
    POWER_UP_COLLECT,
@@ -53,6 +55,11 @@ class SoundManager {
    void playSound(SoundID sound);
    void playMusic(MusicID music);
 
+   void pauseSounds();
+   void resumeSounds();
+
+   void pauseMusic();
+   void resumeMusic();
    void stopMusic();
 
   private:

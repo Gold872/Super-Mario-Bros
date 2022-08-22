@@ -1393,7 +1393,7 @@ void PlayerSystem::tick(World* world) {
    }
 }
 
-void PlayerSystem::handleEvent(SDL_Event& event) {
+void PlayerSystem::handleInput(SDL_Event& event) {
    if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) {
       return;
    }
@@ -1460,7 +1460,7 @@ void PlayerSystem::handleEvent(SDL_Event& event) {
    xDir = right - left;
 }
 
-void PlayerSystem::handleEvent(const Uint8* keystates) {
+void PlayerSystem::handleInput(const Uint8* keystates) {
    if (!PlayerSystem::isInputEnabled()) {
       jump = jumpHeld = false;
       return;

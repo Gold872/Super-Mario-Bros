@@ -30,6 +30,8 @@ class GameScene : public Scene {
 
    bool isFinished() override;
 
+   void handleInput(SDL_Event& event) override;
+
    void loadLevel(int level, int subLevel);
 
    int getLevel() {
@@ -86,6 +88,10 @@ class GameScene : public Scene {
   private:
    friend class MapSystem;
 
+   void pause();
+
+   void unpause();
+
    SDL_Thread* loaderThread;
 
    PlayerSystem* playerSystem;
@@ -95,6 +101,13 @@ class GameScene : public Scene {
    PhysicsSystem* physicsSystem;
    RenderSystem* renderSystem;
    CallbackSystem* callbackSystem;
+
+   Entity* pausedText;
+   Entity* continueText;
+   Entity* endText;
+   Entity* selectCursor;
+
+   int pauseSelectedOption = 0;  // 0 is Continue, 1 is End
 
    std::unique_ptr<Level> gameLevel = std::make_unique<Level>();
 
@@ -114,4 +127,5 @@ class GameScene : public Scene {
    std::vector<std::function<void(void)>> commandQueue;
 
    bool gameFinished = false;
+   bool paused = false;
 };

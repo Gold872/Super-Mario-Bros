@@ -38,6 +38,32 @@ GameScene::GameScene(int level, int subLevel) {
    Map::loadPlayerIDS();
    Map::loadIrregularBlockReferences();
 
+   {
+      pausedText = world->create();
+      pausedText->addComponent<PositionComponent>(Vector2f(10.8, 4) * SCALED_CUBE_SIZE, Vector2i());
+      pausedText->addComponent<TextComponent>("PAUSED", 18, false, false);
+   }
+
+   {
+      continueText = world->create();
+      continueText->addComponent<PositionComponent>(Vector2f(10.2, 8.5) * SCALED_CUBE_SIZE,
+                                                    Vector2i());
+      continueText->addComponent<TextComponent>("CONTINUE", 14, false, false);
+   }
+
+   {
+      endText = world->create();
+      endText->addComponent<PositionComponent>(Vector2f(10.2, 9.5) * SCALED_CUBE_SIZE, Vector2i());
+      endText->addComponent<TextComponent>("END", 14, false, false);
+   }
+
+   {
+      selectCursor = world->create();
+      selectCursor->addComponent<PositionComponent>(Vector2f(9.5, 8.5) * SCALED_CUBE_SIZE,
+                                                    Vector2i());
+      selectCursor->addComponent<TextComponent>(">", 14, false, false);
+   }
+
    blockTexture = TextureManager::Get().LoadSharedTexture("res/sprites/blocks/BlockTileSheet.png");
    enemyTexture =
        TextureManager::Get().LoadSharedTexture("res/sprites/characters/EnemySpriteSheet.png");
@@ -65,42 +91,39 @@ GameScene::GameScene(int level, int subLevel) {
    soundSystem = world->registerSystem<SoundSystem>();
    renderSystem = world->registerSystem<RenderSystem>();
 
-   scoreSystem->showTransitionEntities();
+   setupLevel();
 
-   callbackSystem->setActive(false);
-   physicsSystem->setActive(false);
-   renderSystem->setTransitionRendering(true);
-   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
-
-   CommandScheduler::getInstance().addCommand(new DelayedCommand(
-       [=]() {
-          TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
-
-          scoreSystem->hideTransitionEntities();
-
-          SDL_WaitThread(loaderThread, NULL);
-          callbackSystem->setActive(true);
-          physicsSystem->setActive(true);
-          renderSystem->setTransitionRendering(false);
-
-          startTimer();
-
-          startLevelMusic();
-
-          playerSystem->reset();
-          scoreSystem->reset();
-       },
-       3.0));
+   //   scoreSystem->showTransitionEntities();
+   //
+   //   callbackSystem->setEnabled(false);
+   //   physicsSystem->setEnabled(false);
+   //   renderSystem->setTransitionRendering(true);
+   //   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+   //
+   //   CommandScheduler::getInstance().addCommand(new DelayedCommand(
+   //       [=]() {
+   //          TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
+   //
+   //          scoreSystem->hideTransitionEntities();
+   //
+   //          SDL_WaitThread(loaderThread, NULL);
+   //          callbackSystem->setEnabled(true);
+   //          physicsSystem->setEnabled(true);
+   //          renderSystem->setTransitionRendering(false);
+   //
+   //          startTimer();
+   //
+   //          startLevelMusic();
+   //
+   //          playerSystem->reset();
+   //          scoreSystem->reset();
+   //       },
+   //       3.0));
 }
 
 void GameScene::update() {
    world->tick();
    emptyCommandQueue();
-   //   if (scoreSystem->getGameTime() <= 0) {
-   //      SDL_WaitThread(loaderThread, NULL);
-   //
-   //      gameFinished = true;
-   //   }
    //   std::cout << "Enemy Texture count: " << enemyTexture.use_count() << '\n';
 }
 
@@ -113,6 +136,109 @@ void GameScene::emptyCommandQueue() {
 
 bool GameScene::isFinished() {
    return gameFinished;
+}
+
+void GameScene::handleInput(SDL_Event& event) {
+   world->handleInput(event);
+
+   if (event.type != SDL_KEYDOWN) {
+      return;
+   }
+
+   switch (event.key.keysym.scancode) {
+      case SDL_SCANCODE_ESCAPE:
+         // Don't pause if it's during a transition or if the player can't be controlled
+         if (renderSystem->isTransitionRendering() || !playerSystem->isInputEnabled()) {
+            return;
+         }
+         paused = !paused;
+
+         if (paused) {
+            pause();
+         } else {
+            unpause();
+         }
+         break;
+      case SDL_SCANCODE_RETURN:
+         if (!paused) {
+            break;
+         }
+         switch (pauseSelectedOption) {
+            case 0:  // Continue
+               paused = false;
+               unpause();
+               break;
+            case 1:  // End
+               paused = false;
+               gameFinished = true;
+               SoundManager::Get().stopMusic();
+               break;
+            default:
+               break;
+         }
+         break;
+      case SDL_SCANCODE_UP:
+         if (!paused) {
+            break;
+         }
+
+         if (pauseSelectedOption > 0) {
+            pauseSelectedOption--;
+
+            selectCursor->getComponent<PositionComponent>()->position.y =
+                (8.5 + pauseSelectedOption) * SCALED_CUBE_SIZE;
+         }
+         break;
+      case SDL_SCANCODE_DOWN:
+         if (!paused) {
+            break;
+         }
+
+         if (pauseSelectedOption < 1) {
+            pauseSelectedOption++;
+
+            selectCursor->getComponent<PositionComponent>()->position.y =
+                (8.5 + pauseSelectedOption) * SCALED_CUBE_SIZE;
+         }
+         break;
+      default:
+         break;
+   }
+}
+
+void GameScene::pause() {
+   SoundManager::Get().pauseMusic();
+   SoundManager::Get().pauseSounds();
+
+   Entity* pauseSound(world->create());
+   pauseSound->addComponent<SoundComponent>(SoundID::PAUSE);
+
+   world->disableSystem<PhysicsSystem, PlayerSystem, AnimationSystem, EnemySystem,
+                        CollectibleSystem, WarpSystem, FlagSystem, CallbackSystem, ScoreSystem>();
+
+   pausedText->getComponent<TextComponent>()->setVisible(true);
+   continueText->getComponent<TextComponent>()->setVisible(true);
+   endText->getComponent<TextComponent>()->setVisible(true);
+   selectCursor->getComponent<TextComponent>()->setVisible(true);
+
+   scoreSystem->showTransitionEntities();
+}
+
+void GameScene::unpause() {
+   SoundManager::Get().resumeMusic();
+   SoundManager::Get().resumeSounds();
+
+   world->enableSystem<PhysicsSystem, PlayerSystem, AnimationSystem, EnemySystem, CollectibleSystem,
+                       WarpSystem, FlagSystem, CallbackSystem, ScoreSystem>();
+
+   pausedText->getComponent<TextComponent>()->setVisible(false);
+   continueText->getComponent<TextComponent>()->setVisible(false);
+   endText->getComponent<TextComponent>()->setVisible(false);
+   selectCursor->getComponent<TextComponent>()->setVisible(false);
+
+   scoreSystem->hideTransitionEntities();
+
+   pauseSelectedOption = 0;
 }
 
 void GameScene::setupLevel() {
@@ -132,12 +258,12 @@ void GameScene::setupLevel() {
    loadLevel(level, subLevel);
 
    TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
-   scoreSystem->showTransitionEntities();
 
+   scoreSystem->showTransitionEntities();
    scoreSystem->reset();
 
-   callbackSystem->setActive(false);
-   physicsSystem->setActive(false);
+   callbackSystem->setEnabled(false);
+   physicsSystem->setEnabled(false);
    renderSystem->setTransitionRendering(true);
    loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
@@ -148,8 +274,8 @@ void GameScene::setupLevel() {
           scoreSystem->hideTransitionEntities();
 
           SDL_WaitThread(loaderThread, NULL);
-          callbackSystem->setActive(true);
-          physicsSystem->setActive(true);
+          callbackSystem->setEnabled(true);
+          physicsSystem->setEnabled(true);
           renderSystem->setTransitionRendering(false);
 
           startTimer();

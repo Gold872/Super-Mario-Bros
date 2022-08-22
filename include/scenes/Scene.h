@@ -21,11 +21,11 @@ class Scene {
       return true;
    }
 
-   virtual void handleEvents(SDL_Event& event) {
-      world->handleEvent(event);
+   virtual void handleInput(SDL_Event& event) {
+      world->handleInput(event);
    }
 
-   virtual void handleEvents(const Uint8* keystates) {
-      world->handleEvent(keystates);
+   virtual void handleInput(const Uint8* keystates) {
+      world->handleInput(keystates);
    }
 };

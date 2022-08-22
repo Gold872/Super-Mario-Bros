@@ -25,7 +25,7 @@ MenuScene::MenuScene() {
    createMenuEntities();
 }
 
-void MenuScene::handleEvents(SDL_Event& event) {
+void MenuScene::handleInput(SDL_Event& event) {
    if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.scancode) {
          case SDL_SCANCODE_RETURN:
@@ -36,7 +36,7 @@ void MenuScene::handleEvents(SDL_Event& event) {
             break;
       }
    }
-   world->handleEvent(event);
+   world->handleInput(event);
 }
 
 bool MenuScene::isFinished() {

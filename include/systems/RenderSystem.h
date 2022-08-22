@@ -15,11 +15,15 @@ class RenderSystem : public System {
 
    void tick(World* world) override;
 
-   void handleEvent(SDL_Event& event) override {}
+   void handleInput(SDL_Event& event) override {}
 
    void onRemovedFromWorld(World* world) override {}
 
    void setTransitionRendering(bool transition);
+
+   bool isTransitionRendering() {
+      return transitionRendering;
+   }
 
   private:
    void renderEntity(Entity* entity, bool cameraBound = true);

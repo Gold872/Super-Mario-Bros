@@ -71,7 +71,7 @@ int MenuSystem::getSelectedSublevel() {
    return selectedSublevel;
 }
 
-void MenuSystem::handleEvent(SDL_Event& event) {
+void MenuSystem::handleInput(SDL_Event& event) {
    if (event.type != SDL_KEYDOWN) {
       return;
    }

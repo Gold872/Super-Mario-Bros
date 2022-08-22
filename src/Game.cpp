@@ -37,9 +37,9 @@ void Game::handleInput() {
          default:
             break;
       }
-      scene->handleEvents(event);
+      scene->handleInput(event);
    }
-   scene->handleEvents(keystates);
+   scene->handleInput(keystates);
 }
 
 void Game::update() {

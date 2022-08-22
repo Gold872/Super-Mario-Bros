@@ -41,9 +41,9 @@ class PlayerSystem : public System {
 
    void tick(World* world) override;
 
-   void handleEvent(SDL_Event& event) override;
+   void handleInput(SDL_Event& event) override;
 
-   void handleEvent(const Uint8* keystates) override;
+   void handleInput(const Uint8* keystates) override;
 
    void onAddedToWorld(World* world) override;
 

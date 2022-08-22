@@ -10,7 +10,7 @@ class MenuScene : public Scene {
   public:
    MenuScene();
 
-   void handleEvents(SDL_Event& event) override;
+   void handleInput(SDL_Event& event) override;
 
    bool isFinished() override;
 

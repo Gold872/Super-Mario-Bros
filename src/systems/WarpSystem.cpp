@@ -158,7 +158,7 @@ void WarpSystem::tick(World* world) {
    }
 }
 
-void WarpSystem::handleEvent(SDL_Event& event) {
+void WarpSystem::handleInput(SDL_Event& event) {
    if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) {
       return;
    }

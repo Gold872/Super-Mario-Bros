@@ -49,6 +49,28 @@ void SoundManager::playMusic(MusicID music) {
    Mix_PlayMusic(musics.at(music).get(), -1);
 }
 
+void SoundManager::pauseSounds() {
+   Mix_Pause(0);
+   Mix_Pause(1);
+   Mix_Pause(2);
+   Mix_Pause(3);
+}
+
+void SoundManager::resumeSounds() {
+   Mix_Resume(0);
+   Mix_Resume(1);
+   Mix_Resume(2);
+   Mix_Resume(3);
+}
+
+void SoundManager::pauseMusic() {
+   Mix_PauseMusic();
+}
+
+void SoundManager::resumeMusic() {
+   Mix_ResumeMusic();
+}
+
 void SoundManager::stopMusic() {
    Mix_HaltMusic();
 }
@@ -64,9 +86,11 @@ void SoundManager::loadSounds() {
    sounds.insert({SoundID::DEATH, loadSound("res/sounds/effects/death.wav")});
    sounds.insert({SoundID::FIREBALL, loadSound("res/sounds/effects/fireball.wav")});
    sounds.insert({SoundID::FLAG_RAISE, loadSound("res/sounds/effects/flagraise.wav")});
+   sounds.insert({SoundID::GAME_OVER, loadSound("res/sounds/effects/gameover.wav")});
    sounds.insert({SoundID::JUMP, loadSound("res/sounds/effects/jump.wav")});
    sounds.insert({SoundID::KICK, loadSound("res/sounds/effects/kick.wav")});
    sounds.insert({SoundID::ONE_UP, loadSound("res/sounds/effects/oneup.wav")});
+   sounds.insert({SoundID::PAUSE, loadSound("res/sounds/effects/pause.wav")});
    sounds.insert({SoundID::PIPE, loadSound("res/sounds/effects/pipe.wav")});
    sounds.insert({SoundID::POWER_UP_APPEAR, loadSound("res/sounds/effects/powerupappear.wav")});
    sounds.insert({SoundID::POWER_UP_COLLECT, loadSound("res/sounds/effects/powerupcollect.wav")});
