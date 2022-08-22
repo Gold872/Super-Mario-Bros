@@ -1,5 +1,6 @@
 #include "scenes/MenuScene.h"
 
+#include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
@@ -12,6 +13,11 @@
 
 MenuScene::MenuScene() {
    Map::loadBlockIDS();
+
+   TextureManager::Get().SetBackgroundColor(BackgroundColor::BLUE);
+
+   Camera::Get().setCameraX(0);
+   Camera::Get().setCameraY(0);
 
    menuSystem = world->registerSystem<MenuSystem>();
    world->registerSystem<RenderSystem>();

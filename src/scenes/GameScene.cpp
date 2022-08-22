@@ -70,7 +70,7 @@ GameScene::GameScene(int level, int subLevel) {
    callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
-   oldLoaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
@@ -78,7 +78,7 @@ GameScene::GameScene(int level, int subLevel) {
 
           scoreSystem->hideTransitionEntities();
 
-          SDL_WaitThread(oldLoaderThread, NULL);
+          SDL_WaitThread(loaderThread, NULL);
           callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);
@@ -96,6 +96,11 @@ GameScene::GameScene(int level, int subLevel) {
 void GameScene::update() {
    world->tick();
    emptyCommandQueue();
+   //   if (scoreSystem->getGameTime() <= 0) {
+   //      SDL_WaitThread(loaderThread, NULL);
+   //
+   //      gameFinished = true;
+   //   }
    //   std::cout << "Enemy Texture count: " << enemyTexture.use_count() << '\n';
 }
 
@@ -107,7 +112,7 @@ void GameScene::emptyCommandQueue() {
 }
 
 bool GameScene::isFinished() {
-   return false;
+   return gameFinished;
 }
 
 void GameScene::setupLevel() {
@@ -134,7 +139,7 @@ void GameScene::setupLevel() {
    callbackSystem->setActive(false);
    physicsSystem->setActive(false);
    renderSystem->setTransitionRendering(true);
-   oldLoaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
@@ -142,7 +147,7 @@ void GameScene::setupLevel() {
 
           scoreSystem->hideTransitionEntities();
 
-          SDL_WaitThread(oldLoaderThread, NULL);
+          SDL_WaitThread(loaderThread, NULL);
           callbackSystem->setActive(true);
           physicsSystem->setActive(true);
           renderSystem->setTransitionRendering(false);
@@ -170,6 +175,11 @@ void GameScene::restartLevel() {
    commandQueue.push_back([=]() {
       scoreSystem->reset();
       scoreSystem->decreaseLives();
+
+      if (scoreSystem->getLives() == 0) {
+         gameFinished = true;
+         return;
+      }
 
       setupLevel();
    });
@@ -218,6 +228,10 @@ void GameScene::stopTimer() {
 
 void GameScene::startTimer() {
    scoreSystem->startTimer();
+}
+
+int GameScene::getTimeLeft() {
+   return scoreSystem->getGameTime();
 }
 
 void GameScene::scoreCountdown() {

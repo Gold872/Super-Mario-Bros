@@ -25,6 +25,10 @@ class ScoreSystem : public System {
 
    bool scoreCountFinished();
 
+   int getGameTime();
+
+   int getLives();
+
    void showTransitionEntities();
    void hideTransitionEntities();
 

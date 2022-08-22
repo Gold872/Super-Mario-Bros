@@ -59,8 +59,15 @@ void Game::update() {
             currentScene = Scenes::GAME;
          } break;
          case Scenes::GAME: {
-            scene = std::make_unique<MenuScene>();
+            scene = std::make_unique<GameOverScene>();
+
+            currentScene = Scenes::GAME_OVER;
          } break;
+         case Scenes::GAME_OVER:
+            scene = std::make_unique<MenuScene>();
+
+            currentScene = Scenes::MENU;
+            break;
          default:
             break;
       }

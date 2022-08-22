@@ -98,6 +98,8 @@ class PlayerSystem : public System {
 
    void checkTrampolineCollisions(World* world);
 
+   void checkGameTime(World* world);
+
    Entity* createFireball(World* world);
 
    int xDir = 0;

@@ -137,7 +137,8 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    auto* spritesheet = mario->getComponent<SpritesheetComponent>();
 
    if (outOfBounds && isSuperMario()) {
-      position->scale.y = position->hitbox.h = SCALED_CUBE_SIZE;
+      position->scale.y = SCALED_CUBE_SIZE;
+      position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
       spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE);
       spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
@@ -1138,6 +1139,12 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
    });
 }
 
+void PlayerSystem::checkGameTime(World* world) {
+   if (scene->getTimeLeft() <= 0) {
+      onGameOver(world, true);
+   }
+}
+
 void PlayerSystem::tick(World* world) {
    auto* position = mario->getComponent<PositionComponent>();
    auto* move = mario->getComponent<MovingComponent>();
@@ -1183,6 +1190,10 @@ void PlayerSystem::tick(World* world) {
       return;
    }
 
+   if (currentState != GAMEOVER) {
+      checkGameTime(world);
+   }
+
    if (currentState != GAMEOVER) {  // If the player isn't dead
       if (underwater) {
          updateWaterVelocity(world);
@@ -1192,8 +1203,7 @@ void PlayerSystem::tick(World* world) {
          updateAirVelocity();
       }
    } else {
-      // If game over
-      currentState = GAMEOVER;
+      setState(GAMEOVER);
       return;
    }
 
