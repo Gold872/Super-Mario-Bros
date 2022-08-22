@@ -46,9 +46,6 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 ## Roadmap
 
-- Finish creating the methods for loading all of the enemies
-    - Koopa Paratroopa
-
 - Finish all of the Levels
 
 - Record a demo video of the game
