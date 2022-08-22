@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <cassert>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -219,11 +220,23 @@ class World {
    }
 
    void destroy(Entity* entity) {
-      if (!entity) {
-         return;
+      assert(entity);
+
+      destroyQueue.push_back(entity);
+   }
+
+   void emptyDestroyQueue() {
+      for (Entity* entity : destroyQueue) {
+         entities.erase(std::remove_if(entities.begin(), entities.end(),
+                                       [entity](Entity* other) {
+                                          return entity == other;
+                                       }),
+                        entities.end());
+
+         delete entity;
       }
-      entities.erase(std::remove(entities.begin(), entities.end(), entity), entities.end());
-      delete entity;
+
+      destroyQueue.clear();
    }
 
    template <typename... Components>
@@ -323,6 +336,7 @@ class World {
       for (auto& system : systems) {
          if (system->isEnabled()) {
             system->tick(this);
+            emptyDestroyQueue();
          }
       }
    }
@@ -349,8 +363,8 @@ class World {
 
   private:
    std::vector<Entity*> entities;
+   std::vector<Entity*> destroyQueue;
 
    SystemArray systemArray;
-   //   std::vector<System*> oldSystems;
    std::vector<std::unique_ptr<System>> systems;
 };

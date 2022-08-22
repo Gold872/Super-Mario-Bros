@@ -4,7 +4,7 @@
 #include "SoundManager.h"
 
 void SoundSystem::tick(World* world) {
-   world->find<SoundComponent>([&](Entity* entity) {
+   world->find<SoundComponent>([world](Entity* entity) {
       auto* sound = entity->getComponent<SoundComponent>();
 
       SoundManager::Get().playSound(sound->soundID);
@@ -12,7 +12,7 @@ void SoundSystem::tick(World* world) {
       world->destroy(entity);
    });
 
-   world->find<MusicComponent>([&](Entity* entity) {
+   world->find<MusicComponent>([world](Entity* entity) {
       auto* music = entity->getComponent<MusicComponent>();
 
       SoundManager::Get().playMusic(music->musicID);

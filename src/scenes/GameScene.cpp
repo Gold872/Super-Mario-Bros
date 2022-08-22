@@ -92,33 +92,6 @@ GameScene::GameScene(int level, int subLevel) {
    renderSystem = world->registerSystem<RenderSystem>();
 
    setupLevel();
-
-   //   scoreSystem->showTransitionEntities();
-   //
-   //   callbackSystem->setEnabled(false);
-   //   physicsSystem->setEnabled(false);
-   //   renderSystem->setTransitionRendering(true);
-   //   loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
-   //
-   //   CommandScheduler::getInstance().addCommand(new DelayedCommand(
-   //       [=]() {
-   //          TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
-   //
-   //          scoreSystem->hideTransitionEntities();
-   //
-   //          SDL_WaitThread(loaderThread, NULL);
-   //          callbackSystem->setEnabled(true);
-   //          physicsSystem->setEnabled(true);
-   //          renderSystem->setTransitionRendering(false);
-   //
-   //          startTimer();
-   //
-   //          startLevelMusic();
-   //
-   //          playerSystem->reset();
-   //          scoreSystem->reset();
-   //       },
-   //       3.0));
 }
 
 void GameScene::update() {

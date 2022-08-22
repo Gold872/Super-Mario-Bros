@@ -62,11 +62,11 @@ Entity* PlayerSystem::createFireball(World* world) {
    Entity* tempCallback(world->create());
 
    tempCallback->addComponent<CallbackComponent>(
-       [&](Entity* entity) {
+       [&, world](Entity* entity) {
           holdFireballTexture = false;
 
           // For some reason world->destroy(entity) caused a bunch of weird stuff to happen
-          entity->addComponent<DestroyDelayedComponent>(1);
+          world->destroy(entity);
        },
        6);
 

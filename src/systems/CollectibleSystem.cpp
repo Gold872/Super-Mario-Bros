@@ -7,7 +7,7 @@
 #include <iostream>
 
 void CollectibleSystem::tick(World* world) {
-   world->find<CollectibleComponent>([&](Entity* entity) {
+   world->find<CollectibleComponent>([](Entity* entity) {
       auto* collectible = entity->getComponent<CollectibleComponent>();
 
       if (entity->hasComponent<LeftCollisionComponent>() &&

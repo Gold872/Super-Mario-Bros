@@ -4,7 +4,7 @@
 #include "ECS/ECS.h"
 
 void CallbackSystem::tick(World* world) {
-   world->find<CallbackComponent>([&](Entity* entity) {
+   world->find<CallbackComponent>([](Entity* entity) {
       auto* callback = entity->getComponent<CallbackComponent>();
 
       callback->time--;
@@ -15,7 +15,7 @@ void CallbackSystem::tick(World* world) {
       }
    });
 
-   world->find<WaitUntilComponent>([&](Entity* entity) {
+   world->find<WaitUntilComponent>([](Entity* entity) {
       auto* waitUntil = entity->getComponent<WaitUntilComponent>();
 
       if (waitUntil->condition(entity)) {
@@ -23,7 +23,7 @@ void CallbackSystem::tick(World* world) {
       }
    });
 
-   world->find<TimerComponent>([&](Entity* entity) {
+   world->find<TimerComponent>([](Entity* entity) {
       auto* timer = entity->getComponent<TimerComponent>();
 
       timer->time--;
@@ -33,7 +33,7 @@ void CallbackSystem::tick(World* world) {
       }
    });
 
-   world->find<DestroyDelayedComponent>([&](Entity* entity) {
+   world->find<DestroyDelayedComponent>([world](Entity* entity) {
       auto* destroy = entity->getComponent<DestroyDelayedComponent>();
 
       if (destroy->time > 0) {
