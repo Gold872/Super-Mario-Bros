@@ -40,6 +40,8 @@ class GameScene : public Scene {
       return subLevel;
    }
 
+   int getTimeLeft();
+
    LevelType getCurrentLevelType() {
       return currentLevelType;
    }
@@ -84,7 +86,7 @@ class GameScene : public Scene {
   private:
    friend class MapSystem;
 
-   SDL_Thread* oldLoaderThread;
+   SDL_Thread* loaderThread;
 
    PlayerSystem* playerSystem;
    MapSystem* mapSystem;
@@ -110,4 +112,6 @@ class GameScene : public Scene {
    Map collectiblesMap;
 
    std::vector<std::function<void(void)>> commandQueue;
+
+   bool gameFinished = false;
 };

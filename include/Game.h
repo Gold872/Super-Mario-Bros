@@ -1,5 +1,6 @@
 #pragma once
 
+#include "scenes/GameOverScene.h"
 #include "scenes/GameScene.h"
 #include "scenes/MenuScene.h"
 #include "scenes/Scene.h"
@@ -18,7 +19,8 @@ class Core;
 enum class Scenes
 {
    MENU,
-   GAME
+   GAME,
+   GAME_OVER
 };
 
 class Game {

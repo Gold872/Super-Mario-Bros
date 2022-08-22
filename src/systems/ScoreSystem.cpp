@@ -314,6 +314,14 @@ bool ScoreSystem::scoreCountFinished() {
    return gameTime <= 0;
 }
 
+int ScoreSystem::getGameTime() {
+   return gameTime;
+}
+
+int ScoreSystem::getLives() {
+   return lives;
+}
+
 void ScoreSystem::showTransitionEntities() {
    worldNumberTransition->getComponent<TextComponent>()->destroyTexture();
    worldNumberTransition->getComponent<TextComponent>()->text =
