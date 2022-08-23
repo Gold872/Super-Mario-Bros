@@ -1543,6 +1543,9 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             CommandScheduler::getInstance().addCommand(new SequenceCommand(std::vector<Command*>{
                 /* Set Lakitu to be in the cloud */
                 new RunCommand([=]() {
+                   if (!scene->getWorld()->hasEntity(entity)) {
+                      return;
+                   }
                    position->scale.y = SCALED_CUBE_SIZE;
                    position->position.y += SCALED_CUBE_SIZE;
 
@@ -1552,6 +1555,9 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                 new WaitCommand(0.75),
                 /* Move out of the cloud and launch a spine */
                 new RunCommand([=]() {
+                   if (!scene->getWorld()->hasEntity(entity)) {
+                      return;
+                   }
                    position->scale.y = SCALED_CUBE_SIZE * 2;
                    position->position.y -= SCALED_CUBE_SIZE;
 
@@ -1925,6 +1931,43 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
          entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
       } break;
+      case 87: {  // BUZZY BEETLE
+         Entity* entity(world->create());
+
+         entity->addComponent<PositionComponent>(
+             Vector2f(coordinateX, coordinateY) * SCALED_CUBE_SIZE,
+             Vector2i(SCALED_CUBE_SIZE, SCALED_CUBE_SIZE));
+
+         entity->addComponent<TextureComponent>(scene->enemyTexture);
+
+         entity->addComponent<SpritesheetComponent>(ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE, 1, 1, 0,
+                                                    ORIGINAL_CUBE_SIZE, ORIGINAL_CUBE_SIZE,
+                                                    Map::EnemyIDCoordinates.at(entityID));
+
+         int firstAnimationID = entityID;
+         int deadID = getReferenceEnemyIDAsEntity(entityID, 89);
+
+         entity->addComponent<AnimationComponent>(
+             std::vector<int>{firstAnimationID, firstAnimationID + 1}, 6, Map::EnemyIDCoordinates);
+
+         entity->addComponent<MovingComponent>(Vector2f(-ENEMY_SPEED, 0), Vector2f(0, 0));
+
+         entity->addComponent<GravityComponent>();
+
+         entity->addComponent<CrushableComponent>([=](Entity* entity) {
+            entity->getComponent<EnemyComponent>()->enemyType = EnemyType::KOOPA_SHELL;
+            entity->getComponent<MovingComponent>()->velocity.x = 0.0;
+
+            entity->addComponent<DestroyOutsideCameraComponent>();
+
+            entity->getComponent<SpritesheetComponent>()->setSpritesheetCoordinates(
+                Map::EnemyIDCoordinates.at(deadID));
+
+            entity->remove<AnimationComponent>();
+         });
+
+         entity->addComponent<EnemyComponent>(EnemyType::BUZZY_BEETLE);
+      } break;
       case 90: {  // BULLET BILL
          Entity* entity(world->create());
 
@@ -2253,7 +2296,6 @@ void MapSystem::loadEntities(World* world) {
          }
       }
    }
-
    for (unsigned int i = 0; i < scene->aboveForegroundMap.getLevelData().size(); i++) {
       for (unsigned int j = 0; j < scene->aboveForegroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->aboveForegroundMap.getLevelData()[i][j];

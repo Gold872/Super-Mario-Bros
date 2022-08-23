@@ -18,5 +18,8 @@ class CommandScheduler {
 
    static CommandScheduler instance;
 
+   void emptyDestroyQueue();
+
    std::vector<Command*> commandQueue;
+   std::vector<Command*> destroyQueue;
 };

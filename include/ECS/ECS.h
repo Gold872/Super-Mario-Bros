@@ -305,6 +305,12 @@ class World {
       enableSystem<B, OTHERS...>();
    }
 
+   bool hasEntity(Entity* entity) {
+      auto it = std::find(entities.begin(), entities.end(), entity);
+
+      return it != entities.end();
+   }
+
    template <typename... Components>
    Entity* findFirst() {
       auto found = std::find_if(entities.begin(), entities.end(), [&](const Entity* entity) {

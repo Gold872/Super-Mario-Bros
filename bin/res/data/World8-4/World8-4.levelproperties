@@ -1,0 +1,70 @@
+### STARTING POSITIONS
+# The starting position of the player
+PLAYER_START = (1, 6)
+
+# The starting position of the camera
+CAMERA_START = (0, 0)
+
+# The maximum point the camera can reach
+CAMERA_MAX = 320
+
+### LEVEL CLASSIFICATIONS
+# The type of Level
+LEVEL_TYPE = CASTLE
+
+# The level to go to next
+NEXT_LEVEL = (0, 0)
+
+# The color to set the background to for the level
+BACKGROUND_COLOR = BLACK
+
+### ELEMENT POSITIONS
+# The locations for Floating text
+# Format: (Text Coordinates) (Text Message)
+FLOATING_TEXT=\
+	(308, 4) (THANK YOU MARIO),\
+	(307, 5) (YOUR QUEST IS OVER.),\
+	(305, 6) (WE PRESENT YOU A NEW QUEST.),\
+	(309, 8) (PUSH BUTTON B),\
+	(308, 9) (TO SELECT A WORLD)
+
+# The locations for the Warp pipes
+# Format: (Pipe Coordinates) (Teleport Coordinates) (Camera Coordinates) (Direction Going In) (Direction Going Out) (Freeze Camera) (Background Color) (Level Type) (Level to Go To (0, 0) if none)
+WARP_PIPE=\
+	(51, 11) (19, 11) (16, 0) DOWN UP FALSE BLACK CASTLE (0, 0),\
+	(81, 8) (115, 11) (112, 0) DOWN UP FALSE BLACK CASTLE (0, 0),\
+	(132, 11) (19, 11) (16, 0) DOWN UP FALSE BLACK CASTLE (0, 0),\
+	(152, 6) (195, 11) (192, 0) DOWN UP FALSE BLACK CASTLE (0, 0),\
+	(212, 7) (19, 11) (16, 0) DOWN UP FALSE BLACK CASTLE (0, 0),\
+	(228, 8) (252, 28) (248, 18) DOWN NONE FALSE BLUE UNDERWATER (0, 0),\
+	(316, 26) (259, 11) (256, 0) RIGHT UP FALSE BLACK CASTLE (0, 0),\
+	(266, 11) (19, 11) (16, 0) DOWN UP FALSE BLACK CASTLE (0, 0)
+
+# The positions and directions for moving platforms
+# Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
+MOVING_PLATFORM=\
+	(70, 13) BACK_AND_FORTH LEFT (66, 74) FALSE
+
+# The positions for the platform levels
+# Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
+PLATFORM_LEVEL=\
+
+# The positions and directions for fire bars
+# Format: (Fire Bar Coordinates) (Starting Angle) (Rotation Direction) (Fire Bar Length)
+FIRE_BAR=\
+	(268, 25) 210 CLOCKWISE 6,\
+	(279, 28) 330 COUNTER_CLOCKWISE 6,\
+	(288, 24) 210 CLOCKWISE 6,\
+	(304, 26) 210 CLOCKWISE 6,\
+	(312, 25) 330 COUNTER_CLOCKWISE 6
+
+# The locations for the vines
+# Format: (Vine Block Location) (Teleport Coordinates, the location of the clouds/blocks) (Camera Coordinates) (y value to teleport to normal (if below this level)) (Normal teleport location) (new camera max) (Background Color of the vine location) (Level type of the vine location)
+VINE=\
+
+# A point where passing it takes you back to another point
+# Format: (Point to walk past, Point to teleport to)
+TELEPORT_POINT=\
+	(100, 32),\
+	(165, 100),\
+	(244, 181)

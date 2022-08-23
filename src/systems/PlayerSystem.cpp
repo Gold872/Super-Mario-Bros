@@ -65,7 +65,6 @@ Entity* PlayerSystem::createFireball(World* world) {
        [&, world](Entity* entity) {
           holdFireballTexture = false;
 
-          // For some reason world->destroy(entity) caused a bunch of weird stuff to happen
           world->destroy(entity);
        },
        6);
@@ -1017,6 +1016,22 @@ void PlayerSystem::updateCamera() {
       }
 
       Camera::Get().updateCameraMin();
+
+      if (scene->getLevelData().teleportPoints.empty()) {
+         return;
+      }
+
+      for (Vector2i teleportPoint : scene->getLevelData().teleportPoints) {
+         if (std::abs(position->position.x - (teleportPoint.x * SCALED_CUBE_SIZE)) < 2.5) {
+            float cameraDifference = (teleportPoint.y - teleportPoint.x) * SCALED_CUBE_SIZE;
+
+            position->position.x = teleportPoint.y * SCALED_CUBE_SIZE;
+
+            Camera::Get().increaseCameraX(cameraDifference);
+
+            Camera::Get().updateCameraMin();
+         }
+      }
    }
 }
 
@@ -1274,9 +1289,6 @@ void PlayerSystem::tick(World* world) {
       if (move->velocity.y > 0) {
          return;
       }
-      if (breakable->hasComponent<DestroyDelayedComponent>()) {
-         return;
-      }
 
       // Destroy the block if the player is Super Mario
       if (!isSmallMario()) {
@@ -1289,7 +1301,7 @@ void PlayerSystem::tick(World* world) {
             breakable->addComponent<CallbackComponent>(
                 [=](Entity* breakable) {
                    createBlockDebris(world, breakable);
-                   breakable->addComponent<DestroyDelayedComponent>(1);
+                   world->destroy(breakable);
 
                    Entity* breakSound(world->create());
                    breakSound->addComponent<SoundComponent>(SoundID::BLOCK_BREAK);

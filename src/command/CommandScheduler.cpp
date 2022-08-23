@@ -17,11 +17,28 @@ void CommandScheduler::run() {
       command->execute();
 
       if (command->isFinished()) {
-         commandQueue.erase(std::find(commandQueue.begin(), commandQueue.end(), command));
-
-         delete command;
+         destroyQueue.push_back(command);
       }
    }
 
+   emptyDestroyQueue();
+}
+
+void CommandScheduler::emptyDestroyQueue() {
+   if (destroyQueue.empty()) {
+      return;
+   }
+
+   for (Command* command : destroyQueue) {
+      commandQueue.erase(std::remove_if(commandQueue.begin(), commandQueue.end(),
+                                        [command](Command* other) {
+                                           return command == other;
+                                        }),
+                         commandQueue.end());
+
+      delete command;
+   }
+
+   destroyQueue.clear();
    commandQueue.shrink_to_fit();
 }

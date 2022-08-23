@@ -235,21 +235,20 @@ void GameScene::setupLevel() {
    scoreSystem->showTransitionEntities();
    scoreSystem->reset();
 
-   callbackSystem->setEnabled(false);
-   physicsSystem->setEnabled(false);
+   world->disableSystem<CallbackSystem, PhysicsSystem, EnemySystem>();
+
    renderSystem->setTransitionRendering(true);
    loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
+          SDL_WaitThread(loaderThread, NULL);
+          world->enableSystem<CallbackSystem, PhysicsSystem, EnemySystem>();
+          renderSystem->setTransitionRendering(false);
+
           TextureManager::Get().SetBackgroundColor(getLevelData().levelBackgroundColor);
 
           scoreSystem->hideTransitionEntities();
-
-          SDL_WaitThread(loaderThread, NULL);
-          callbackSystem->setEnabled(true);
-          physicsSystem->setEnabled(true);
-          renderSystem->setTransitionRendering(false);
 
           startTimer();
 
@@ -342,7 +341,7 @@ bool GameScene::scoreCountdownFinished() {
 }
 
 void GameScene::destroyWorldEntities() {
-   std::vector<Entity*> entities = world->getEntities();
+   std::vector<Entity*>& entities = world->getEntities();
    for (auto* entity : entities) {
       if (!entity->hasAny<PlayerComponent, IconComponent>()) {
          if (entity->hasComponent<TextComponent>() &&
@@ -352,6 +351,7 @@ void GameScene::destroyWorldEntities() {
          world->destroy(entity);
       }
    }
+   world->emptyDestroyQueue();
    entities.shrink_to_fit();
 }
 

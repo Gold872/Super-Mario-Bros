@@ -650,20 +650,21 @@ struct FrozenComponent : public Component {};
 enum class EnemyType
 {
    NONE,
+   BLOOPER,
+   BOWSER,
+   BULLET_BILL,
+   BUZZY_BEETLE,
+   CHEEP_CHEEP,
+   FIRE_BAR,
    GOOMBA,
+   HAMMER_BRO,
    KOOPA,
    KOOPA_PARATROOPA,
    KOOPA_SHELL,
-   PIRANHA_PLANT,
-   CHEEP_CHEEP,
-   BLOOPER,
-   HAMMER_BRO,
-   BOWSER,
    LAKITU,
-   SPINE,
    LAVA_BUBBLE,
-   BULLET_BILL,
-   FIRE_BAR,
+   PIRANHA_PLANT,
+   SPINE,
 };
 
 enum class ProjectileType

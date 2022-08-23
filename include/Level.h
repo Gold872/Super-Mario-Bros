@@ -58,6 +58,8 @@ struct LevelData {
 
    Vector2i nextLevel;
 
+   std::vector<Vector2i> teleportPoints;
+
    std::vector<WarpPipeData> warpPipeLocations;
    std::vector<MovingPlatformData> movingPlatformDirections;
    std::vector<PlatformLevelData> platformLevelLocations;
@@ -112,10 +114,10 @@ class Level {
    };
 
    Vector2i loadCoordinate(string regexPattern, string stringToSearch) {
-      std::regex coordinates_regex(regexPattern);
+      std::regex coordinatesRegex(regexPattern);
       std::smatch matches;
 
-      if (std::regex_search(stringToSearch, matches, coordinates_regex)) {
+      if (std::regex_search(stringToSearch, matches, coordinatesRegex)) {
          return Vector2i(std::stoi(matches[1]), std::stoi(matches[2]));
       }
 
@@ -134,22 +136,21 @@ class Level {
       return T::NONE;
    }
 
-   std::vector<Vector2i> loadCoordinateArray(string regexPattern, string stringToSearch,
-                                             string pairs) {
-      std::regex coordinates_regex(regexPattern);
-      std::regex pair_regex(pairs);
+   std::vector<Vector2i> loadCoordinateArray(string arrayPattern, string stringToSearch) {
+      std::regex arrayRegex(arrayPattern);
+      std::regex pairRegex(vectorPattern);
 
       std::vector<Vector2i> pairArray;
 
       std::smatch coordinates_match;
-      if (std::regex_search(stringToSearch, coordinates_match, coordinates_regex)) {
+      if (std::regex_search(stringToSearch, coordinates_match, arrayRegex)) {
          std::istringstream iss(coordinates_match[1]);
 
          std::smatch pairMatch;
 
          string s;
          while (getline(iss, s)) {
-            std::regex_search(s, pairMatch, pair_regex);
+            std::regex_search(s, pairMatch, pairRegex);
 
             for (unsigned int i = 1; i < pairMatch.size(); i += 2) {
                pairArray.push_back(Vector2i(std::stoi(pairMatch[i]), std::stoi(pairMatch[i + 1])));
@@ -435,6 +436,8 @@ class Level {
 
       data.cameraMax = loadIntData("CAMERA_MAX" + normalRegexPattern, levelProperties);
 
+      data.teleportPoints = loadCoordinateArray("TELEPORT_POINT" + arrayPattern, levelProperties);
+
       data.floatingTextLocations = loadFloatingText(levelProperties);
 
       data.warpPipeLocations = loadWarpPipes(levelProperties);
@@ -454,6 +457,7 @@ class Level {
       data.playerStart = Vector2i(0, 0);
       data.nextLevel = Vector2i(0, 0);
       data.cameraMax = 0;
+      data.teleportPoints.clear();
       data.floatingTextLocations.clear();
       data.warpPipeLocations.clear();
       data.movingPlatformDirections.clear();
