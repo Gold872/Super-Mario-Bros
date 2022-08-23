@@ -233,12 +233,13 @@ void PhysicsSystem::updatePlatformLevels(World* world) {
          return;
       }
 
-      auto* pulleyPosition = platformLevel->pulleyLine->getComponent<PositionComponent>();
+      auto* linePosition = platformLevel->pulleyLine->getComponent<PositionComponent>();
 
-      pulleyPosition->scale.y = platformPosition->getTop() - pulleyPosition->getTop();
+      linePosition->scale.y = platformPosition->getTop() - linePosition->getTop();
 
       Entity* otherPlatform = platformLevel->getOtherPlatform();
 
+      // If the level reaches max height
       if (platformPosition->getTop() < platformLevel->pulleyHeight) {
          platformPosition->setTop(platformLevel->pulleyHeight);
          platformMove->velocity = Vector2f(0, 0);

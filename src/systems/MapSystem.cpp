@@ -1626,6 +1626,12 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             entity->addComponent<CallbackComponent>(
                 [=](Entity* entity) {
+                   // Fail safe in case if crushed before hammer is thrown
+                   if (!entity->hasComponent<HammerBroComponent>()) {
+                      world->destroy(hammer);
+                      return;
+                   }
+
                    animation->frameIDS = armsDownAnimation;
 
                    hammerPosition->setBottom(position->getTop());
@@ -2232,7 +2238,8 @@ void MapSystem::loadEntities(World* world) {
    for (unsigned i = 0; i < scene->backgroundMap.getLevelData().size(); i++) {
       for (unsigned j = 0; j < scene->backgroundMap.getLevelData()[0].size(); j++) {
          int entityID = scene->backgroundMap.getLevelData()[i][j];
-         switch (entityID) {
+         int referenceID = getReferenceBlockID(entityID);
+         switch (referenceID) {
             case -1:
                break;
             case 391:
