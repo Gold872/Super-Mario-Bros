@@ -46,8 +46,6 @@ The [bin/](bin/) directory contains a precompiled executable if you do not want 
 
 ## Roadmap
 
-- Finish all of the Levels
-
 - Record a demo video of the game
 
 ## Special Thanks
