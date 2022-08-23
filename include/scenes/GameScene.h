@@ -34,6 +34,10 @@ class GameScene : public Scene {
 
    void loadLevel(int level, int subLevel);
 
+   bool gameWin() {
+      return gameWon;
+   }
+
    int getLevel() {
       return level;
    }
@@ -127,5 +131,6 @@ class GameScene : public Scene {
    std::vector<std::function<void(void)>> commandQueue;
 
    bool gameFinished = false;
+   bool gameWon = false;
    bool paused = false;
 };

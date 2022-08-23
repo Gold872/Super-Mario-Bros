@@ -105,4 +105,5 @@ void SoundManager::loadMusics() {
    musics.insert({MusicID::CASTLE, loadMusic("res/sounds/music/castle.wav")});
    musics.insert({MusicID::UNDERWATER, loadMusic("res/sounds/music/underwater.wav")});
    musics.insert({MusicID::SUPER_STAR, loadMusic("res/sounds/music/superstar.wav")});
+   musics.insert({MusicID::GAME_WON, loadMusic("res/sounds/music/gamewon.wav")});
 }

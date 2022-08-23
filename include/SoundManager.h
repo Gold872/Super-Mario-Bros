@@ -36,7 +36,8 @@ enum class MusicID
    UNDERGROUND,
    CASTLE,
    UNDERWATER,
-   SUPER_STAR
+   SUPER_STAR,
+   GAME_WON
 };
 
 class SoundManager {

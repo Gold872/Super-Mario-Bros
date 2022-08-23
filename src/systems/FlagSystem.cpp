@@ -207,7 +207,12 @@ void FlagSystem::hitAxe(World* world, Entity* player, Entity* axe) {
               [=]() {
                  Vector2i nextLevel = scene->getLevelData().nextLevel;
 
-                 player->getComponent<TextureComponent>()->setVisible(false);
+                 if (nextLevel != Vector2i(0, 0)) {
+                    player->getComponent<TextureComponent>()->setVisible(false);
+                 } else {
+                    Entity* winMusic(world->create());
+                    winMusic->addComponent<MusicComponent>(MusicID::GAME_WON);
+                 }
 
                  scene->switchLevel(nextLevel.x, nextLevel.y);
               },

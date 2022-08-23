@@ -59,9 +59,18 @@ void Game::update() {
             currentScene = Scenes::GAME;
          } break;
          case Scenes::GAME: {
-            scene = std::make_unique<GameOverScene>();
+            GameScene* gameScene = static_cast<GameScene*>(exitingScene);
 
-            currentScene = Scenes::GAME_OVER;
+            if (gameScene->gameWin()) {
+               // Go back to menu
+               scene = std::make_unique<MenuScene>();
+
+               currentScene = Scenes::MENU;
+            } else {
+               scene = std::make_unique<GameOverScene>();
+
+               currentScene = Scenes::GAME_OVER;
+            }
          } break;
          case Scenes::GAME_OVER:
             scene = std::make_unique<MenuScene>();

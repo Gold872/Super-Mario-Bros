@@ -144,6 +144,10 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
       mario->getComponent<PlayerComponent>()->playerState = PlayerState::SMALL_MARIO;
    }
 
+   if (isSuperStar()) {
+      mario->getComponent<PlayerComponent>()->superStar = false;
+   }
+
    if (!outOfBounds && (isSuperMario() || isFireMario())) {
       shrink(world);
       return;

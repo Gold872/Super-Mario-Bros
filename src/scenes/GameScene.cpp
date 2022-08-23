@@ -133,6 +133,12 @@ void GameScene::handleInput(SDL_Event& event) {
          }
          break;
       case SDL_SCANCODE_RETURN:
+         if (gameWon) {
+            gameFinished = true;
+            stopMusic();
+            break;
+         }
+
          if (!paused) {
             break;
          }
@@ -261,6 +267,11 @@ void GameScene::setupLevel() {
 
 void GameScene::switchLevel(int level, int subLevel) {
    commandQueue.push_back([=]() {
+      if (level == 0 && subLevel == 0) {
+         gameWon = true;
+         return;
+      }
+
       this->level = level;
       this->subLevel = subLevel;
 
