@@ -36,6 +36,8 @@ WARP_PIPE=\
 # The positions and directions for moving platforms
 # Format: (Platform Coordinates) (Motion Type) (Direction) (Min Point, Max Point) (Shift to the right by half a pixel)
 MOVING_PLATFORM=\
+	(197, 42) ONE_DIRECTION_REPEATED DOWN (33, 47) TRUE,\
+	(203, 39) ONE_DIRECTION_REPEATED DOWN (33, 47) TRUE
 
 # The positions for the platform levels
 # Format: (Left Platform Coordinates) (Right Platform Coordinates) (Pulley Y Level)
