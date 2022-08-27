@@ -3,6 +3,7 @@
 #include "AABBCollision.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "Input.h"
 #include "Level.h"
 #include "Map.h"
 #include "Math.h"
@@ -111,37 +112,30 @@ bool GameScene::isFinished() {
    return gameFinished;
 }
 
-void GameScene::handleInput(SDL_Event& event) {
-   world->handleInput(event);
+void GameScene::handleInput() {
+   world->handleInput();
 
-   if (event.type != SDL_KEYDOWN) {
-      return;
+   Input& input = Input::Get();
+
+   if (input.getKeyPressed(Key::PAUSE)) {
+      // Don't pause if it's during a transition or if the player can't be controlled
+      if (renderSystem->isTransitionRendering() || !playerSystem->isInputEnabled()) {
+         return;
+      }
+      paused = !paused;
+
+      if (paused) {
+         pause();
+      } else {
+         unpause();
+      }
    }
 
-   switch (event.key.keysym.scancode) {
-      case SDL_SCANCODE_ESCAPE:
-         // Don't pause if it's during a transition or if the player can't be controlled
-         if (renderSystem->isTransitionRendering() || !playerSystem->isInputEnabled()) {
-            return;
-         }
-         paused = !paused;
-
-         if (paused) {
-            pause();
-         } else {
-            unpause();
-         }
-         break;
-      case SDL_SCANCODE_RETURN:
-         if (gameWon) {
-            gameFinished = true;
-            stopMusic();
-            break;
-         }
-
-         if (!paused) {
-            break;
-         }
+   if (input.getKeyPressed(Key::MENU_ACCEPT)) {
+      if (gameWon) {
+         gameFinished = true;
+         stopMusic();
+      } else if (paused) {
          switch (pauseSelectedOption) {
             case 0:  // Continue
                paused = false;
@@ -155,33 +149,29 @@ void GameScene::handleInput(SDL_Event& event) {
             default:
                break;
          }
-         break;
-      case SDL_SCANCODE_UP:
-         if (!paused) {
-            break;
-         }
+      }
+   }
 
+   if (input.getKeyPressed(Key::MENU_UP)) {
+      if (paused) {
          if (pauseSelectedOption > 0) {
             pauseSelectedOption--;
 
             selectCursor->getComponent<PositionComponent>()->position.y =
                 (8.5 + pauseSelectedOption) * SCALED_CUBE_SIZE;
          }
-         break;
-      case SDL_SCANCODE_DOWN:
-         if (!paused) {
-            break;
-         }
+      }
+   }
 
+   if (input.getKeyPressed(Key::MENU_DOWN)) {
+      if (paused) {
          if (pauseSelectedOption < 1) {
             pauseSelectedOption++;
 
             selectCursor->getComponent<PositionComponent>()->position.y =
                 (8.5 + pauseSelectedOption) * SCALED_CUBE_SIZE;
          }
-         break;
-      default:
-         break;
+      }
    }
 }
 

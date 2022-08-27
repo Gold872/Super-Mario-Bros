@@ -162,7 +162,7 @@ class System {
 
    virtual void handleInput(SDL_Event& event) {}
 
-   virtual void handleInput(const Uint8* keystates) {}
+   virtual void handleInput() {}
 
    virtual void onRemovedFromWorld(World* world) {}
 
@@ -347,18 +347,10 @@ class World {
       }
    }
 
-   void handleInput(SDL_Event& event) {
+   void handleInput() {
       for (auto& system : systems) {
          if (system->isEnabled()) {
-            system->handleInput(event);
-         }
-      }
-   }
-
-   void handleInput(const Uint8* keystates) {
-      for (auto& system : systems) {
-         if (system->isEnabled()) {
-            system->handleInput(keystates);
+            system->handleInput();
          }
       }
    }

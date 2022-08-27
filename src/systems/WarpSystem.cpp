@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
+#include "Input.h"
 #include "Math.h"
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
@@ -158,56 +159,11 @@ void WarpSystem::tick(World* world) {
    }
 }
 
-void WarpSystem::handleInput(SDL_Event& event) {
-   if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) {
-      return;
-   }
-   switch (event.type) {
-      case SDL_KEYDOWN:
-         switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_W:
-            case SDL_SCANCODE_UP:
-               up = true;
-               break;
-            case SDL_SCANCODE_S:
-            case SDL_SCANCODE_DOWN:
-               down = true;
-               break;
-            case SDL_SCANCODE_A:
-            case SDL_SCANCODE_LEFT:
-               left = true;
-               break;
-            case SDL_SCANCODE_D:
-            case SDL_SCANCODE_RIGHT:
-               right = true;
-               break;
-            default:
-               break;
-         }
-         break;
-      case SDL_KEYUP:
-         switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_W:
-            case SDL_SCANCODE_UP:
-               up = false;
-               break;
-            case SDL_SCANCODE_S:
-            case SDL_SCANCODE_DOWN:
-               down = false;
-               break;
-            case SDL_SCANCODE_A:
-            case SDL_SCANCODE_LEFT:
-               left = false;
-               break;
-            case SDL_SCANCODE_D:
-            case SDL_SCANCODE_RIGHT:
-               right = false;
-               break;
-            default:
-               break;
-         }
-         break;
-      default:
-         break;
-   }
+void WarpSystem::handleInput() {
+   Input& input = Input::Get();
+
+   up = input.getRawKey(Key::JUMP);
+   down = input.getRawKey(Key::DUCK);
+   left = input.getRawKey(Key::LEFT);
+   right = input.getRawKey(Key::RIGHT);
 }

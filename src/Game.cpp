@@ -1,6 +1,7 @@
 #include "Game.h"
 
 #include "Core.h"
+#include "Input.h"
 #include "TextureManager.h"
 
 #include <SDL2/SDL.h>
@@ -19,6 +20,10 @@ void Game::init() {
 
 void Game::handleInput() {
    const Uint8* keystates = SDL_GetKeyboardState(nullptr);
+   Input::Get().update(keystates);
+
+   scene->handleInput();
+
    SDL_Event event;
    while (SDL_PollEvent(&event)) {
       switch (event.type) {
@@ -37,9 +42,7 @@ void Game::handleInput() {
          default:
             break;
       }
-      scene->handleInput(event);
    }
-   scene->handleInput(keystates);
 }
 
 void Game::update() {

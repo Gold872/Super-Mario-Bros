@@ -30,7 +30,7 @@ class GameScene : public Scene {
 
    bool isFinished() override;
 
-   void handleInput(SDL_Event& event) override;
+   void handleInput() override;
 
    void loadLevel(int level, int subLevel);
 

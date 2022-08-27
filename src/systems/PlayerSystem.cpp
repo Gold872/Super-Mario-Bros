@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "Input.h"
 #include "Level.h"
 #include "Map.h"
 #include "Math.h"
@@ -919,7 +920,7 @@ void PlayerSystem::updateAirVelocity() {
    }
    // Changes mario's acceleration while in the air (the longer you jump the higher mario
    // will go)
-   if (jump && move->velocity.y < -1.0) {
+   if (jumpHeld && move->velocity.y < -1.0) {
       if (running && std::abs(move->velocity.x) > 3.5) {
          move->acceleration.y = -0.414;
       } else {
@@ -1409,95 +1410,25 @@ void PlayerSystem::tick(World* world) {
    }
 }
 
-void PlayerSystem::handleInput(SDL_Event& event) {
-   if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) {
-      return;
-   }
-
+void PlayerSystem::handleInput() {
    if (!PlayerSystem::isInputEnabled()) {
-      left = right = running = duck = xDir = 0;
+      left = right = running = jump = duck = xDir = 0;
       return;
    }
 
-   switch (event.type) {
-      case SDL_KEYDOWN:
-         switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_A:
-            case SDL_SCANCODE_LEFT:
-               left = true;
-               break;
-            case SDL_SCANCODE_S:
-            case SDL_SCANCODE_DOWN:
-               duck = true;
-               break;
-            case SDL_SCANCODE_D:
-            case SDL_SCANCODE_RIGHT:
-               right = true;
-               break;
-            case SDL_SCANCODE_LSHIFT:
-            case SDL_SCANCODE_LCTRL:
-               running = true;
-               break;
-            case SDL_SCANCODE_Q:
-               if (event.key.repeat == 0) {
-                  launchFireball = true;
-               }
-               break;
-            default:
-               break;
-         }
-         break;
-      case SDL_KEYUP:
-         switch (event.key.keysym.scancode) {
-            case SDL_SCANCODE_A:
-            case SDL_SCANCODE_LEFT:
-               left = false;
-               break;
-            case SDL_SCANCODE_S:
-            case SDL_SCANCODE_DOWN:
-               duck = false;
-               break;
-            case SDL_SCANCODE_D:
-            case SDL_SCANCODE_RIGHT:
-               right = false;
-               break;
-            case SDL_SCANCODE_LSHIFT:
-            case SDL_SCANCODE_LCTRL:
-               running = false;
-               break;
-            case SDL_SCANCODE_Q:
-               launchFireball = false;
-               break;
-            default:
-               break;
-         }
-         break;
-   }
+   Input& input = Input::Get();
+
+   left = input.getRawKey(Key::LEFT);
+   right = input.getRawKey(Key::RIGHT);
+
    xDir = right - left;
-}
 
-void PlayerSystem::handleInput(const Uint8* keystates) {
-   if (!PlayerSystem::isInputEnabled()) {
-      jump = jumpHeld = false;
-      return;
-   }
-   if (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP]) {
-      jumpHeld = jump;
-      jump = true;
-   } else {
-      jump = jumpHeld = false;
-   }
+   running = input.getRawKey(Key::SPRINT);
 
-   //   (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] || keystates[SDL_SCANCODE_UP])
-   //       ? jump = true
-   //       : jump = jumpHeld = false;
+   jump = input.getKeyPressed(Key::JUMP);
+   jumpHeld = input.getKeyHeld(Key::JUMP);
 
-   //   if (keystates[SDL_SCANCODE_W] || keystates[SDL_SCANCODE_SPACE] ||
-   //   keystates[SDL_SCANCODE_UP]) {
-   //      jump = true;
-   //      jumpHeldTime++;
-   //   } else {
-   //      jump = jumpHeld = false;
-   //      jumpHeldTime = 0;
-   //   }
+   duck = input.getRawKey(Key::DUCK);
+
+   launchFireball = input.getKeyPressed(Key::FIREBALL);
 }

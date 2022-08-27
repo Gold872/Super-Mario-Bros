@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
+#include "Input.h"
 #include "TextureManager.h"
 #include "systems/Systems.h"
 
@@ -25,22 +26,8 @@ MenuScene::MenuScene() {
    createMenuEntities();
 }
 
-void MenuScene::handleInput(SDL_Event& event) {
-   if (event.type == SDL_KEYDOWN) {
-      switch (event.key.keysym.scancode) {
-         case SDL_SCANCODE_RETURN:
-         case SDL_SCANCODE_SPACE:
-            finished = true;
-            break;
-         default:
-            break;
-      }
-   }
-   world->handleInput(event);
-}
-
 bool MenuScene::isFinished() {
-   return finished;
+   return Input::Get().getKeyPressed(Key::MENU_ACCEPT);
 }
 
 int MenuScene::getSelectedLevel() {

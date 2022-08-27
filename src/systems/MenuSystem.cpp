@@ -2,6 +2,7 @@
 
 #include "Constants.h"
 #include "ECS/Components.h"
+#include "Input.h"
 #include "Math.h"
 #include "TextureManager.h"
 
@@ -71,62 +72,48 @@ int MenuSystem::getSelectedSublevel() {
    return selectedSublevel;
 }
 
-void MenuSystem::handleInput(SDL_Event& event) {
-   if (event.type != SDL_KEYDOWN) {
-      return;
+void MenuSystem::handleInput() {
+   Input& input = Input::Get();
+
+   if (input.getKeyPressed(Key::MENU_UP)) {
+      if (currentFocus == 0) {
+         if (selectedLevel < maxLevel) {
+            selectedLevel++;
+            levelChange = true;
+         }
+      } else if (currentFocus == 1) {
+         if (selectedSublevel < maxSublevel) {
+            selectedSublevel++;
+            levelChange = true;
+         }
+      }
    }
-   switch (event.key.keysym.scancode) {
-      case SDL_SCANCODE_UP:
-      case SDL_SCANCODE_W:
-         if (event.key.repeat == 0) {
-            if (currentFocus == 0) {
-               if (selectedLevel < maxLevel) {
-                  selectedLevel++;
-                  levelChange = true;
-               }
-            } else if (currentFocus == 1) {
-               if (selectedSublevel < maxSublevel) {
-                  selectedSublevel++;
-                  levelChange = true;
-               }
-            }
+
+   if (input.getKeyPressed(Key::MENU_DOWN)) {
+      if (currentFocus == 0) {
+         if (selectedLevel > 1) {
+            selectedLevel--;
+            levelChange = true;
          }
-         break;
-      case SDL_SCANCODE_DOWN:
-      case SDL_SCANCODE_S:
-         if (event.key.repeat == 0) {
-            if (currentFocus == 0) {
-               if (selectedLevel > 1) {
-                  selectedLevel--;
-                  levelChange = true;
-               }
-            } else if (currentFocus == 1) {
-               if (selectedSublevel > 1) {
-                  selectedSublevel--;
-                  levelChange = true;
-               }
-            }
+      } else if (currentFocus == 1) {
+         if (selectedSublevel > 1) {
+            selectedSublevel--;
+            levelChange = true;
          }
-         break;
-      case SDL_SCANCODE_LEFT:
-      case SDL_SCANCODE_A:
-         if (event.key.repeat == 0) {
-            if (currentFocus != 0) {
-               currentFocus = 0;
-               underlineChange = true;
-            }
-         }
-         break;
-      case SDL_SCANCODE_RIGHT:
-      case SDL_SCANCODE_D:
-         if (event.key.repeat == 0) {
-            if (currentFocus != 1) {
-               currentFocus = 1;
-               underlineChange = true;
-            }
-         }
-         break;
-      default:
-         break;
+      }
+   }
+
+   if (input.getKeyPressed(Key::MENU_LEFT)) {
+      if (currentFocus != 0) {
+         currentFocus = 0;
+         underlineChange = true;
+      }
+   }
+
+   if (input.getKeyPressed(Key::MENU_RIGHT)) {
+      if (currentFocus != 1) {
+         currentFocus = 1;
+         underlineChange = true;
+      }
    }
 }

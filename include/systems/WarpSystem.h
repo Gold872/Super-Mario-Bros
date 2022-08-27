@@ -15,7 +15,7 @@ class WarpSystem : public System {
 
    void tick(World* world) override;
 
-   void handleInput(SDL_Event& event) override;
+   void handleInput() override;
 
    void warp(World* world, Entity* pipe, Entity* player);
 

@@ -21,11 +21,7 @@ class Scene {
       return true;
    }
 
-   virtual void handleInput(SDL_Event& event) {
-      world->handleInput(event);
-   }
-
-   virtual void handleInput(const Uint8* keystates) {
-      world->handleInput(keystates);
+   virtual void handleInput() {
+      world->handleInput();
    }
 };

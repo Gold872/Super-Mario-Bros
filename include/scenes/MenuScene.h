@@ -10,8 +10,6 @@ class MenuScene : public Scene {
   public:
    MenuScene();
 
-   void handleInput(SDL_Event& event) override;
-
    bool isFinished() override;
 
    int getSelectedLevel();

@@ -8,7 +8,7 @@ class MenuSystem : public System {
 
    void tick(World* world) override;
 
-   void handleInput(SDL_Event& event) override;
+   void handleInput() override;
 
    int getSelectedLevel();
 
