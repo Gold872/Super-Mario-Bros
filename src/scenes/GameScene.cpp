@@ -257,6 +257,7 @@ void GameScene::setupLevel() {
    collectiblesMap.reset();
 
    WarpSystem::setClimbed(false);
+   WarpSystem::setWarping(false);
 
    gameLevel->clearLevelData();
 
@@ -292,7 +293,7 @@ void GameScene::setupLevel() {
 }
 
 void GameScene::switchLevel(int level, int subLevel) {
-   commandQueue.push_back([=]() {
+   CommandScheduler::getInstance().addCommand(new RunCommand([=]() {
       if (level == 0 && subLevel == 0) {
          gameWon = true;
          return;
@@ -303,11 +304,11 @@ void GameScene::switchLevel(int level, int subLevel) {
 
       //      std::cout << "Number of Entities: " << world->getEntities().size() << '\n';
       setupLevel();
-   });
+   }));
 }
 
 void GameScene::restartLevel() {
-   commandQueue.push_back([=]() {
+   CommandScheduler::getInstance().addCommand(new RunCommand([=]() {
       scoreSystem->reset();
       scoreSystem->decreaseLives();
 
@@ -317,7 +318,7 @@ void GameScene::restartLevel() {
       }
 
       setupLevel();
-   });
+   }));
 }
 
 void GameScene::startLevelMusic() {

@@ -149,6 +149,10 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
       mario->getComponent<PlayerComponent>()->superStar = false;
    }
 
+   if (underwater) {
+      underwater = false;
+   }
+
    if (!outOfBounds && (isSuperMario() || isFireMario())) {
       shrink(world);
       return;
@@ -161,28 +165,6 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    move->velocity.y = -12.5f;
 
    mario->addComponent<ParticleComponent>();
-
-   // Freezes every non-player entity
-   //   world->find<MovingComponent>([](Entity* entity) {
-   //      if (entity->hasComponent<PlayerComponent>()) {
-   //         return;
-   //      }
-   //
-   //      entity->getComponent<MovingComponent>()->velocity = Vector2f(0, 0);
-   //      entity->getComponent<MovingComponent>()->acceleration = Vector2f(0, 0);
-   //   });
-   //
-   //   world->find<AnimationComponent>([](Entity* entity) {
-   //      if (entity->hasComponent<IconComponent>()) {
-   //         return;
-   //      }
-   //
-   //      entity->getComponent<AnimationComponent>()->setPlaying(false);
-   //
-   //      if (entity->hasComponent<PausedAnimationComponent>()) {
-   //         entity->remove<PausedAnimationComponent>();
-   //      }
-   //   });
 
    spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(1));
 
@@ -400,7 +382,7 @@ void PlayerSystem::setState(Animation_State newState) {
          }
          if (isFireMario()) {
             spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(226));
-         } else {
+         } else if (isSuperMario()) {
             spritesheet->setSpritesheetCoordinates(Map::PlayerIDCoordinates.at(26));
          }
          break;
@@ -878,7 +860,7 @@ void PlayerSystem::updateGroundVelocity(World* world) {
       Entity* jumpSound(world->create());
       jumpSound->addComponent<SoundComponent>(SoundID::JUMP);
    }
-   if (duck && isSuperMario()) {
+   if (duck && (isSuperMario() || isFireMario())) {
       currentState = DUCKING;
       move->acceleration.x = 0;
       // Slows the player down
@@ -929,7 +911,7 @@ void PlayerSystem::updateAirVelocity() {
    } else {
       move->acceleration.y = 0;
    }
-   if (duck && isSuperMario()) {
+   if (duck && (isSuperMario() || isFireMario())) {
       currentState = DUCKING;
    } else {
       currentState = JUMPING;
@@ -1122,6 +1104,39 @@ void PlayerSystem::checkEnemyCollisions(World* world) {
                score->addComponent<AddScoreComponent>(100);
             }
 
+            break;
+         case EnemyType::CHEEP_CHEEP:
+            if (isSuperStar()) {
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+
+               enemy->addComponent<EnemyDestroyedComponent>();
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+               return;
+            }
+            if ((move->velocity.y > 0 || (move->velocity.y == 0 && enemyMove->velocity.y < 0)) &&
+                enemy->hasComponent<CrushableComponent>()) {
+               enemy->addComponent<CrushedComponent>();
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
+
+               enemyCrushed = true;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+
+            } else if (!enemyCrushed && move->velocity.y <= 0 &&
+                       !mario->hasAny<FrozenComponent, EndingBlinkComponent>()) {
+               onGameOver(world);
+            } else if (enemyCrushed) {
+               enemy->addComponent<CrushedComponent>();
+               enemy->getComponent<MovingComponent>()->velocity.x = 0;
+               move->velocity.y = -MARIO_BOUNCE;
+
+               Entity* score(world->create());
+               score->addComponent<AddScoreComponent>(100);
+            }
             break;
          default:
             if (isSuperStar()) {

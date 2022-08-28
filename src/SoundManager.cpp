@@ -39,13 +39,11 @@ std::shared_ptr<Mix_Music> SoundManager::loadMusic(const char* path) {
 
 void SoundManager::playSound(SoundID sound) {
    auto* chunk = sounds.at(sound).get();
-   Mix_VolumeChunk(chunk, 50);
    Mix_PlayChannel(-1, chunk, 0);
 }
 
 void SoundManager::playMusic(MusicID music) {
    stopMusic();
-   Mix_VolumeMusic(50);
    Mix_PlayMusic(musics.at(music).get(), -1);
 }
 

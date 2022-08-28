@@ -105,8 +105,6 @@ class WarpCommand : public SequenceCommand {
 
                 TextureManager::Get().SetBackgroundColor(BackgroundColor::BLACK);
 
-                WarpSystem::setWarping(false);
-
                 player->remove<WaitUntilComponent>();
 
                 scene->switchLevel(warpPipe->newLevel.x, warpPipe->newLevel.y);

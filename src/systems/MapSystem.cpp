@@ -2137,6 +2137,18 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
                 },
                 MAX_FPS * 2.5);
 
+            entity->addComponent<CrushableComponent>([](Entity* entity) {
+               entity->getComponent<TextureComponent>()->setVerticalFlipped(true);
+
+               entity->getComponent<MovingComponent>()->acceleration.y = 0;
+
+               entity->addComponent<DeadComponent>();
+
+               entity->addComponent<ParticleComponent>();
+
+               entity->remove<TimerComponent>();
+            });
+
             entity->addComponent<EnemyComponent>(EnemyType::CHEEP_CHEEP);
          }
       } break;
