@@ -136,7 +136,7 @@ void PlayerSystem::onGameOver(World* world, bool outOfBounds) {
    auto* position = mario->getComponent<PositionComponent>();
    auto* spritesheet = mario->getComponent<SpritesheetComponent>();
 
-   if (outOfBounds && isSuperMario()) {
+   if (outOfBounds && (isSuperMario() || isFireMario())) {
       position->scale.y = SCALED_CUBE_SIZE;
       position->hitbox = SDL_Rect{0, 0, SCALED_CUBE_SIZE, SCALED_CUBE_SIZE};
       spritesheet->setEntityHeight(ORIGINAL_CUBE_SIZE);
