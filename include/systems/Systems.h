@@ -7,6 +7,7 @@
 #include "FlagSystem.h"
 #include "MapSystem.h"
 #include "MenuSystem.h"
+#include "OptionsSystem.h"
 #include "PhysicsSystem.h"
 #include "PlayerSystem.h"
 #include "RenderSystem.h"

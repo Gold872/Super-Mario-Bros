@@ -6,6 +6,7 @@
 
 enum class Key : int
 {
+   NONE,
    RIGHT,
    LEFT,
    JUMP,
@@ -17,6 +18,7 @@ enum class Key : int
    MENU_LEFT,
    MENU_RIGHT,
    MENU_ACCEPT,  // Select the current option
+   MENU_ESCAPE,
    PAUSE,
 };
 
@@ -31,6 +33,8 @@ class Input {
    void set(const Key action, SDL_Scancode keyCode);
 
    void update(const Uint8* keystates);
+
+   SDL_Scancode getBoundKey(Key action);
 
    bool getRawKey(Key action);
 

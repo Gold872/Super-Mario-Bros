@@ -4,6 +4,7 @@ Input Input::instance;
 
 void Input::initDefault() {
    keyBindings = std::unordered_map<Key, SDL_Scancode>{
+       {Key::NONE, SDL_SCANCODE_UNKNOWN},
        {Key::RIGHT, SDL_SCANCODE_D},
        {Key::LEFT, SDL_SCANCODE_A},
        {Key::JUMP, SDL_SCANCODE_SPACE},
@@ -15,6 +16,7 @@ void Input::initDefault() {
        {Key::MENU_LEFT, SDL_SCANCODE_LEFT},
        {Key::MENU_RIGHT, SDL_SCANCODE_RIGHT},
        {Key::MENU_ACCEPT, SDL_SCANCODE_RETURN},
+       {Key::MENU_ESCAPE, SDL_SCANCODE_ESCAPE},
        {Key::PAUSE, SDL_SCANCODE_ESCAPE},
    };
 
@@ -26,6 +28,8 @@ void Input::initDefault() {
 
 void Input::set(Key action, SDL_Scancode keyCode) {
    keyBindings.insert_or_assign(action, keyCode);
+   keysPressed.insert_or_assign(action, false);
+   keysHeld.insert_or_assign(action, false);
 }
 
 void Input::update(const Uint8* keystates) {
@@ -42,6 +46,10 @@ void Input::update(const Uint8* keystates) {
          keysHeld.insert_or_assign(key.first, false);
       }
    }
+}
+
+SDL_Scancode Input::getBoundKey(Key action) {
+   return keyBindings.at(action);
 }
 
 bool Input::getRawKey(Key action) {

@@ -53,8 +53,15 @@ GameScene::GameScene(int level, int subLevel) {
    }
 
    {
+      optionsText = world->create();
+      optionsText->addComponent<PositionComponent>(Vector2f(10.2, 9.5) * SCALED_CUBE_SIZE,
+                                                   Vector2i());
+      optionsText->addComponent<TextComponent>("OPTIONS", 14, false, false);
+   }
+
+   {
       endText = world->create();
-      endText->addComponent<PositionComponent>(Vector2f(10.2, 9.5) * SCALED_CUBE_SIZE, Vector2i());
+      endText->addComponent<PositionComponent>(Vector2f(10.2, 10.5) * SCALED_CUBE_SIZE, Vector2i());
       endText->addComponent<TextComponent>("END", 14, false, false);
    }
 
@@ -115,6 +122,21 @@ bool GameScene::isFinished() {
 void GameScene::handleInput() {
    world->handleInput();
 
+   if (world->hasSystem<OptionsSystem>()) {
+      if (world->getSystem<OptionsSystem>()->isFinished()) {
+         pausedText->getComponent<TextComponent>()->setVisible(true);
+         continueText->getComponent<TextComponent>()->setVisible(true);
+         optionsText->getComponent<TextComponent>()->setVisible(true);
+         endText->getComponent<TextComponent>()->setVisible(true);
+         selectCursor->getComponent<TextComponent>()->setVisible(true);
+
+         scoreSystem->showTransitionEntities();
+
+         world->unregisterSystem<OptionsSystem>();
+      }
+      return;
+   }
+
    Input& input = Input::Get();
 
    if (input.getKeyPressed(Key::PAUSE)) {
@@ -141,7 +163,18 @@ void GameScene::handleInput() {
                paused = false;
                unpause();
                break;
-            case 1:  // End
+            case 1:  // Options
+               world->registerSystem<OptionsSystem>();
+
+               pausedText->getComponent<TextComponent>()->setVisible(false);
+               continueText->getComponent<TextComponent>()->setVisible(false);
+               optionsText->getComponent<TextComponent>()->setVisible(false);
+               endText->getComponent<TextComponent>()->setVisible(false);
+               selectCursor->getComponent<TextComponent>()->setVisible(false);
+
+               scoreSystem->hideTransitionEntities();
+               break;
+            case 2:  // End
                paused = false;
                gameFinished = true;
                SoundManager::Get().stopMusic();
@@ -165,7 +198,7 @@ void GameScene::handleInput() {
 
    if (input.getKeyPressed(Key::MENU_DOWN)) {
       if (paused) {
-         if (pauseSelectedOption < 1) {
+         if (pauseSelectedOption < 2) {
             pauseSelectedOption++;
 
             selectCursor->getComponent<PositionComponent>()->position.y =
@@ -187,6 +220,7 @@ void GameScene::pause() {
 
    pausedText->getComponent<TextComponent>()->setVisible(true);
    continueText->getComponent<TextComponent>()->setVisible(true);
+   optionsText->getComponent<TextComponent>()->setVisible(true);
    endText->getComponent<TextComponent>()->setVisible(true);
    selectCursor->getComponent<TextComponent>()->setVisible(true);
 
@@ -202,12 +236,14 @@ void GameScene::unpause() {
 
    pausedText->getComponent<TextComponent>()->setVisible(false);
    continueText->getComponent<TextComponent>()->setVisible(false);
+   optionsText->getComponent<TextComponent>()->setVisible(false);
    endText->getComponent<TextComponent>()->setVisible(false);
    selectCursor->getComponent<TextComponent>()->setVisible(false);
 
    scoreSystem->hideTransitionEntities();
 
    pauseSelectedOption = 0;
+   selectCursor->getComponent<PositionComponent>()->position.y = 8.5 * SCALED_CUBE_SIZE;
 }
 
 void GameScene::setupLevel() {

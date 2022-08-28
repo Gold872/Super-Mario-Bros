@@ -26,8 +26,32 @@ MenuScene::MenuScene() {
    createMenuEntities();
 }
 
+void MenuScene::handleInput() {
+   world->handleInput();
+
+   if (world->hasSystem<OptionsSystem>()) {
+      if (world->getSystem<OptionsSystem>()->isFinished()) {
+         world->unregisterSystem<OptionsSystem>();
+         menuSystem->setEnabled(true);
+         menuSystem->showMenuText();
+      }
+      return;
+   }
+
+   if (Input::Get().getKeyPressed(Key::MENU_ACCEPT)) {
+      if (menuSystem->levelSelected()) {
+         finished = true;
+      } else if (menuSystem->optionsSelected()) {
+         world->registerSystem<OptionsSystem>();
+         menuSystem->setEnabled(false);
+         menuSystem->hideMenuText();
+      }
+      return;
+   }
+}
+
 bool MenuScene::isFinished() {
-   return Input::Get().getKeyPressed(Key::MENU_ACCEPT);
+   return finished;
 }
 
 int MenuScene::getSelectedLevel() {

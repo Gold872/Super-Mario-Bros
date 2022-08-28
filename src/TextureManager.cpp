@@ -72,9 +72,12 @@ SDL_Texture* TextureManager::LoadTexture(const char* path) {
    return texture;
 }
 
-std::shared_ptr<SDL_Texture> TextureManager::LoadSharedTexture(const char* path) {
+std::shared_ptr<SDL_Texture> TextureManager::LoadSharedTexture(const char* path,
+                                                               bool blueTransparent) {
    SDL_Surface* surface = IMG_Load(path);
-   SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 147, 187, 236));
+   if (blueTransparent) {
+      SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 147, 187, 236));
+   }
    std::shared_ptr<SDL_Texture> texture(SDL_CreateTextureFromSurface(renderer, surface),
                                         SDL_DestroyTexture);
    SDL_FreeSurface(surface);

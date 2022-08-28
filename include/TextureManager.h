@@ -25,7 +25,7 @@ class TextureManager {
    int Quit();
 
    SDL_Texture* LoadTexture(const char* path);
-   std::shared_ptr<SDL_Texture> LoadSharedTexture(const char* path);
+   std::shared_ptr<SDL_Texture> LoadSharedTexture(const char* path, bool blueTransparent = true);
    std::shared_ptr<TTF_Font> LoadSharedFont(const char* path, int fontSize);
    void Draw(SDL_Texture* texture, SDL_Rect destRect);
    void Draw(SDL_Texture* texture, SDL_Rect sourceRect, SDL_Rect destRect);

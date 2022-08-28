@@ -115,11 +115,15 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
 
       textComponent->texture = texture;
       SDL_FreeSurface(textSurface);
-   }
-   const char* message = textComponent->text.c_str();
 
-   int messageWidth = strlen(message) * textComponent->fontSize;
-   int messageHeight = (int)std::round(textComponent->fontSize * (23.0 / 21.0));
+      const char* message = textComponent->text.c_str();
+
+      int messageWidth = strlen(message) * textComponent->fontSize;
+      int messageHeight = (int)std::round(textComponent->fontSize * (23.0 / 21.0));
+
+      position->scale.x = messageWidth;
+      position->scale.y = messageHeight;
+   }
 
    float screenPositionX =
        (followCamera) ? position->position.x - Camera::Get().getCameraX() : position->position.x;
@@ -129,8 +133,8 @@ void RenderSystem::renderText(Entity* entity, bool followCamera) {
    if (textComponent->isVisible()) {
       TextureManager::Get().Draw(
           textComponent->texture,
-          (SDL_Rect){(int)std::round(screenPositionX), (int)std::round(screenPositionY),
-                     messageWidth, messageHeight});
+          SDL_Rect{(int)std::round(screenPositionX), (int)std::round(screenPositionY),
+                   position->scale.x, position->scale.y});
    }
 }
 

@@ -194,6 +194,7 @@ inline SystemID getSystemTypeID() {
 constexpr std::uint8_t maxSystems = 16;
 
 using SystemArray = std::array<System*, maxSystems>;
+using SystemBitset = std::bitset<maxSystems>;
 
 class World {
   public:
@@ -254,6 +255,8 @@ class World {
 
       auto* ptr = system.get();
 
+      systemBitset[getSystemTypeID<S>()] = true;
+
       systemArray[getSystemTypeID<S>()] = ptr;
       systems.emplace_back(std::move(system));
 
@@ -264,6 +267,12 @@ class World {
 
    template <typename T>
    void unregisterSystem() {
+      if (!hasSystem<T>()) {
+         return;
+      }
+
+      systemBitset[getSystemTypeID<T>()] = false;
+
       auto* toRemove = systemArray[getSystemTypeID<T>()];
 
       systems.erase(std::remove_if(systems.begin(), systems.end(), [toRemove, this](auto& ptr) {
@@ -273,6 +282,11 @@ class World {
          }
          return false;
       }));
+   }
+
+   template <typename T>
+   bool hasSystem() {
+      return systemBitset[getSystemTypeID<T>()];
    }
 
    template <typename T>
@@ -364,5 +378,6 @@ class World {
    std::vector<Entity*> destroyQueue;
 
    SystemArray systemArray;
+   SystemBitset systemBitset;
    std::vector<std::unique_ptr<System>> systems;
 };

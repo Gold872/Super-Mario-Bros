@@ -108,10 +108,11 @@ class GameScene : public Scene {
 
    Entity* pausedText;
    Entity* continueText;
+   Entity* optionsText;
    Entity* endText;
    Entity* selectCursor;
 
-   int pauseSelectedOption = 0;  // 0 is Continue, 1 is End
+   int pauseSelectedOption = 0;  // 0 is Continue, 1 is Options, 2 is End
 
    std::unique_ptr<Level> gameLevel = std::make_unique<Level>();
 
