@@ -14,11 +14,11 @@ The following libraries are required to compile and run this project
 Once you have the zip files extracted and the dlls placed into the project directory, run this command
 
 ```bash
-g++ -O1 -I"src/*" -I"res/*" -I"include/*" -L"<SDL2 Location>" -L"<SDL2_image Location>" -L"<SDL2_TTF Location>" -L"<SDL2_Mixer Location>" -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+g++ -mwindows -I"include" -I"<SDL2 Location>/include" -I"<SDL2_image Location>/include" -I"<SDL2_mixer Location>/include" -I"<SDL2_ttf Location>/include" src/*.cpp src/*/*.cpp -O1 -L"<SDL2 Location>/lib" -L"<SDL2_image Location>/lib" -L"<SDL2_TTF Location>/lib" -L"<SDL2_Mixer Location>/lib" -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 ```
 *Note: If you are on Windows and using MinGW, you must add* `-lmingw32` *before* `-lSDL2main` *in the command*
 
-The [bin/](bin/) directory contains a precompiled executable if you do not want to go through the installation and compiling process
+The [bin](bin/) directory contains a precompiled executable if you do not want to go through the installation and compiling process
 
 ## How it Works
 
