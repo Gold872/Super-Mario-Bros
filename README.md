@@ -11,14 +11,25 @@ The following libraries are required to compile and run this project
 - [SDL2_TTF](https://www.libsdl.org/projects/SDL_ttf/release/)
 - [SDL2_Mixer](https://libsdl.org/projects/SDL_mixer/)
 
-Once you have the zip files extracted and the dlls placed into the project directory, run this command
+Once you have the zip files extracted and the dlls placed into the project directory, compile using one of the following methods
+
+### Makefile (Recommended)
+
+1. Open the [Makefile](Makefile)
+
+2. Replace the areas where you see \*\*\*\*\*\*SDL2 LOCATION\*\*\*\*\*\* with the direct location of the folder for the specified library
+    - If you are using the MinGW32 compiler, in the LINKER_FLAGS section, add `-lmingw32` before `$(SDL2_LINKER_FLAGS)`
+
+3. Run the Makefile build command, `make`
+
+### Command Line
 
 ```bash
-g++ -mwindows -I"include" -I"<SDL2 Location>/include" -I"<SDL2_image Location>/include" -I"<SDL2_mixer Location>/include" -I"<SDL2_ttf Location>/include" src/*.cpp src/*/*.cpp -O1 -L"<SDL2 Location>/lib" -L"<SDL2_image Location>/lib" -L"<SDL2_TTF Location>/lib" -L"<SDL2_Mixer Location>/lib" -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
+g++ -std=c++17 -static-libgcc -static-libstdc++ -mwindows -I"include" -I"<SDL2 Location>/include" -I"<SDL2_image Location>/include" -I"<SDL2_mixer Location>/include" -I"<SDL2_ttf Location>/include" src/*.cpp src/*/*.cpp -O1 -o "Super Mario Bros" res/super_mario_bros.res -L"<SDL2 Location>/lib" -L"<SDL2_image Location>/lib" -L"<SDL2_TTF Location>/lib" -L"<SDL2_Mixer Location>/lib" -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer
 ```
-*Note: If you are on Windows and using MinGW, you must add* `-lmingw32` *before* `-lSDL2main` *in the command*
+*Note: If you are on Windows and using MinGW32, you must add* `-lmingw32` *before* `-lSDL2main` *in the command*
 
-The [bin](bin/) directory contains a precompiled executable if you do not want to go through the installation and compiling process
+The [bin](bin) directory contains a precompiled executable if you do not want to go through the installation and compiling process
 
 ## How it Works
 
