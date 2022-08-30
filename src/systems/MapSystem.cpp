@@ -1861,9 +1861,9 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
 
             entity->addComponent<DeadComponent>();
 
-            entity->remove<AnimationComponent>();
+            entity->addComponent<FrozenComponent>();
 
-            entity->remove<MovingComponent>();
+            entity->remove<AnimationComponent>();
 
             entity->addComponent<DestroyDelayedComponent>(20);
          });

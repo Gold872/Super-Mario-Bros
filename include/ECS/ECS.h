@@ -116,6 +116,8 @@ class Entity {
    // Returns the component it needs to get
    template <typename C>
    inline C* getComponent() {
+      assert(hasComponent<C>() && "Getting non-existent component.");
+
       auto ptr(componentArray[getComponentTypeID<C>()]);
       return static_cast<C*>(ptr);
    }
@@ -221,7 +223,7 @@ class World {
    }
 
    void destroy(Entity* entity) {
-      assert(entity);
+      assert(entity && "Destroying non-existent entity.");
 
       destroyQueue.push_back(entity);
    }
@@ -291,12 +293,16 @@ class World {
 
    template <typename T>
    T* getSystem() {
+      assert(hasSystem<T>() && "Getting non-existent system.");
+
       auto ptr(systemArray[getSystemTypeID<T>()]);
       return static_cast<T*>(ptr);
    }
 
    template <typename T>
    void disableSystem() {
+      assert(hasSystem<T>() && "Disabling non-existent system.");
+
       getSystem<T>()->setEnabled(false);
    }
 
@@ -309,6 +315,8 @@ class World {
 
    template <typename T>
    void enableSystem() {
+      assert(hasSystem<T>() && "Enabling non-existent system.");
+
       getSystem<T>()->setEnabled(true);
    }
 
