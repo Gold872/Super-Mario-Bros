@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Math.h"
+#include "SMBMath.h"
 
 #include <unordered_map>
 #include <vector>

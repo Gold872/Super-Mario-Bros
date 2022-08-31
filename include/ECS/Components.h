@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "ECS.h"
 #include "Map.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
 
@@ -12,8 +12,13 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <math.h>
 #include <memory>
 #include <unordered_map>
+
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
 
 struct PositionComponent : public Component {
    PositionComponent(Vector2f position, Vector2i scale) : position{position}, scale{scale} {

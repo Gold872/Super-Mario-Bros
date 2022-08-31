@@ -4,8 +4,6 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 
-#include <iostream>
-
 void CollectibleSystem::tick(World* world) {
    world->find<CollectibleComponent>([](Entity* entity) {
       auto* collectible = entity->getComponent<CollectibleComponent>();

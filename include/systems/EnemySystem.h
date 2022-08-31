@@ -2,7 +2,7 @@
 
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
-#include "Math.h"
+#include "SMBMath.h"
 
 class EnemySystem : public System {
   public:

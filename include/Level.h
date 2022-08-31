@@ -2,7 +2,7 @@
 
 #include "ECS/Components.h"
 #include "Map.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "TextureManager.h"
 
 #include <iostream>
@@ -419,6 +419,8 @@ class Level {
    }
 
    void loadLevelData(string levelProperties) {
+      std::smatch tempMatch;
+
       data.levelType = loadEnumData<LevelType>("LEVEL_TYPE" + normalRegexPattern, levelProperties,
                                                levelTypeString);
 
@@ -475,7 +477,7 @@ class Level {
 
    string normalRegexPattern = "(?:\\s)?=(?:\\s)?(\\w+|[+-]*\\d+)";
 
-   string arrayPattern = "(?:\\s)?=(?:\\s)?\\\\\\n([\\(\\)\\d\\s\\w,\\\\\\n]+)";
+   string arrayPattern = "(?:\\s)?=(?:\\s)?\\\\(?:\\r)?\\n([\\(\\)\\d\\s\\w,\\\\\\r\\n]+)";
 
    string enumPattern = "(\\w+)";
 

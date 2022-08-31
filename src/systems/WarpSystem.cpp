@@ -6,7 +6,7 @@
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "Input.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
 #include "command/Commands.h"

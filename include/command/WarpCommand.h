@@ -2,7 +2,7 @@
 
 #include "Camera.h"
 #include "ECS/ECS.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "command/Command.h"
 #include "command/RunCommand.h"
 #include "command/SequenceCommand.h"

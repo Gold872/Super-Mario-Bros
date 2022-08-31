@@ -3,8 +3,8 @@
 #include "Level.h"
 #include "Map.h"
 #include "Scene.h"
-#include "Systems/RenderSystem.h"
-#include "systems/systems.h"
+#include "systems/RenderSystem.h"
+#include "systems/Systems.h"
 
 #include <SDL2/SDL_thread.h>
 

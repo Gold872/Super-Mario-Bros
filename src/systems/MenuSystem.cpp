@@ -3,7 +3,7 @@
 #include "Constants.h"
 #include "ECS/Components.h"
 #include "Input.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "TextureManager.h"
 
 #include <string>

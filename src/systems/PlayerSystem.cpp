@@ -7,7 +7,7 @@
 #include "Input.h"
 #include "Level.h"
 #include "Map.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
