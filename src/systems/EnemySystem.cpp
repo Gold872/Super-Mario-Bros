@@ -366,7 +366,8 @@ void EnemySystem::tick(World* world) {
          auto* otherPosition = other->getComponent<PositionComponent>();
          if (!AABBCollision(position, otherPosition) || enemy == other ||
              enemy->hasAny<DeadComponent, PiranhaPlantComponent>() ||
-             other->hasComponent<ParticleComponent>()) {
+             other->hasComponent<ParticleComponent>() || enemyType == EnemyType::SPINE ||
+             enemyType == EnemyType::BULLET_BILL) {
             return;
          }
          if (other->getComponent<EnemyComponent>()->enemyType == EnemyType::KOOPA_SHELL &&

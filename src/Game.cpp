@@ -30,15 +30,6 @@ void Game::handleInput() {
          case SDL_QUIT:
             core->setRunning(false);
             break;
-         case SDL_WINDOWEVENT:
-            switch (event.window.event) {
-               case SDL_WINDOWEVENT_RESIZED:
-                  TextureManager::Get().ResizeWindow();
-                  break;
-               default:
-                  break;
-            }
-            break;
          default:
             break;
       }

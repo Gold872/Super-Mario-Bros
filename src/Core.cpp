@@ -28,12 +28,12 @@ int Core::init() {
       std::cerr << "Error Initializing Sound Manager" << std::endl;
       return -1;
    }
+   srand(time(NULL));  // Generates a random time seed for the game to generate random numbers
    game.init();
    return 0;
 }
 
 void Core::run() {
-   srand(time(NULL));  // Generates a random time seed for the game to generate random numbers
    while (running) {
       mainLoop();
    }

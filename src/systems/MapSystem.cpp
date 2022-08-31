@@ -1540,6 +1540,10 @@ void MapSystem::createEnemyEntities(World* world, int coordinateX, int coordinat
             auto* position = entity->getComponent<PositionComponent>();
             auto* spritesheet = entity->getComponent<SpritesheetComponent>();
 
+            if (!Camera::Get().inCameraRange(position)) {
+               return;
+            }
+
             CommandScheduler::getInstance().addCommand(new SequenceCommand(std::vector<Command*>{
                 /* Set Lakitu to be in the cloud */
                 new RunCommand([=]() {

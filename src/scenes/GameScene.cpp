@@ -6,7 +6,7 @@
 #include "Input.h"
 #include "Level.h"
 #include "Map.h"
-#include "Math.h"
+#include "SMBMath.h"
 #include "SoundManager.h"
 #include "TextureManager.h"
 #include "command/CommandScheduler.h"
@@ -21,6 +21,10 @@
 #include <string>
 #include <tuple>
 #include <vector>
+
+#ifdef __EMSCRIPTEN__
+#include <thread>
+#endif
 
 static int preloadEntities(void* data) {
    MapSystem* mapSystem = (MapSystem*)data;
@@ -271,11 +275,18 @@ void GameScene::setupLevel() {
    world->disableSystem<CallbackSystem, PhysicsSystem, EnemySystem>();
 
    renderSystem->setTransitionRendering(true);
+
+#ifdef __EMSCRIPTEN__
+   preloadEntities(mapSystem);
+#else
    loaderThread = SDL_CreateThread(preloadEntities, "MapLoader", (void*)mapSystem);
+#endif
 
    CommandScheduler::getInstance().addCommand(new DelayedCommand(
        [=]() {
+#ifndef __EMSCRIPTEN__
           SDL_WaitThread(loaderThread, NULL);
+#endif
           world->enableSystem<CallbackSystem, PhysicsSystem, EnemySystem>();
           renderSystem->setTransitionRendering(false);
 

@@ -1,5 +1,9 @@
 #include "TextureManager.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "Constants.h"
 
 #include <SDL2/SDL.h>
@@ -50,7 +54,7 @@ int TextureManager::Init() {
       std::cerr << "Failed to set Draw Color: " << SDL_GetError() << std::endl;
    }
 
-   SDL_RenderSetScale(renderer, 1.0f, 1.0f);
+   SDL_RenderSetLogicalSize(renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 
    return 0;
 }
@@ -155,17 +159,43 @@ void TextureManager::SetBackgroundColor(BackgroundColor color) {
 }
 
 void TextureManager::Clear() {
+   // Creates black borders
+   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
    SDL_RenderClear(renderer);
+
+   switch (currentColor) {
+      case BackgroundColor::BLUE:
+         SDL_SetRenderDrawColor(renderer, 92, 148, 252, 255);
+         break;
+      case BackgroundColor::BLACK:
+         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+         break;
+      default:
+         break;
+   }
+
+   // Draws the background only where the game is supposed to be
+   SDL_Rect backgroundRect{0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+   SDL_RenderFillRect(renderer, &backgroundRect);
 }
 
 void TextureManager::Display() {
    SDL_RenderPresent(renderer);
 }
 
+#ifdef __EMSCRIPTEN__
+EM_JS(int, get_canvas_width, (), { return canvas.width; });
+EM_JS(int, get_canvas_height, (), { return canvas.height; });
+#endif
+
 void TextureManager::ResizeWindow() {
+#ifdef __EMSCRIPTEN__
+   int windowWidth = get_canvas_width();
+   int windowHeight = get_canvas_height();
+#else
    int windowWidth = SDL_GetWindowSurface(window)->w;
    int windowHeight = SDL_GetWindowSurface(window)->h;
-
+#endif
    float scaleWidth = (float)((float)windowWidth / (float)SCREEN_WIDTH);
    float scaleHeight = (float)((float)windowHeight / (float)SCREEN_HEIGHT);
 

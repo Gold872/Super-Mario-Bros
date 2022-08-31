@@ -6,7 +6,7 @@ PLAYER_START = (1, 6)
 CAMERA_START = (0, 0)
 
 # The maximum point the camera can reach
-CAMERA_MAX = 167
+CAMERA_MAX = 166
 
 ### LEVEL CLASSIFICATIONS
 # The type of Level

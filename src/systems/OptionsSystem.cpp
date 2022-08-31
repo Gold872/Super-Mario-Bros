@@ -184,12 +184,19 @@ void OptionsSystem::tick(World* world) {
    }
    SDL_Event event;
 
+#ifdef __EMSCRIPTEN__
+   while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_KEYDOWN) {
+         break;
+      }
+   }
+#else
    SDL_WaitEvent(&event);
+#endif
 
    if (event.type != SDL_KEYDOWN) {
       return;
    }
-
    // Updates the input since the WaitEvent would cause a delay
    Input::Get().update(SDL_GetKeyboardState(NULL));
 
