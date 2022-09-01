@@ -3,6 +3,8 @@
 
 A recreation of the Super Mario Bros game from the Nintendo NES using C++ and the SDL2 Library
 
+Demo Video: https://www.youtube.com/watch?v=2BYdCmH1EEY
+
 Play it online! https://gold872.github.io/games/super_mario_bros/
 
 * *NOTE: The web build is lower quality and may contain some glitches*
@@ -60,10 +62,6 @@ The [bin](bin) directory contains a precompiled executable if you do not want to
 - The Levels were created with the help of a program called [Tiled Map Editor](https://www.mapeditor.org/)
 
 - After creating the Map in the Tiled Editor, they are exported as a CSV file, and then get read by the Map class, and using the IDs from the Map, the Entities get created with their needed components.
-
-## Roadmap
-
-- Record a demo video of the game
 
 ## Special Thanks
 People that have been a huge help in developing this project with their amazing knowledge and skills
