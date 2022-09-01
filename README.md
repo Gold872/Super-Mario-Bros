@@ -3,6 +3,10 @@
 
 A recreation of the Super Mario Bros game from the Nintendo NES using C++ and the SDL2 Library
 
+Play it online! https://gold872.github.io/games/super_mario_bros/
+
+* *NOTE: The web build is lower quality and may contain some glitches*
+
 ## Compiling
 
 The following libraries are required to compile and run this project
@@ -18,9 +22,11 @@ Once you have the zip files extracted and the dlls placed into the project direc
 1. Open the [Makefile](Makefile)
 
 2. Replace the areas where you see \*\*\*\*\*\*SDL2 LOCATION\*\*\*\*\*\* with the direct location of the folder for the specified library
-    - If you are using the MinGW32 compiler, in the LINKER_FLAGS section, add `-lmingw32` before `$(SDL2_LINKER_FLAGS)`
+    - If you are using windows, in the LINKER_FLAGS section, add `-lmingw32` before `$(SDL2_LINKER_FLAGS)`
 
 3. Run the Makefile build command, `make`
+
+    - The MinGW compiler has a different command, `mingw32-make`
 
 ### Command Line
 
@@ -62,12 +68,24 @@ The [bin](bin) directory contains a precompiled executable if you do not want to
 ## Special Thanks
 People that have been a huge help in developing this project with their amazing knowledge and skills
  - [Killme](https://github.com/killme)
- - [lemur68](https://github.com/friedkeenan/)
+ - [friedkeenan](https://github.com/friedkeenan/)
 
- ## Screenshots
+## Screenshots
 
- ### Main Menu
- ![Main Menu](res/screenshots/menu.png)
+### Main Menu
+![Main Menu](res/screenshots/menu.png)
 
- ### Game
- ![Game](res/screenshots/game.png)
+### Game
+![Game](res/screenshots/game.png)
+
+### Pause Screen
+![Pause Screen](res/screenshots/pause.png)
+
+### Options
+![Options](res/screenshots/options.png)
+
+### Underwater
+![Underwater Level](res/screenshots/underwater.png)
+
+### Gameover
+![Game Over](res/screenshots/gameover.png)
