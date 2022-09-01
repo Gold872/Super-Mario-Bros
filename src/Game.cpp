@@ -30,6 +30,9 @@ void Game::handleInput() {
          case SDL_QUIT:
             core->setRunning(false);
             break;
+         case SDL_KEYDOWN:
+            Input::Get().getCurrentRawKeys().push_back(event.key.keysym.scancode);
+            break;
          default:
             break;
       }

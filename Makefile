@@ -35,7 +35,7 @@ LIBRARY_SEARCHES = -L$(SDL2_LOCATION)/lib -L$(SDL2_IMAGE_LOCATION)/bin -L$(SDL2_
 SDL2_LINKER_FLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
 #LINKER_FLAGS specifies the libraries we're linking against
-#**********IF YOU'RE USING MINGW32 ADD "-lmingw32" BEFORE "$(SDL2_LINKER_FLAGS)"**********
+#**********IF YOU'RE COMPILING ON WINDOWS ADD "-lmingw32" BEFORE "$(SDL2_LINKER_FLAGS)"**********
 LINKER_FLAGS = $(SDL2_LINKER_FLAGS)
 
 #OBJ_NAME specifies the name of our exectuable

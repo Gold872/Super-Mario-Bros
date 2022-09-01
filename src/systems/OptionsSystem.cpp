@@ -182,31 +182,44 @@ void OptionsSystem::tick(World* world) {
    if (currentWaitingKey == Key::NONE) {
       return;
    }
-   SDL_Event event;
+
+   SDL_Scancode pressedKey = SDL_SCANCODE_UNKNOWN;
 
 #ifdef __EMSCRIPTEN__
-   while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_KEYDOWN) {
+   if (Input::Get().getCurrentRawKeys().empty()) {
+      return;
+   }
+   for (SDL_Scancode key : Input::Get().getCurrentRawKeys()) {
+      if (key != SDL_SCANCODE_RETURN) {
+         pressedKey = key;
          break;
       }
    }
 #else
+   SDL_Event event;
+
    SDL_WaitEvent(&event);
-#endif
 
    if (event.type != SDL_KEYDOWN) {
       return;
    }
+
+   pressedKey = event.key.keysym.scancode;
+#endif
+   if (pressedKey == SDL_SCANCODE_UNKNOWN) {
+      return;
+   }
+
    // Updates the input since the WaitEvent would cause a delay
    Input::Get().update(SDL_GetKeyboardState(NULL));
 
-   if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+   if (pressedKey == SDL_SCANCODE_ESCAPE) {
       hideKeySelectEntities();
       currentWaitingKey = Key::NONE;
       return;
    }
 
-   Input::Get().set(currentWaitingKey, event.key.keysym.scancode);
+   Input::Get().set(currentWaitingKey, pressedKey);
 
    Entity* keyText = keyEntityMap.at(currentWaitingKey);
 

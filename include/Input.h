@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 
 #include <unordered_map>
+#include <vector>
 
 enum class Key : int
 {
@@ -42,6 +43,8 @@ class Input {
 
    bool getKeyHeld(Key action);
 
+   std::vector<SDL_Scancode>& getCurrentRawKeys();
+
   private:
    static Input instance;
 
@@ -50,6 +53,8 @@ class Input {
    }
 
    Input(const Input&) = delete;
+
+   std::vector<SDL_Scancode> currentRawKeys;  // All keys on the keyboard
 
    std::unordered_map<Key, SDL_Scancode> keyBindings;
    std::unordered_map<Key, bool> keysPressed;

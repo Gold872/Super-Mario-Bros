@@ -22,10 +22,6 @@
 #include <tuple>
 #include <vector>
 
-#ifdef __EMSCRIPTEN__
-#include <thread>
-#endif
-
 static int preloadEntities(void* data) {
    MapSystem* mapSystem = (MapSystem*)data;
 

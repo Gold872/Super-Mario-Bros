@@ -33,6 +33,8 @@ void Input::set(Key action, SDL_Scancode keyCode) {
 }
 
 void Input::update(const Uint8* keystates) {
+   currentRawKeys.clear();
+
    for (auto key : keyBindings) {
       // If key pressed
       if (keystates[key.second]) {
@@ -62,4 +64,8 @@ bool Input::getKeyPressed(Key action) {
 
 bool Input::getKeyHeld(Key action) {
    return keysHeld.at(action);
+}
+
+std::vector<SDL_Scancode>& Input::getCurrentRawKeys() {
+   return currentRawKeys;
 }
